@@ -1,0 +1,12 @@
+{
+  "name": "math-tower-defense",
+  "version": "1.0.0",
+  "description": "Casual educational Math Tower Defense game featuring Prime Factorization and Absolute Value",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["tower-defense", "math", "education", "canvas"],
+  "author": "",
+  "license": "MIT"
+}

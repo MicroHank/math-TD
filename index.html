@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>數論防線：質數與絕對值塔防 (Math Tower Defense)</title>
+  <meta name="description" content="寓教於樂的休閒數學塔防遊戲！運用質因數分解砲塔、絕對值稜鏡與運算子調整塔，化解數字異獸的進攻，挑戰大魔王！">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-app">
+    <!-- 頂部導航與狀態儀表列 -->
+    <header id="game-header">
+      <div class="brand-section">
+        <div class="brand-badge">🧮</div>
+        <div>
+          <h1 id="game-title">數論防線 <span class="tag">Math TD</span></h1>
+          <p class="brand-subtitle" id="hud-level-name">第一章：1-1 偶數小徑</p>
+        </div>
+      </div>
+
+      <!-- 資源監控器 -->
+      <div class="hud-resources">
+        <div class="resource-item gold" title="目前可用金幣">
+          <span class="icon">🪙</span>
+          <span class="val" id="hud-gold">160</span>
+          <span class="unit">G</span>
+        </div>
+
+        <div class="resource-item lives" title="防禦核心剩餘生命">
+          <span class="icon">🛡️</span>
+          <span class="val" id="hud-lives">10 / 10</span>
+        </div>
+
+        <div class="resource-item wave" title="當前挑戰波次">
+          <span class="icon">🌊</span>
+          <span class="label">波次</span>
+          <span class="val" id="hud-wave">0 / 3</span>
+        </div>
+      </div>
+
+      <!-- 控制工具組 -->
+      <div class="hud-controls">
+        <button id="btn-map" class="btn-tool highlight-gold" title="切換關卡大地圖">🗺️ 關卡地圖</button>
+        <button id="btn-speed" class="btn-tool" title="切換遊戲速度 (1x/2x)">1x 速度</button>
+        <button id="btn-pause" class="btn-tool" title="暫停 / 繼續">⏸ 暫停</button>
+        <button id="btn-sound" class="btn-tool" title="音效開關">🔊 音效</button>
+        <button id="btn-guide" class="btn-tool highlight" title="數論作戰教學手冊">📖 數論指南</button>
+      </div>
+    </header>
+
+    <!-- 波次任務指引條 -->
+    <section id="wave-banner">
+      <div class="wave-info">
+        <h2 id="wave-title">準備就緒：佈署你的防線</h2>
+        <p id="wave-tip">💡 在基座（+）上建造防禦塔，按鍵盤 [1] ~ [5] 或點選下方卡片選擇防禦塔！</p>
+      </div>
+      <button id="btn-start-wave" class="btn-action">▶ 開始下一波 (Space)</button>
+    </section>
+
+    <!-- 遊戲中央舞台 -->
+    <main id="stage-wrapper">
+      <div class="canvas-container">
+        <!-- 魔王專屬血條 HUD -->
+        <div id="boss-bar-container" class="hidden">
+          <div class="boss-info">
+            <span id="boss-name">👑 魔王：合數泰坦【360】</span>
+            <span id="boss-hp-text">剩餘數值: 360 / 360</span>
+          </div>
+          <div class="boss-hp-track">
+            <div id="boss-hp-fill" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <canvas id="game-canvas"></canvas>
+
+        <!-- 選中防禦塔時的懸浮控制面板 -->
+        <div id="tower-details-panel" class="hidden">
+          <div class="panel-header">
+            <div>
+              <h3 id="selected-tower-name">2號質數砲</h3>
+              <span id="selected-tower-level" class="level-badge">等級 1</span>
+            </div>
+            <button id="btn-deselect-tower" class="btn-close" title="取消選取">✕</button>
+          </div>
+          <div id="selected-tower-stats" class="stats-row">
+            <!-- 動態插入數據 -->
+          </div>
+          <div class="panel-actions">
+            <button id="btn-upgrade-tower" class="btn-upgrade">🔼 升級 (40🪙)</button>
+            <button id="btn-sell-tower" class="btn-sell">💰 變賣 (+35🪙)</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 底部防禦塔建造工作坊 (Tower Shop) -->
+    <footer id="tower-shop">
+      <div class="shop-label">建造工坊</div>
+      <div class="tower-cards-grid">
+        <!-- 2號質數砲 -->
+        <button class="tower-card" data-tower-type="PRIME_2" id="card-prime-2">
+          <span class="hotkey">1</span>
+          <div class="card-icon prime-2">2</div>
+          <div class="card-info">
+            <div class="card-title">2號 雙子砲</div>
+            <div class="card-desc">除以 2 ｜ 偶數剋星</div>
+          </div>
+          <div class="card-cost">50 🪙</div>
+        </button>
+
+        <!-- 3號三元激光 -->
+        <button class="tower-card" data-tower-type="PRIME_3" id="card-prime-3">
+          <span class="hotkey">2</span>
+          <div class="card-icon prime-3">3</div>
+          <div class="card-info">
+            <div class="card-title">3號 三元激光</div>
+            <div class="card-desc">除以 3 ｜ 數字和是3倍數</div>
+          </div>
+          <div class="card-cost">75 🪙</div>
+        </button>
+
+        <!-- 5號五芒衝擊 -->
+        <button class="tower-card" data-tower-type="PRIME_5" id="card-prime-5">
+          <span class="hotkey">3</span>
+          <div class="card-icon prime-5">5</div>
+          <div class="card-info">
+            <div class="card-title">5號 五芒衝擊</div>
+            <div class="card-desc">除以 5 ｜ 尾數是0或5</div>
+          </div>
+          <div class="card-cost">100 🪙</div>
+        </button>
+
+        <!-- |x| 絕對值稜鏡 -->
+        <button class="tower-card" data-tower-type="ABSOLUTE" id="card-absolute">
+          <span class="hotkey">4</span>
+          <div class="card-icon absolute-prism">|x|</div>
+          <div class="card-info">
+            <div class="card-title">絕對值稜鏡</div>
+            <div class="card-desc">淨化負數怪 $|-n| \to n$</div>
+          </div>
+          <div class="card-cost">120 🪙</div>
+        </button>
+
+        <!-- [+/-] 運算子調整塔 -->
+        <button class="tower-card" data-tower-type="OPERATOR" id="card-operator">
+          <span class="hotkey">5</span>
+          <div class="card-icon operator">±1</div>
+          <div class="card-info">
+            <div class="card-title">運算子調整塔</div>
+            <div class="card-desc">微調質數 ｜ $7 - 1 = 6$</div>
+          </div>
+          <div class="card-cost">90 🪙</div>
+        </button>
+      </div>
+    </footer>
+
+    <!-- 關卡地圖 Modal (World & Stage Select) -->
+    <div id="modal-stage-map" class="modal-overlay hidden">
+      <div class="modal-content map-modal-box">
+        <div class="modal-header">
+          <h2>🗺️ 數論作戰星圖（關卡大地圖）</h2>
+          <button id="btn-close-map" class="btn-close">✕</button>
+        </div>
+        <!-- 章節分頁 -->
+        <div class="chapter-tabs">
+          <button class="tab-btn active" data-chapter="world-1">第一章：合數平原</button>
+          <button class="tab-btn" data-chapter="world-2">第二章：負數深淵</button>
+        </div>
+        <div id="stages-grid" class="stages-container">
+          <!-- 動態由 main.js 渲染關卡卡片與星級 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 單關通關勝利彈窗 (Level Victory) -->
+    <div id="modal-level-victory" class="modal-overlay hidden">
+      <div class="modal-content gameover-box">
+        <div style="font-size: 44px; margin-bottom: 8px;">🏆</div>
+        <h2 id="victory-level-title" style="color: #38bdf8;">關卡守衛成功！</h2>
+        <div id="victory-stars" class="stars-row">⭐⭐⭐</div>
+        <p id="victory-level-desc" style="margin-bottom: 20px;">成功擊潰該關卡全部怪物波次！</p>
+        <div style="display: flex; gap: 10px; flex-direction: column;">
+          <button id="btn-next-level" class="btn-action">▶ 前進下一關卡</button>
+          <div style="display: flex; gap: 10px;">
+            <button id="btn-back-to-map" class="btn-tool" style="flex: 1;">🗺️ 返回地圖</button>
+            <button id="btn-replay-level" class="btn-tool" style="flex: 1;">🔄 重新挑戰</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 遊戲結束與結算彈窗 -->
+    <div id="modal-gameover" class="modal-overlay hidden">
+      <div class="modal-content gameover-box">
+        <h2 id="gameover-title">防線告急！</h2>
+        <p id="gameover-desc">核心生命耗盡。善用質因數提示、絕對值稜鏡與運算子調整，再試一次吧！</p>
+        <div style="display: flex; gap: 10px;">
+          <button id="btn-restart" class="btn-action pulse" style="flex: 1;">🔄 重新挑戰此關</button>
+          <button id="btn-gameover-map" class="btn-tool" style="flex: 1;">🗺️ 返回關卡地圖</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 數論作戰指南 Modal (青少年數感輔助手冊) -->
+    <div id="modal-guide" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>📚 數論作戰速查手冊</h2>
+          <button id="btn-close-guide" class="btn-close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="guide-card">
+            <h3>🔹 質因數分解消除機制</h3>
+            <p>怪物身上的數字代表它的生命。當防禦塔的質數<strong>能整除</strong>該數字時，怪物就會被立即除以該質數（例如 $30 \div 3 = 10$），數值持續縮小直到變為 <strong>1</strong> 瞬間消滅並噴發金幣！</p>
+            <div class="guide-chips">
+              <span class="chip chip-blue">● 藍點：代表包含因數 2</span>
+              <span class="chip chip-yellow">● 黃點：代表包含因數 3</span>
+              <span class="chip chip-green">● 綠點：代表包含因數 5</span>
+            </div>
+          </div>
+
+          <div class="guide-card">
+            <h3>⚡ 運算子調整塔（+1 / -1）</h3>
+            <p>遇到無法被 2、3、5 整除的質數怪（如 <code>7</code>、<code>11</code>、<code>13</code>）時，運算子調整塔會發動量子脈衝：</p>
+            <ul>
+              <li>$7 - 1 = 6$（隨即能被 2 與 3 號砲除法消滅！）</li>
+              <li>$11 + 1 = 12$ 或 $11 - 1 = 10$（化質數為合數！）</li>
+            </ul>
+          </div>
+
+          <div class="guide-card">
+            <h3>🔮 負數幽靈與絕對值（$|x|$）</h3>
+            <p>帶有負號的怪（如 <code>-12</code>、<code>-30</code>）帶有反向護盾，質數砲無法直接傷害！請在路徑前線建造 <strong>「|x| 絕對值稜鏡」</strong>，將 $|-n| \to +n$ 轉為正數。</p>
+          </div>
+
+          <div class="guide-card">
+            <h3>👑 大魔王（Boss）專屬機制</h3>
+            <ul>
+              <li><strong>乘倍光環 (×2)</strong>：魔王發動激怒波時，周圍小怪數值瞬間翻倍！</li>
+              <li><strong>極性反轉 (±)</strong>：第二章魔王會將正數小怪轉化為負數幽靈怪！</li>
+              <li><strong>因數侍從</strong>：魔王被除法重擊時，會分裂出小型護衛侍從。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

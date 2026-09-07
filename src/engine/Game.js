@@ -1,0 +1,632 @@
+// Main Game Engine for Math Tower Defense
+import { Tower, TOWER_TYPES } from '../entities/Tower.js';
+import { Particle, CoinFloat } from '../entities/Projectile.js';
+import { WaveManager } from '../levels/WaveManager.js';
+import { LEVELS } from '../levels/LevelData.js';
+import { progress } from './ProgressManager.js';
+import { sound } from './Audio.js';
+
+export class Game {
+  constructor(canvas, uiCallbacks) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.ui = uiCallbacks || {};
+
+    // 遊戲參數與經濟
+    this.currentLevelId = '1-1';
+    this.currentLevel = LEVELS['1-1'];
+    this.gold = this.currentLevel.initialGold;
+    this.lives = this.currentLevel.initialLives;
+    this.maxLives = this.currentLevel.initialLives;
+    this.gameSpeed = 1;
+    this.isPaused = false;
+    this.isGameOver = false;
+    this.isGameOverReported = false;
+
+    // 地圖路線點 (支援單路或多路)
+    this.lanes = this.currentLevel.lanes;
+    this.buildPads = this.currentLevel.buildPads.map(p => ({ ...p, tower: null }));
+
+    // 實體清單
+    this.monsters = [];
+    this.towers = [];
+    this.projectiles = [];
+    this.beams = [];
+    this.particles = [];
+    this.coinFloats = [];
+    this.activeBoss = null;
+
+    this.waveManager = new WaveManager(this.currentLevel);
+
+    // 互動狀態
+    this.selectedBuildType = null;
+    this.selectedTower = null;
+    this.mousePos = { x: -100, y: -100 };
+    this.hoveredPad = null;
+
+    // 時間
+    this.lastTime = performance.now();
+    this.portalPulse = 0;
+
+    this.initCanvasDPI();
+    this.setupEvents();
+    queueMicrotask(() => this.syncUI());
+
+    // 啟動主迴圈
+    requestAnimationFrame(this.loop.bind(this));
+  }
+
+  loadLevel(levelId) {
+    const levelData = LEVELS[levelId] || LEVELS['1-1'];
+    this.currentLevelId = levelId;
+    this.currentLevel = levelData;
+    this.gold = levelData.initialGold;
+    this.lives = levelData.initialLives;
+    this.maxLives = levelData.initialLives;
+    this.lanes = levelData.lanes;
+    this.buildPads = levelData.buildPads.map(p => ({ ...p, tower: null }));
+
+    this.monsters = [];
+    this.towers = [];
+    this.projectiles = [];
+    this.beams = [];
+    this.particles = [];
+    this.coinFloats = [];
+    this.activeBoss = null;
+    this.selectedTower = null;
+    this.selectedBuildType = null;
+    this.isGameOver = false;
+    this.isGameOverReported = false;
+
+    this.waveManager = new WaveManager(levelData);
+    this.syncUI();
+  }
+
+  initCanvasDPI() {
+    const dpr = window.devicePixelRatio || 1;
+    this.logicalWidth = 960;
+    this.logicalHeight = 560;
+    this.canvas.width = this.logicalWidth * dpr;
+    this.canvas.height = this.logicalHeight * dpr;
+    this.ctx.scale(dpr, dpr);
+  }
+
+  setupEvents() {
+    const updateCoords = (clientX, clientY) => {
+      const rect = this.canvas.getBoundingClientRect();
+      const scaleX = this.logicalWidth / rect.width;
+      const scaleY = this.logicalHeight / rect.height;
+      this.mousePos.x = (clientX - rect.left) * scaleX;
+      this.mousePos.y = (clientY - rect.top) * scaleY;
+
+      // 偵測懸停基座
+      this.hoveredPad = this.buildPads.find(p => Math.hypot(p.x - this.mousePos.x, p.y - this.mousePos.y) <= 32);
+    };
+
+    this.canvas.addEventListener('mousemove', (e) => {
+      updateCoords(e.clientX, e.clientY);
+    });
+
+    this.canvas.addEventListener('mouseleave', () => {
+      this.mousePos.x = -100;
+      this.mousePos.y = -100;
+      this.hoveredPad = null;
+    });
+
+    this.canvas.addEventListener('click', () => {
+      sound.init();
+      this.handleClick();
+    });
+
+    this.canvas.addEventListener('touchstart', (e) => {
+      sound.init();
+      if (e.touches.length > 0) {
+        updateCoords(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    this.canvas.addEventListener('touchend', () => {
+      this.handleClick();
+    });
+  }
+
+  handleClick() {
+    if (this.isGameOver) return;
+
+    // 1. 如果點擊了已有防禦塔的基座
+    const clickedPadWithTower = this.buildPads.find(
+      p => p.tower && Math.hypot(p.x - this.mousePos.x, p.y - this.mousePos.y) <= 26
+    );
+
+    if (clickedPadWithTower) {
+      this.selectTower(clickedPadWithTower.tower);
+      this.selectedBuildType = null;
+      this.syncUI();
+      return;
+    }
+
+    // 2. 如果當前有選中的建造類型，且點擊在空基座上
+    if (this.selectedBuildType && this.hoveredPad && !this.hoveredPad.tower) {
+      const towerConfig = TOWER_TYPES[this.selectedBuildType];
+      if (this.gold >= towerConfig.cost) {
+        this.buildTower(this.hoveredPad, towerConfig);
+        this.selectedBuildType = null;
+        this.syncUI();
+        return;
+      } else {
+        sound.playResist();
+      }
+    }
+
+    // 3. 點擊空白處，取消選取
+    this.selectTower(null);
+    this.syncUI();
+  }
+
+  selectBuildType(typeKey) {
+    this.selectedBuildType = typeKey;
+    this.selectedTower = null;
+    this.syncUI();
+  }
+
+  selectTower(tower) {
+    this.selectedTower = tower;
+    if (this.ui.onTowerSelect) {
+      this.ui.onTowerSelect(tower);
+    }
+  }
+
+  buildTower(pad, config) {
+    this.gold -= config.cost;
+    const tower = new Tower({
+      id: `t_${Date.now()}_${Math.random()}`,
+      x: pad.x,
+      y: pad.y,
+      type: config.type,
+      range: config.range,
+      fireRate: config.fireRate,
+      cost: config.cost,
+      color: config.color,
+      label: config.label,
+      factor: config.factor
+    });
+
+    pad.tower = tower;
+    this.towers.push(tower);
+    sound.playBuild();
+    this.createSparks(pad.x, pad.y, config.color, 14);
+    this.selectTower(tower);
+  }
+
+  upgradeSelectedTower() {
+    if (!this.selectedTower) return;
+    const cost = this.selectedTower.upgradeCost;
+    if (cost > 0 && this.gold >= cost) {
+      this.gold -= cost;
+      this.selectedTower.upgrade();
+      this.createSparks(this.selectedTower.x, this.selectedTower.y, '#f59e0b', 16);
+      this.syncUI();
+      if (this.ui.onTowerSelect) this.ui.onTowerSelect(this.selectedTower);
+    } else {
+      sound.playResist();
+    }
+  }
+
+  sellSelectedTower() {
+    if (!this.selectedTower) return;
+    const pad = this.buildPads.find(p => p.tower === this.selectedTower);
+    const refund = this.selectedTower.sellValue;
+    this.addGold(refund, this.selectedTower.x, this.selectedTower.y);
+
+    if (pad) pad.tower = null;
+    this.towers = this.towers.filter(t => t !== this.selectedTower);
+    sound.playEliminate();
+    this.selectTower(null);
+    this.syncUI();
+  }
+
+  startNextWave() {
+    if (this.waveManager.startNextWave()) {
+      sound.playWaveComplete();
+      this.syncUI();
+    }
+  }
+
+  toggleSpeed() {
+    this.gameSpeed = this.gameSpeed === 1 ? 2 : 1;
+    this.syncUI();
+  }
+
+  togglePause() {
+    this.isPaused = !this.isPaused;
+    this.syncUI();
+  }
+
+  addMonster(monster) {
+    this.monsters.push(monster);
+  }
+
+  spawnSplitClone(parentMonster, newVal) {
+    const clone = new (parentMonster.constructor)({
+      id: `m_split_${Date.now()}_${Math.random()}`,
+      value: newVal,
+      waypoints: parentMonster.waypoints,
+      speed: parentMonster.speed * 1.15,
+      splitOnDivide: false
+    });
+    clone.x = parentMonster.x + (Math.random() * 16 - 8);
+    clone.y = parentMonster.y + (Math.random() * 16 - 8);
+    clone.currentWaypointIndex = parentMonster.currentWaypointIndex;
+    clone.progress = Math.max(0, parentMonster.progress - 10);
+    this.monsters.push(clone);
+    this.createSparks(clone.x, clone.y, '#fbbf24', 10);
+  }
+
+  addProjectile(proj) {
+    this.projectiles.push(proj);
+  }
+
+  addBeam(beam) {
+    this.beams.push(beam);
+  }
+
+  addGold(amount, x, y) {
+    this.gold += amount;
+    this.coinFloats.push(new CoinFloat({ x, y, amount }));
+    this.syncUI();
+  }
+
+  damageBase(amount = 1) {
+    this.lives = Math.max(0, this.lives - amount);
+    this.syncUI();
+    if (this.lives <= 0) {
+      this.isGameOver = true;
+    }
+  }
+
+  createSparks(x, y, color, count = 10) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 40 + Math.random() * 100;
+      this.particles.push(new Particle({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        color: color,
+        radius: 2 + Math.random() * 2.5,
+        maxLife: 0.4 + Math.random() * 0.3
+      }));
+    }
+  }
+
+  createExplosion(x, y, color, count = 20) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 60 + Math.random() * 140;
+      this.particles.push(new Particle({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        color: color,
+        radius: 3 + Math.random() * 3,
+        maxLife: 0.6 + Math.random() * 0.4
+      }));
+    }
+  }
+
+  onWaveCompleted() {
+    sound.playWaveComplete();
+    const completedWaveNum = this.waveManager.currentWaveIndex;
+    const bonus = 40 + completedWaveNum * 15;
+    this.addGold(bonus, 480, 280);
+    this.syncUI();
+  }
+
+  onLevelCompleted() {
+    sound.playWaveComplete();
+    let stars = 1;
+    if (this.lives === this.maxLives) {
+      stars = 3;
+    } else if (this.lives >= Math.ceil(this.maxLives * 0.5)) {
+      stars = 2;
+    }
+
+    progress.completeLevel(this.currentLevelId, stars, this.currentLevel.nextLevelId);
+
+    if (this.ui.onLevelVictory) {
+      this.ui.onLevelVictory({
+        levelId: this.currentLevelId,
+        levelName: this.currentLevel.name,
+        stars: stars,
+        nextLevelId: this.currentLevel.nextLevelId
+      });
+    }
+    this.syncUI();
+  }
+
+  syncUI() {
+    if (this.ui.onStatsChange) {
+      const waveData = this.waveManager.currentWaveData;
+      const totalWaves = this.waveManager.totalWaves;
+
+      this.ui.onStatsChange({
+        gold: this.gold,
+        lives: this.lives,
+        maxLives: this.maxLives,
+        wave: this.waveManager.currentWaveIndex + (this.waveManager.waveInProgress ? 1 : 0),
+        displayWaveNumber: this.waveManager.currentWaveIndex + 1,
+        totalWaves: totalWaves,
+        waveTitle: waveData ? waveData.title : '關卡挑戰成功！',
+        waveTip: waveData ? waveData.tip : '防守核心完好，準備前進下一關！',
+        waveInProgress: this.waveManager.waveInProgress,
+        isLevelFinished: this.waveManager.isLevelFinished,
+        gameSpeed: this.gameSpeed,
+        isPaused: this.isPaused,
+        selectedBuildType: this.selectedBuildType,
+        selectedTower: this.selectedTower,
+        isGameOver: this.isGameOver,
+        currentLevelId: this.currentLevelId,
+        currentLevelName: this.currentLevel.name,
+        activeBoss: this.activeBoss ? {
+          name: this.activeBoss.bossName,
+          value: this.activeBoss.value,
+          originalValue: this.activeBoss.originalValue,
+          percent: Math.max(0, Math.min(100, Math.round((Math.abs(this.activeBoss.value) / Math.abs(this.activeBoss.originalValue)) * 100)))
+        } : null
+      }, this);
+    }
+  }
+
+  restart() {
+    this.loadLevel(this.currentLevelId);
+  }
+
+  // 更新邏輯
+  update(dt) {
+    if (this.isPaused || this.isGameOver) return;
+
+    this.portalPulse += dt * 2.5;
+
+    // 波次生成器
+    this.waveManager.update(dt, this);
+
+    // 尋找當前魔王
+    this.activeBoss = this.monsters.find(m => m.isBoss && !m.isDead) || null;
+
+    // 更新怪物
+    for (let i = this.monsters.length - 1; i >= 0; i--) {
+      const m = this.monsters[i];
+      m.update(dt, this);
+      if (m.isDead) {
+        this.monsters.splice(i, 1);
+      }
+    }
+
+    // 更新防禦塔
+    for (const t of this.towers) {
+      t.update(dt, this.monsters, this);
+    }
+
+    // 更新子彈與光束
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const p = this.projectiles[i];
+      p.update(dt, this);
+      if (p.isDead) this.projectiles.splice(i, 1);
+    }
+
+    for (let i = this.beams.length - 1; i >= 0; i--) {
+      const b = this.beams[i];
+      b.update(dt, this);
+      if (b.isDead) this.beams.splice(i, 1);
+    }
+
+    // 更新粒子與浮動金幣
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const pt = this.particles[i];
+      pt.update(dt);
+      if (pt.isDead) this.particles.splice(i, 1);
+    }
+
+    for (let i = this.coinFloats.length - 1; i >= 0; i--) {
+      const cf = this.coinFloats[i];
+      cf.update(dt);
+      if (cf.isDead) this.coinFloats.splice(i, 1);
+    }
+  }
+
+  // 繪製地圖與背景（支援多路徑）
+  drawMap() {
+    const ctx = this.ctx;
+    const w = this.logicalWidth;
+    const h = this.logicalHeight;
+
+    // 1. 科技深色網格背景
+    ctx.fillStyle = '#090d16';
+    ctx.fillRect(0, 0, w, h);
+
+    // 數學微光符號背景裝飾
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.03)';
+    ctx.font = '24px "JetBrains Mono", monospace';
+    const mathSymbols = ['÷', '×', '|x|', '∑', 'π', '2', '3', '5', '±1', '√'];
+    for (let x = 40; x < w; x += 120) {
+      for (let y = 50; y < h; y += 100) {
+        const sym = mathSymbols[((x + y) / 10) % mathSymbols.length | 0];
+        ctx.fillText(sym, x, y);
+      }
+    }
+
+    // 2. 怪物行走軌跡（多路徑渲染）
+    for (let laneIdx = 0; laneIdx < this.lanes.length; laneIdx++) {
+      const waypoints = this.lanes[laneIdx];
+      ctx.beginPath();
+      ctx.moveTo(waypoints[0].x, waypoints[0].y);
+      for (let i = 1; i < waypoints.length; i++) {
+        ctx.lineTo(waypoints[i].x, waypoints[i].y);
+      }
+
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 36;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      ctx.strokeStyle = laneIdx === 0 ? 'rgba(56, 189, 248, 0.25)' : 'rgba(192, 132, 252, 0.25)';
+      ctx.lineWidth = 6;
+      ctx.shadowColor = laneIdx === 0 ? '#38bdf8' : '#c084fc';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 每個起點的傳送門
+      const pStart = waypoints[0];
+      const startLabel = this.lanes.length > 1 ? (laneIdx === 0 ? '上路' : '下路') : '起點';
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(pStart.x, pStart.y, 22 + Math.sin(this.portalPulse + laneIdx) * 3, 0, Math.PI * 2);
+      ctx.fillStyle = laneIdx === 0 ? 'rgba(56, 189, 248, 0.2)' : 'rgba(192, 132, 252, 0.2)';
+      ctx.fill();
+      ctx.strokeStyle = laneIdx === 0 ? '#38bdf8' : '#c084fc';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px "Outfit", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(startLabel, pStart.x, pStart.y);
+      ctx.restore();
+    }
+
+    // 終點防守核心 (所有路徑共用最後節點)
+    const pEnd = this.lanes[0][this.lanes[0].length - 1];
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(pEnd.x, pEnd.y, 24 + Math.cos(this.portalPulse) * 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(34, 197, 94, 0.2)';
+    ctx.fill();
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = '#22c55e';
+    ctx.shadowBlur = 12;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#4ade80';
+    ctx.font = 'bold 12px "Outfit", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('核心', pEnd.x, pEnd.y);
+    ctx.restore();
+
+    // 繪製防禦塔建造基座
+    for (const pad of this.buildPads) {
+      if (pad.tower) continue;
+
+      const isHovered = this.hoveredPad === pad;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(pad.x, pad.y, 20, 0, Math.PI * 2);
+      ctx.fillStyle = isHovered ? 'rgba(56, 189, 248, 0.15)' : 'rgba(30, 41, 59, 0.6)';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = isHovered ? '#38bdf8' : '#334155';
+      if (isHovered) {
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 8;
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = isHovered ? '#38bdf8' : '#64748b';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('+', pad.x, pad.y);
+      ctx.restore();
+    }
+  }
+
+  // 繪製選定建造時的懸停預覽
+  drawBuildPreview() {
+    if (!this.selectedBuildType) return;
+    const config = TOWER_TYPES[this.selectedBuildType];
+    if (!config) return;
+
+    const pad = this.hoveredPad;
+    const x = pad ? pad.x : this.mousePos.x;
+    const y = pad ? pad.y : this.mousePos.y;
+
+    if (x < 0 || y < 0) return;
+
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, config.range, 0, Math.PI * 2);
+    this.ctx.fillStyle = config.color + '18';
+    this.ctx.fill();
+    this.ctx.strokeStyle = config.color;
+    this.ctx.lineWidth = 1.5;
+    this.ctx.setLineDash([4, 4]);
+    this.ctx.stroke();
+
+    this.ctx.globalAlpha = 0.7;
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, 20, 0, Math.PI * 2);
+    this.ctx.fillStyle = config.color;
+    this.ctx.fill();
+    this.ctx.fillStyle = '#0f172a';
+    this.ctx.font = 'bold 12px "Outfit", sans-serif';
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(config.label, x, y);
+    this.ctx.restore();
+  }
+
+  render() {
+    this.ctx.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
+
+    this.drawMap();
+
+    // 繪製防禦塔
+    for (const t of this.towers) {
+      t.draw(this.ctx, t === this.selectedTower);
+    }
+
+    // 繪製光束
+    for (const b of this.beams) {
+      b.draw(this.ctx);
+    }
+
+    // 繪製怪物
+    for (const m of this.monsters) {
+      m.draw(this.ctx);
+    }
+
+    // 繪製子彈
+    for (const p of this.projectiles) {
+      p.draw(this.ctx);
+    }
+
+    // 繪製粒子特效
+    for (const pt of this.particles) {
+      pt.draw(this.ctx);
+    }
+
+    // 繪製漂浮金幣文字
+    for (const cf of this.coinFloats) {
+      cf.draw(this.ctx);
+    }
+
+    // 建造預覽
+    this.drawBuildPreview();
+  }
+
+  loop(timestamp) {
+    const rawDt = (timestamp - this.lastTime) / 1000;
+    this.lastTime = timestamp;
+    const dt = Math.min(rawDt, 0.1) * this.gameSpeed;
+
+    this.update(dt);
+    this.render();
+
+    requestAnimationFrame(this.loop.bind(this));
+  }
+}
