@@ -14,7 +14,7 @@ export class EndlessManager {
       id: 'endless',
       name: '♾️ 無盡算力試煉 (Endless Mode)',
       difficulty: '難度隨波次無上限提升',
-      gold: 240,
+      gold: 360,
       description: '面對無窮無盡的數論洪流！每通關 5 波獲得 +5 顆科研星級！',
       lanes: baseLevel.lanes,
       buildPads: baseLevel.buildPads,
@@ -36,10 +36,10 @@ export class EndlessManager {
     ];
 
     // 完全平方數池
-    const squares = [16, 25, 36, 49, 64, 81, 100, 144, 196, 225];
+    const squares = [16, 25, 36, 49, 64, 81, 100, 144, 196, 225, 256, 289 , 324, 381, 400];
 
     // 費波那契衝鋒怪池
-    const fibs = [8, 13, 21, 34, 55, 89];
+    const fibs = [8, 13, 21, 34, 55, 89, 144, 233, 377];
 
     // 1. 若為魔王波次：加入強大魔王怪
     if (isBossWave) {
