@@ -25,8 +25,12 @@ export class Monster {
     this.x = waypoints[0].x;
     this.y = waypoints[0].y;
     this.progress = 0;
-    this.baseSpeed = speed;
-    this.speed = speed;
+
+    // 方案三：費波那契衝鋒隊加速
+    this.isFibonacci = this.checkFibonacci(value);
+    const speedBonus = this.isFibonacci ? 1.38 : 1.0;
+    this.baseSpeed = speed * speedBonus;
+    this.speed = this.baseSpeed;
 
     this.isDead = false;
     this.reachedEnd = false;
@@ -55,6 +59,22 @@ export class Monster {
     this.lcmMergeCooldown = 0; // 融合免疫冷卻
     this.isLcmMerged = false;  // 是否為公倍數合體巨獸
     this.lcmMergeCount = 0;    // 累計融合次數
+
+    // 方案三：特殊數論怪屬性
+    this.twinPartner = null;        // 孿生質數雙子夥伴引用
+    this.isRaging = false;          // 雙子狂暴狀態
+    this.hasPerfectShield = this.isPerfectNumber; // 完全數聖靈護盾 (70% 減傷，需 ±1 破盾)
+  }
+
+  checkFibonacci(val) {
+    const v = Math.abs(val);
+    const fibs = new Set([8, 13, 21, 34, 55, 89, 144, 233]);
+    return fibs.has(v);
+  }
+
+  get isPerfectNumber() {
+    const v = Math.abs(this.value);
+    return v === 6 || v === 28 || v === 496;
   }
 
   applyStun(duration) {
@@ -160,16 +180,28 @@ export class Monster {
       return false;
     }
 
+    // 方案三：完全數聖靈護盾 70% 減傷
+    let effectiveDamage = damage;
+    if (this.hasPerfectShield && this.isPerfectNumber) {
+      effectiveDamage = Math.max(1, Math.round(damage * 0.3));
+      this.addFloatingText('完全數護盾 -70%!', '#fde047');
+    }
+
+    // 方案三：孿生質數雙子量子共振分攤傷害 (25%)
+    if (this.twinPartner && !this.twinPartner.isDead) {
+      this.twinPartner.takeResonanceDamage(Math.round(effectiveDamage * 0.25), game);
+    }
+
     // 可以整除！扣減當前階層耐受度
     this.hitFlashTimer = 0.22;
     this.prevStageHp = Math.max(this.prevStageHp, this.stageHp);
-    this.stageHp -= damage;
+    this.stageHp -= effectiveDamage;
 
     if (this.stageHp > 0) {
       // 尚未破除該階段：彈出傷害與剩餘打擊次數提示
       sound.playShoot(primeFactor);
-      const remainingHits = Math.ceil(this.stageHp / damage);
-      this.addFloatingText(`-${damage} (剩${remainingHits}下)`, '#38bdf8');
+      const remainingHits = Math.ceil(this.stageHp / effectiveDamage);
+      this.addFloatingText(`-${effectiveDamage} (剩${remainingHits}下)`, '#38bdf8');
       game.createSparks(this.x, this.y, '#38bdf8', 6);
       return true;
     }
@@ -203,24 +235,7 @@ export class Monster {
 
     // 當數字除至 1，宣告完全分解消除！
     if (this.value <= 1) {
-      this.isDead = true;
-      sound.playEliminate();
-      const goldMult = game && game.perkManager ? (1 + game.perkManager.getGoldMultiplier()) : 1.0;
-      const lcmBountyBonus = this.isLcmMerged ? 1.5 : 1.0;
-      const baseBounty = Math.max(5, Math.floor(Math.abs(this.originalValue) * 0.40 * goldMult * lcmBountyBonus));
-      const reward = this.isBoss ? Math.max(60, baseBounty * 2) : baseBounty;
-      game.addGold(reward, this.x, this.y);
-      game.createExplosion(this.x, this.y, this.isLcmMerged ? '#ec4899' : (this.isBoss ? '#f59e0b' : '#22c55e'), this.isBoss || this.isLcmMerged ? 50 : 24);
-
-      // 模組三：公倍數合體巨獸因數裂變引爆
-      if (this.isLcmMerged && game && game.lcmManager) {
-        game.lcmManager.triggerFissionShockwave(this.x, this.y, primeFactor);
-      }
-
-      // 歐拉篩法因數連鎖引爆
-      if (game && game.perkManager && game.perkManager.hasEulerSieve()) {
-        game.triggerEulerSieveExplosion(this.x, this.y, primeFactor);
-      }
+      this.onEliminated(primeFactor, game);
     } else {
       // 重設新階層耐受血量
       this.maxStageHp = this.calcStageMaxHp(newVal, this.isBoss);
@@ -229,6 +244,71 @@ export class Monster {
     }
 
     return true;
+  }
+
+  // 受到量子共振傳導傷害
+  takeResonanceDamage(dmg, game) {
+    if (this.isDead || dmg <= 0) return;
+    this.stageHp -= dmg;
+    this.hitFlashTimer = 0.15;
+    this.addFloatingText(`量子共振 -${dmg}`, '#c084fc');
+    game.createSparks(this.x, this.y, '#a855f7', 4);
+    if (this.stageHp <= 0) {
+      const factors = this.getFactors();
+      if (factors.length > 0) {
+        this.takePrimeHit(factors[0], 25, game);
+      } else {
+        this.value = Math.max(1, this.value - 1);
+        if (this.value <= 1) {
+          this.onEliminated(null, game);
+        } else {
+          this.maxStageHp = this.calcStageMaxHp(this.value, this.isBoss);
+          this.stageHp = this.maxStageHp;
+        }
+      }
+    }
+  }
+
+  // 怪物消除觸發全場連鎖、狂暴與掉落獎勵
+  onEliminated(primeFactor = null, game) {
+    this.isDead = true;
+    sound.playEliminate();
+    const goldMult = game && game.perkManager ? (1 + game.perkManager.getGoldMultiplier()) : 1.0;
+    const lcmBountyBonus = this.isLcmMerged ? 1.5 : 1.0;
+    const baseBounty = Math.max(5, Math.floor(Math.abs(this.originalValue) * 0.40 * goldMult * lcmBountyBonus));
+    const reward = this.isBoss ? Math.max(60, baseBounty * 2) : baseBounty;
+    game.addGold(reward, this.x, this.y);
+    game.createExplosion(this.x, this.y, this.isLcmMerged ? '#ec4899' : (this.isBoss ? '#f59e0b' : '#22c55e'), this.isBoss || this.isLcmMerged ? 50 : 24);
+
+    // 方案三：孿生雙子陣亡觸發狂暴
+    if (this.twinPartner && !this.twinPartner.isDead && !this.twinPartner.isRaging) {
+      this.twinPartner.isRaging = true;
+      this.twinPartner.speed = this.twinPartner.baseSpeed * 1.6;
+      this.twinPartner.addFloatingText('⚡ 雙子狂暴 (速度+60%)!', '#ef4444');
+      game.createSparks(this.twinPartner.x, this.twinPartner.y, '#ef4444', 20);
+    }
+
+    // 方案三：費波那契黃金螺旋減速波
+    if (this.isFibonacci && game && game.monsters) {
+      for (const m of game.monsters) {
+        if (m.isDead) continue;
+        const d = Math.hypot(m.x - this.x, m.y - this.y);
+        if (d <= 220) {
+          m.applySlow(0.6, 2.5);
+          m.addFloatingText('🌀 黃金螺旋引力波!', '#fbbf24');
+        }
+      }
+    }
+
+    // 模組三：公倍數合體巨獸因數裂變引爆
+    if (this.isLcmMerged && game && game.lcmManager) {
+      game.lcmManager.triggerFissionShockwave(this.x, this.y, primeFactor);
+    }
+
+    // 歐拉篩法因數連鎖引爆
+    if (game && game.perkManager && game.perkManager.hasEulerSieve() && primeFactor) {
+      game.triggerEulerSieveExplosion(this.x, this.y, primeFactor);
+    }
   }
 
   // 受到絕對值稜鏡淨化
@@ -260,6 +340,13 @@ export class Monster {
       return false;
     }
 
+    // 方案三：完全數聖靈護盾被 ±1 運算子擊碎！
+    if (this.hasPerfectShield && this.isPerfectNumber) {
+      this.hasPerfectShield = false;
+      this.addFloatingText('💥 完全數護盾粉碎!', '#fde047');
+      game.createExplosion(this.x, this.y, '#fbbf24', 32);
+    }
+
     this.operatorCooldown = 1.6;
     sound.playShoot(3);
     const oldVal = this.value;
@@ -277,13 +364,7 @@ export class Monster {
 
     // 若運算後數值歸一 (<= 1) 且非負數，直接達成因數歸一消滅
     if (this.value <= 1 && !this.isNegative) {
-      this.isDead = true;
-      sound.playEliminate();
-      const goldMult = game && game.perkManager ? (1 + game.perkManager.getGoldMultiplier()) : 1.0;
-      const baseBounty = Math.max(5, Math.floor(Math.abs(this.originalValue) * 0.40 * goldMult));
-      const reward = this.isBoss ? Math.max(60, baseBounty * 2) : baseBounty;
-      game.addGold(reward, this.x, this.y);
-      game.createExplosion(this.x, this.y, '#2dd4bf', 24);
+      this.onEliminated(null, game);
     }
 
     return true;
@@ -323,12 +404,7 @@ export class Monster {
         this.hp = Math.max(0, newVal);
 
         if (this.value <= 1) {
-          this.isDead = true;
-          sound.playEliminate();
-          const baseBounty = Math.max(6, Math.floor(Math.abs(this.originalValue) * 0.45));
-          const reward = this.isBoss ? Math.max(60, baseBounty * 2) : baseBounty;
-          game.addGold(reward, this.x, this.y);
-          game.createExplosion(this.x, this.y, '#f59e0b', this.isBoss ? 50 : 28);
+          this.onEliminated(null, game);
         } else {
           this.maxStageHp = this.calcStageMaxHp(newVal, this.isBoss);
           this.stageHp = this.maxStageHp;
@@ -604,6 +680,78 @@ export class Monster {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('lcm', this.x, this.y - this.radius - 8);
+      ctx.restore();
+    }
+
+    // 方案三：完全數聖靈護盾 (6, 28, 496) 六芒星對稱陣
+    if (this.hasPerfectShield && this.isPerfectNumber) {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.pulseAngle * 0.5);
+      ctx.strokeStyle = '#fde047';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#facc15';
+      ctx.shadowBlur = 12;
+      const s = this.radius * 1.35;
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (i * Math.PI) / 3;
+        const r = i % 2 === 0 ? s : s * 0.65;
+        const px = Math.cos(a) * r;
+        const py = Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 方案三：孿生雙子狂暴紅炎光環
+    if (this.isRaging) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius + 7 + Math.sin(this.pulseAngle * 3) * 3, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#dc2626';
+      ctx.shadowBlur = 14;
+      ctx.stroke();
+      ctx.fillStyle = '#ef4444';
+      ctx.font = 'bold 10px "Outfit", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚡ 狂暴', this.x, this.y - this.radius - 12);
+      ctx.restore();
+    }
+
+    // 方案三：費波那契衝鋒隊黃金螺旋標誌
+    if (this.isFibonacci && !this.isBoss) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius + 4, 0, Math.PI * 2);
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 1.8;
+      ctx.setLineDash([3, 3]);
+      ctx.stroke();
+      ctx.fillStyle = '#f59e0b';
+      ctx.font = 'bold 11px "Outfit", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('φ', this.x + this.radius + 4, this.y - this.radius);
+      ctx.restore();
+    }
+
+    // 方案三：孿生質數量子光束連線
+    if (this.twinPartner && !this.twinPartner.isDead && this.id < this.twinPartner.id) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.twinPartner.x, this.twinPartner.y);
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.shadowColor = '#38bdf8';
+      ctx.shadowBlur = 8;
+      ctx.stroke();
       ctx.restore();
     }
 

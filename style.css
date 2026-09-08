@@ -1884,3 +1884,331 @@ body {
     white-space: normal;
   }
 }
+
+/* ==========================================================================
+   方案一：複合神塔 (Dual-Tower Fusion) 視覺樣式
+   ========================================================================== */
+.btn-fuse {
+  flex: 1;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(236, 72, 153, 0.25));
+  border: 1.5px solid #06b6d4;
+  color: #38bdf8;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.2);
+}
+
+.btn-fuse:hover {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.4), rgba(236, 72, 153, 0.4));
+  border-color: #ec4899;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(236, 72, 153, 0.4);
+}
+
+.build-option-card.fusion-card {
+  border-color: rgba(6, 182, 212, 0.35);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(80, 7, 36, 0.2));
+}
+
+.build-option-card.fusion-card:hover {
+  border-color: #ec4899;
+  box-shadow: 0 0 16px rgba(236, 72, 153, 0.35);
+  transform: translateY(-2px);
+}
+
+.option-icon.fusion-6 {
+  background: radial-gradient(circle, #082f49 0%, #06b6d4 100%);
+  color: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+  font-size: 11px;
+}
+
+.option-icon.fusion-15 {
+  background: radial-gradient(circle, #451a03 0%, #f59e0b 100%);
+  color: #ffffff;
+  border-color: #fbbf24;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+  font-size: 11px;
+}
+
+.option-icon.fusion-abs-sqrt {
+  background: radial-gradient(circle, #500724 0%, #ec4899 100%);
+  color: #ffffff;
+  border-color: #f472b6;
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+  font-size: 10px;
+}
+
+.option-icon.fusion-factorial {
+  background: radial-gradient(circle, #2e1065 0%, #a855f7 100%);
+  color: #ffffff;
+  border-color: #c084fc;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   方案五：大地圖模式切換器、無盡模式與魔王連戰樣式
+   ========================================================================== */
+.map-mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.map-mode-tab {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--border-subtle);
+  color: #94a3b8;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.map-mode-tab:hover {
+  background: rgba(30, 41, 59, 0.9);
+  color: #ffffff;
+  border-color: var(--color-primary);
+}
+
+.map-mode-tab.active {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(168, 85, 247, 0.25));
+  border-color: #38bdf8;
+  color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+.map-mode-view.hidden {
+  display: none;
+}
+
+/* 無盡試煉卡片 */
+.endless-banner-card {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 27, 75, 0.75));
+  border: 1.5px solid rgba(168, 85, 247, 0.4);
+  border-radius: 16px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 24px rgba(168, 85, 247, 0.15);
+  margin-top: 10px;
+}
+
+.endless-header-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #c084fc;
+  background: rgba(168, 85, 247, 0.15);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  margin-bottom: 12px;
+}
+
+.endless-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #ffffff, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.endless-desc {
+  font-size: 13px;
+  color: #cbd5e1;
+  max-width: 540px;
+  line-height: 1.6;
+  margin-bottom: 22px;
+}
+
+.endless-rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 26px;
+}
+
+.reward-pill {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.reward-pill .pill-icon {
+  font-size: 20px;
+}
+
+.reward-pill .pill-text {
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.reward-pill strong {
+  color: #fbbf24;
+}
+
+.btn-start-mode {
+  background: linear-gradient(135deg, #0284c7, #9333ea);
+  border: none;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  padding: 12px 36px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
+  transition: all 0.25s ease;
+}
+
+.btn-start-mode:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 0 30px rgba(147, 51, 234, 0.65);
+}
+
+/* 魔王連戰卡片網格 */
+.boss-rush-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.rush-title-wrap h3 {
+  font-size: 18px;
+  color: #fbbf24;
+  margin-bottom: 4px;
+}
+
+.rush-title-wrap p {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.rush-record-tag {
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: #fbbf24;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 8px;
+}
+
+.boss-rush-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.boss-rush-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.boss-rush-card:hover {
+  border-color: #fbbf24;
+  transform: translateY(-3px);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.3);
+}
+
+.rush-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rush-stage-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.rush-boss-icon {
+  font-size: 24px;
+}
+
+.rush-boss-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.rush-boss-value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.rush-skills-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.rush-skill-chip {
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(236, 72, 153, 0.15);
+  color: #f472b6;
+  border: 1px solid rgba(236, 72, 153, 0.3);
+}
+
+.btn-challenge-rush {
+  margin-top: 6px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(217, 119, 6, 0.5));
+  border: 1px solid #f59e0b;
+  color: #fef08a;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-challenge-rush:hover {
+  background: #f59e0b;
+  color: #000000;
+}
+

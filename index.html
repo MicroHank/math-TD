@@ -150,6 +150,7 @@
           </div>
 
           <div class="panel-actions">
+            <button id="btn-fuse-tower" class="btn-fuse hidden" title="進化融合為複合數論神塔">⚛️ 數論融合 (進化)</button>
             <button id="btn-sell-tower" class="btn-sell">💰 變賣 (+35🪙) [S]</button>
           </div>
         </div>
@@ -167,6 +168,7 @@
           <div class="build-tabs">
             <button class="build-tab-btn active" data-build-tab="prime" id="tab-build-prime">🔢 質數重砲 (1~4)</button>
             <button class="build-tab-btn" data-build-tab="special" id="tab-build-special">⚡ 代數與力場 (Q~R)</button>
+            <button class="build-tab-btn" data-build-tab="fusion" id="tab-build-fusion">⚛️ 複合神塔 (5~8)</button>
           </div>
 
           <!-- 質數組 -->
@@ -254,6 +256,49 @@
               <div class="option-cost">110 🪙</div>
             </button>
           </div>
+
+          <!-- 方案一：複合神塔組 -->
+          <div class="build-options-list hidden" id="build-list-fusion">
+            <button class="build-option-card fusion-card" data-tower-type="FUSION_6">
+              <span class="hotkey-badge">5</span>
+              <div class="option-icon fusion-6">2×3</div>
+              <div class="option-info">
+                <div class="option-title">2×3 六芒雙曜塔</div>
+                <div class="option-desc">同時發射 2 & 3 雙質數連除破甲</div>
+              </div>
+              <div class="option-cost">160 🪙</div>
+            </button>
+
+            <button class="build-option-card fusion-card" data-tower-type="FUSION_15">
+              <span class="hotkey-badge">6</span>
+              <div class="option-icon fusion-15">3×5</div>
+              <div class="option-info">
+                <div class="option-title">3×5 星軌聚財加農</div>
+                <div class="option-desc">3 & 5 金星軌道 ｜ 命中獲取雙倍金幣</div>
+              </div>
+              <div class="option-cost">210 🪙</div>
+            </button>
+
+            <button class="build-option-card fusion-card" data-tower-type="FUSION_ABS_SQRT">
+              <span class="hotkey-badge">7</span>
+              <div class="option-icon fusion-abs-sqrt">|√x|</div>
+              <div class="option-info">
+                <div class="option-title">|√x| 虛數引力稜鏡</div>
+                <div class="option-desc">負數直開虛數根 $\sqrt{|-x|}$ ＋ 超強引力</div>
+              </div>
+              <div class="option-cost">260 🪙</div>
+            </button>
+
+            <button class="build-option-card fusion-card" data-tower-type="FUSION_FACTORIAL">
+              <span class="hotkey-badge">8</span>
+              <div class="option-icon fusion-factorial">n!</div>
+              <div class="option-info">
+                <div class="option-title">n! 階乘坍縮衝擊波</div>
+                <div class="option-desc">微積分階乘連鎖波 ｜ 貫穿全場衰減因數</div>
+              </div>
+              <div class="option-cost">240 🪙</div>
+            </button>
+          </div>
         </div>
 
         <!-- 指揮官數論秘術操作台 (Commander Spells Dock) -->
@@ -316,27 +361,79 @@
       </div>
     </main>
 
-    <!-- 關卡地圖 Modal (World & Stage Select) -->
+    <!-- 關卡地圖 Modal (World & Stage Select & Endless & Boss Rush) -->
     <div id="modal-stage-map" class="modal-overlay hidden">
       <div class="modal-content map-modal-box">
         <div class="modal-header">
-          <h2>🗺️ 數論作戰星圖（關卡大地圖）</h2>
+          <div>
+            <h2>🗺️ 數論作戰星圖</h2>
+            <div class="map-mode-tabs">
+              <button class="map-mode-tab active" data-map-mode="adventure" id="tab-mode-adventure">🗺️ 關卡冒險 (5大章節)</button>
+              <button class="map-mode-tab" data-map-mode="endless" id="tab-mode-endless">♾️ 無盡算力試煉</button>
+              <button class="map-mode-tab" data-map-mode="boss_rush" id="tab-mode-boss-rush">👑 魔王連戰 (Boss Rush)</button>
+            </div>
+          </div>
           <div style="display: flex; gap: 10px; align-items: center;">
             <button id="btn-unlock-all" class="btn-unlock-all" title="一鍵解鎖全部 5 大章節關卡以便自由探索與測試">🔓 解鎖全關卡</button>
             <button id="btn-reset-game-map" class="btn-unlock-all btn-danger-reset" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;" title="清除全部 LocalStorage 紀錄，重置回遊戲最初狀態">🔄 重置遊戲</button>
             <button id="btn-close-map" class="btn-close">✕</button>
           </div>
         </div>
-        <!-- 章節分頁 -->
-        <div class="chapter-tabs">
-          <button class="tab-btn active" data-chapter="world-1">第一章：合數平原</button>
-          <button class="tab-btn" data-chapter="world-2">第二章：負數深淵</button>
-          <button class="tab-btn" data-chapter="world-3">第三章：平方之峰</button>
-          <button class="tab-btn" data-chapter="world-4">第四章：質數之城</button>
-          <button class="tab-btn" data-chapter="world-5">第五章：極限終焉</button>
+
+        <!-- 1. 常規冒險模式容器 -->
+        <div id="map-view-adventure" class="map-mode-view active">
+          <div class="chapter-tabs">
+            <button class="tab-btn active" data-chapter="world-1">第一章：合數平原</button>
+            <button class="tab-btn" data-chapter="world-2">第二章：負數深淵</button>
+            <button class="tab-btn" data-chapter="world-3">第三章：平方之峰</button>
+            <button class="tab-btn" data-chapter="world-4">第四章：質數之城</button>
+            <button class="tab-btn" data-chapter="world-5">第五章：極限終焉</button>
+          </div>
+          <div id="stages-grid" class="stages-container">
+            <!-- 動態由 main.js 渲染關卡卡片與星級 -->
+          </div>
         </div>
-        <div id="stages-grid" class="stages-container">
-          <!-- 動態由 main.js 渲染關卡卡片與星級 -->
+
+        <!-- 2. 無盡模式容器 -->
+        <div id="map-view-endless" class="map-mode-view hidden">
+          <div class="endless-banner-card">
+            <div class="endless-header-badge">♾️ ENDLESS COMPUTING TRIAL</div>
+            <h3 class="endless-title">無盡算力試煉：迎戰無窮數論洪流</h3>
+            <p class="endless-desc">
+              敵軍由演算法動態程序化生成！隨著波次推進，將湧現 3~4 位數複合巨獸、負數亂流、孿生質數狂暴群與完全數聖靈泰坦！
+            </p>
+            <div class="endless-rewards-grid">
+              <div class="reward-pill">
+                <span class="pill-icon">⭐</span>
+                <span class="pill-text">每通過 5 波：<strong>+5 顆研究點數</strong></span>
+              </div>
+              <div class="reward-pill">
+                <span class="pill-icon">🏆</span>
+                <span class="pill-text">個人最佳紀錄：<strong id="endless-record-text">第 0 波</strong></span>
+              </div>
+              <div class="reward-pill">
+                <span class="pill-icon">⚛️</span>
+                <span class="pill-text">解鎖全系列複合神塔與主動秘術</span>
+              </div>
+            </div>
+            <button id="btn-start-endless" class="btn-start-mode pulse">🚀 進入無盡算力試煉</button>
+          </div>
+        </div>
+
+        <!-- 3. 魔王連戰容器 -->
+        <div id="map-view-boss-rush" class="map-mode-view hidden">
+          <div class="boss-rush-header">
+            <div class="rush-title-wrap">
+              <h3>👑 魔王五階連戰 (Boss Rush)</h3>
+              <p>連續迎戰 5 大具備分裂、反轉、護盾與方根重壓的數論霸主！每擊破一階獲得 <strong>+3 研究點數</strong>！</p>
+            </div>
+            <div class="rush-record-tag">
+              最高通關：<span id="boss-rush-record-text" class="record-val">Stage 0/5</span>
+            </div>
+          </div>
+          <div id="boss-rush-grid" class="boss-rush-grid">
+            <!-- 動態由 main.js 渲染 5 階段魔王卡片 -->
+          </div>
         </div>
       </div>
     </div>

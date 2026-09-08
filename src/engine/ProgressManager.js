@@ -99,14 +99,52 @@ export class ProgressManager {
     this.save();
   }
 
-  resetProgress() {
+  // 取得無盡試煉最高紀錄波次
+  getEndlessRecord() {
+    return this.data.endlessRecord || 0;
+  }
+
+  // 更新無盡試煉紀錄
+  updateEndlessRecord(waveNumber) {
+    if (waveNumber > (this.data.endlessRecord || 0)) {
+      this.data.endlessRecord = waveNumber;
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  // 取得魔王連戰最高通關階段 (0 ~ 5)
+  getBossRushRecord() {
+    return this.data.bossRushRecord || 0;
+  }
+
+  // 更新魔王連戰紀錄
+  updateBossRushRecord(stageCleared) {
+    if (stageCleared > (this.data.bossRushRecord || 0)) {
+      this.data.bossRushRecord = stageCleared;
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  // 重置遊戲所有進度與 LocalStorage，恢復最初狀態
+  resetAllProgress() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.clear();
+    } catch (e) {
+      console.warn('LocalStorage clear error:', e);
+    }
     this.data = {
       unlockedLevels: ['1-1'],
       levelStars: {},
       unlockedTechs: [],
-      techPoints: 0
+      techPoints: 0,
+      endlessRecord: 0,
+      bossRushRecord: 0
     };
-    this.save();
   }
 
   // 完全清除所有 LocalStorage 存檔並重置至遊戲最初始狀態
@@ -134,3 +172,5 @@ export class ProgressManager {
 }
 
 export const progress = new ProgressManager();
+export const progressManager = progress;
+

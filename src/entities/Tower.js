@@ -1,5 +1,14 @@
 // Tower Entities for Math Tower Defense
-import { PrimeProjectile, AbsoluteBeam, OperatorProjectile, SqrtProjectile, FreezeRingEffect } from './Projectile.js';
+import { 
+  PrimeProjectile, 
+  AbsoluteBeam, 
+  OperatorProjectile, 
+  SqrtProjectile, 
+  FreezeRingEffect,
+  DualPrimeProjectile,
+  ImaginaryPrismBeam,
+  FactorialDecayWave
+} from './Projectile.js';
 import { sound } from '../engine/Audio.js';
 import { techTree } from '../engine/TechTreeManager.js';
 
@@ -236,7 +245,158 @@ export class Tower {
       return bestDivisible || fallbackFirst;
     }
 
+    if (this.type === 'fusion_6') {
+      // 2x3 六芒雙曜：優先鎖定可被 2 或 3 整除的怪
+      let bestDivisible = null;
+      let maxDivDist = -1;
+      let fallbackFirst = null;
+      let maxAnyDist = -1;
+      for (const m of monsters) {
+        if (m.isDead || m.isNegative) continue;
+        const dist = Math.hypot(m.x - this.x, m.y - this.y);
+        if (dist <= currentRange) {
+          const isDiv = (m.value % 2 === 0 || m.value % 3 === 0);
+          if (isDiv && m.progress > maxDivDist) {
+            maxDivDist = m.progress;
+            bestDivisible = m;
+          }
+          if (m.progress > maxAnyDist) {
+            maxAnyDist = m.progress;
+            fallbackFirst = m;
+          }
+        }
+      }
+      return bestDivisible || fallbackFirst;
+    }
+
+    if (this.type === 'fusion_15') {
+      // 3x5 星軌聚財：優先鎖定可被 3 或 5 整除的怪
+      let bestDivisible = null;
+      let maxDivDist = -1;
+      let fallbackFirst = null;
+      let maxAnyDist = -1;
+      for (const m of monsters) {
+        if (m.isDead || m.isNegative) continue;
+        const dist = Math.hypot(m.x - this.x, m.y - this.y);
+        if (dist <= currentRange) {
+          const isDiv = (m.value % 3 === 0 || m.value % 5 === 0);
+          if (isDiv && m.progress > maxDivDist) {
+            maxDivDist = m.progress;
+            bestDivisible = m;
+          }
+          if (m.progress > maxAnyDist) {
+            maxAnyDist = m.progress;
+            fallbackFirst = m;
+          }
+        }
+      }
+      return bestDivisible || fallbackFirst;
+    }
+
+    if (this.type === 'fusion_abs_sqrt') {
+      // |√x| 虛數引力：極優先鎖定負數怪，其次完全平方怪，其次進度最前怪
+      let bestNeg = null;
+      let maxNegDist = -1;
+      let bestSq = null;
+      let maxSqDist = -1;
+      let fallbackFirst = null;
+      let maxAnyDist = -1;
+
+      for (const m of monsters) {
+        if (m.isDead) continue;
+        const dist = Math.hypot(m.x - this.x, m.y - this.y);
+        if (dist <= currentRange) {
+          if (m.isNegative && m.progress > maxNegDist) {
+            maxNegDist = m.progress;
+            bestNeg = m;
+          } else if (m.isSquare && m.progress > maxSqDist) {
+            maxSqDist = m.progress;
+            bestSq = m;
+          }
+          if (m.progress > maxAnyDist) {
+            maxAnyDist = m.progress;
+            fallbackFirst = m;
+          }
+        }
+      }
+      return bestNeg || bestSq || fallbackFirst;
+    }
+
+    if (this.type === 'fusion_factorial') {
+      // n! 階乘坍縮：鎖定射程內數值最大或最前線的怪物
+      let bestHighVal = null;
+      let maxVal = -1;
+      for (const m of monsters) {
+        if (m.isDead) continue;
+        const dist = Math.hypot(m.x - this.x, m.y - this.y);
+        if (dist <= currentRange) {
+          const valScore = Math.abs(m.value) * 10 + m.progress;
+          if (valScore > maxVal) {
+            maxVal = valScore;
+            bestHighVal = m;
+          }
+        }
+      }
+      return bestHighVal;
+    }
+
     return null;
+  }
+
+  // 取得當前砲塔可進化的複合神塔選項
+  getAvailableFusions() {
+    const fusions = [];
+    if (this.type === 'prime' && (this.factor === 2 || this.factor === 3)) {
+      fusions.push({
+        key: 'FUSION_6',
+        targetType: TOWER_TYPES.FUSION_6,
+        cost: Math.max(50, TOWER_TYPES.FUSION_6.cost - this.totalInvested)
+      });
+    }
+    if (this.type === 'prime' && (this.factor === 3 || this.factor === 5)) {
+      fusions.push({
+        key: 'FUSION_15',
+        targetType: TOWER_TYPES.FUSION_15,
+        cost: Math.max(60, TOWER_TYPES.FUSION_15.cost - this.totalInvested)
+      });
+    }
+    if (this.type === 'absolute' || this.type === 'sqrt') {
+      fusions.push({
+        key: 'FUSION_ABS_SQRT',
+        targetType: TOWER_TYPES.FUSION_ABS_SQRT,
+        cost: Math.max(70, TOWER_TYPES.FUSION_ABS_SQRT.cost - this.totalInvested)
+      });
+    }
+    if (this.type === 'operator' || (this.type === 'prime' && this.factor === 7)) {
+      fusions.push({
+        key: 'FUSION_FACTORIAL',
+        targetType: TOWER_TYPES.FUSION_FACTORIAL,
+        cost: Math.max(80, TOWER_TYPES.FUSION_FACTORIAL.cost - this.totalInvested)
+      });
+    }
+    return fusions;
+  }
+
+  // 執行融合蛻變
+  fuseInto(fusionKey) {
+    const config = TOWER_TYPES[fusionKey];
+    if (!config) return false;
+    this.type = config.type;
+    this.factor = config.factor;
+    this.baseRange = config.range;
+    this.baseFireRate = config.fireRate;
+    this.color = config.color;
+    this.label = config.label;
+    
+    const techDmgMult = techTree.getTowerDamageMultiplier();
+    this.baseDamage = Math.round(config.damage * techDmgMult);
+    
+    this.recalculateRange();
+    this.damage = Math.round(this.baseDamage * (1 + (this.damageLevel - 1) * 0.50));
+    this.fireRate = +(this.baseFireRate * (1 + (this.speedLevel - 1) * 0.25)).toFixed(2);
+    
+    if (sound && sound.playWaveComplete) sound.playWaveComplete();
+    return true;
   }
 
   update(dt, monsters, game) {
@@ -249,7 +409,6 @@ export class Tower {
 
     // 絕對零度力場塔 (Zero Freeze Field)：持續範圍減速光環
     if (this.type === 'zero') {
-      // 基礎減速 45%，隨威力等級強化至 65%
       const slowRatio = Math.max(0.35, 0.55 - (this.damageLevel - 1) * 0.05);
       for (const m of monsters) {
         if (m.isDead) continue;
@@ -315,11 +474,9 @@ export class Tower {
       if (game && game.perkManager && game.perkManager.getStunDuration() > 0) {
         target.applyStun(game.perkManager.getStunDuration());
       }
-      // 絕對值光通量科技冷卻減免
       this.cooldown = (1 / this.fireRate) * techTree.getAbsoluteCooldownMultiplier();
     } else if (this.type === 'operator') {
       sound.playShoot(3);
-      // 智慧決定 +1 或 -1
       const v = target.value;
       let opVal = -1;
       if ((v - 1) % 2 === 0 || (v - 1) % 3 === 0 || (v - 1) % 5 === 0) {
@@ -342,22 +499,89 @@ export class Tower {
         target: target,
         damage: this.damage
       }));
+    } else if (this.type === 'fusion_6') {
+      // 2x3 六芒雙曜：雙質數連除
+      sound.playShoot(2);
+      sound.playShoot(3);
+      game.addProjectile(new DualPrimeProjectile({
+        x: this.x,
+        y: this.y,
+        target: target,
+        factors: [2, 3],
+        damage: this.damage,
+        speed: 380,
+        isGoldBonus: false
+      }));
+    } else if (this.type === 'fusion_15') {
+      // 3x5 星軌聚財：雙質數 + 金幣聚寶
+      sound.playShoot(3);
+      sound.playShoot(5);
+      game.addProjectile(new DualPrimeProjectile({
+        x: this.x,
+        y: this.y,
+        target: target,
+        factors: [3, 5],
+        damage: this.damage,
+        speed: 380,
+        isGoldBonus: true
+      }));
+    } else if (this.type === 'fusion_abs_sqrt') {
+      // |√x| 虛數引力稜鏡
+      sound.playShoot('abs');
+      sound.playShoot(5);
+      game.addBeam(new ImaginaryPrismBeam({
+        startX: this.x,
+        startY: this.y,
+        target: target
+      }));
+      if (target.isNegative) {
+        target.takeAbsolutePurify(game);
+        target.takeSqrtHit(this.damage, game);
+        target.addFloatingText('🌀 虛數重力開方!', '#ec4899');
+      } else {
+        target.takeSqrtHit(Math.round(this.damage * 1.25), game);
+        target.applySlow(0.4, 1.8);
+      }
+    } else if (this.type === 'fusion_factorial') {
+      // n! 階乘坍縮波
+      sound.playShoot(7);
+      game.addBeam(new FactorialDecayWave({
+        startX: this.x,
+        startY: this.y,
+        targetX: target.x,
+        targetY: target.y,
+        range: this.range,
+        damage: this.damage
+      }));
     }
   }
 
   draw(ctx, isSelected = false) {
     ctx.save();
 
+    const isFusion = this.type.startsWith('fusion_');
+
     // 繪製基座底座
     ctx.beginPath();
-    ctx.arc(this.x, this.y, 22, 0, Math.PI * 2);
-    ctx.fillStyle = '#1e293b';
+    ctx.arc(this.x, this.y, isFusion ? 24 : 22, 0, Math.PI * 2);
+    ctx.fillStyle = isFusion ? '#0f172a' : '#1e293b';
     ctx.fill();
-    ctx.lineWidth = 2;
+    ctx.lineWidth = isFusion ? 3 : 2;
     ctx.strokeStyle = this.color;
     ctx.shadowColor = this.color;
-    ctx.shadowBlur = 6;
+    ctx.shadowBlur = isFusion ? 12 : 6;
     ctx.stroke();
+
+    // 複合神塔外環幾何光圈
+    if (isFusion) {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 27, 0, Math.PI * 2);
+      ctx.strokeStyle = this.color + '88';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
 
     // 旋轉砲管或稜鏡/量子機構
     ctx.save();
@@ -393,7 +617,6 @@ export class Tower {
       ctx.lineWidth = 2;
       ctx.stroke();
     } else if (this.type === 'operator') {
-      // 量子運算子八角雙翼機構
       ctx.fillStyle = '#14b8a6';
       ctx.fillRect(6, -3, 15, 6);
 
@@ -410,7 +633,6 @@ export class Tower {
       ctx.fillStyle = '#2dd4bf';
       ctx.fill();
     } else if (this.type === 'sqrt') {
-      // 根號重力井：金色幾何方菱鏡
       ctx.fillStyle = '#f59e0b';
       ctx.fillRect(6, -4, 15, 8);
 
@@ -428,7 +650,6 @@ export class Tower {
       ctx.strokeRect(-6, -6, 12, 12);
       ctx.restore();
     } else if (this.type === 'zero') {
-      // 絕對零度塔：冰霜十字菱鏡
       ctx.fillStyle = '#06b6d4';
       ctx.beginPath();
       ctx.arc(0, 0, 14, 0, Math.PI * 2);
@@ -444,13 +665,81 @@ export class Tower {
       ctx.moveTo(-10, 0); ctx.lineTo(10, 0);
       ctx.moveTo(0, -10); ctx.lineTo(0, 10);
       ctx.stroke();
+    } else if (this.type === 'fusion_6') {
+      // 雙管蔚藍+橙金砲管
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(8, -6, 15, 4);
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(8, 2, 15, 4);
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 15, 0, Math.PI * 2);
+      ctx.fillStyle = '#082f49';
+      ctx.fill();
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+    } else if (this.type === 'fusion_15') {
+      // 金星聚財加農
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(8, -5, 16, 10);
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 15, 0, Math.PI * 2);
+      ctx.fillStyle = '#451a03';
+      ctx.fill();
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#34d399';
+      ctx.beginPath();
+      ctx.arc(16, 0, 4, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (this.type === 'fusion_abs_sqrt') {
+      // 虛數引力星芒
+      ctx.fillStyle = '#ec4899';
+      ctx.beginPath();
+      ctx.moveTo(18, 0);
+      ctx.lineTo(-8, 14);
+      ctx.lineTo(-3, 0);
+      ctx.lineTo(-8, -14);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 15, 0, Math.PI * 2);
+      ctx.fillStyle = '#500724';
+      ctx.fill();
+      ctx.strokeStyle = '#f472b6';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+    } else if (this.type === 'fusion_factorial') {
+      // 階乘坍縮矩陣
+      ctx.fillStyle = '#a855f7';
+      ctx.fillRect(6, -5, 18, 10);
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 15, 0, Math.PI * 2);
+      ctx.fillStyle = '#2e1065';
+      ctx.fill();
+      ctx.strokeStyle = '#c084fc';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.strokeStyle = '#f0abfc';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-7, -7); ctx.lineTo(7, 7);
+      ctx.moveTo(-7, 7); ctx.lineTo(7, -7);
+      ctx.stroke();
     }
     ctx.restore();
 
     // 砲塔中央符號標籤
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 12px "Outfit", sans-serif';
+    ctx.font = `bold ${isFusion ? 11 : 12}px "Outfit", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(this.label, this.x, this.y);
@@ -459,10 +748,10 @@ export class Tower {
     if (this.level > 1) {
       for (let i = 0; i < this.level; i++) {
         const starX = this.x - ((this.level - 1) * 7) / 2 + i * 7;
-        const starY = this.y + 16;
+        const starY = this.y + (isFusion ? 18 : 16);
         ctx.beginPath();
         ctx.arc(starX, starY, 2, 0, Math.PI * 2);
-        ctx.fillStyle = '#f59e0b';
+        ctx.fillStyle = isFusion ? '#ec4899' : '#f59e0b';
         ctx.fill();
       }
     }
@@ -489,6 +778,7 @@ export const TOWER_TYPES = {
   PRIME_2: {
     type: 'prime',
     factor: 2,
+    category: 'basic',
     name: '2號 雙子砲',
     subtitle: '對付偶數 / 2的倍數',
     cost: 50,
@@ -501,6 +791,7 @@ export const TOWER_TYPES = {
   PRIME_3: {
     type: 'prime',
     factor: 3,
+    category: 'basic',
     name: '3號 三元激光',
     subtitle: '對付數字和為3的倍數',
     cost: 75,
@@ -513,6 +804,7 @@ export const TOWER_TYPES = {
   PRIME_5: {
     type: 'prime',
     factor: 5,
+    category: 'basic',
     name: '5號 五芒衝擊',
     subtitle: '對付尾數 0 或 5',
     cost: 100,
@@ -525,6 +817,7 @@ export const TOWER_TYPES = {
   ABSOLUTE: {
     type: 'absolute',
     factor: null,
+    category: 'basic',
     name: '|x| 絕對值稜鏡',
     subtitle: '淨化負數怪 $|-n| \\to n$',
     cost: 120,
@@ -537,6 +830,7 @@ export const TOWER_TYPES = {
   OPERATOR: {
     type: 'operator',
     factor: null,
+    category: 'basic',
     name: '[+/-] 運算子調整塔',
     subtitle: '加減微調，化質數為合數',
     cost: 90,
@@ -549,6 +843,7 @@ export const TOWER_TYPES = {
   PRIME_7: {
     type: 'prime',
     factor: 7,
+    category: 'basic',
     name: '7號 七曜天琴',
     subtitle: '除以 7 ｜ 難纏倍數剋星',
     cost: 130,
@@ -561,6 +856,7 @@ export const TOWER_TYPES = {
   SQRT: {
     type: 'sqrt',
     factor: null,
+    category: 'basic',
     name: '√x 根號方根重力井',
     subtitle: '暴擊完全平方怪並直接開方！',
     cost: 150,
@@ -573,6 +869,7 @@ export const TOWER_TYPES = {
   ZERO_FREEZE: {
     type: 'zero',
     factor: null,
+    category: 'basic',
     name: '×0 絕對零度力場塔',
     subtitle: '乘零歸零！範圍強效減速力場',
     cost: 110,
@@ -581,5 +878,60 @@ export const TOWER_TYPES = {
     damage: 20,
     color: '#06b6d4',
     label: '×0'
+  },
+
+  // 方案一：複合神塔 (Dual-Tower Fusion)
+  FUSION_6: {
+    type: 'fusion_6',
+    factor: [2, 3],
+    category: 'fusion',
+    name: '2×3 六芒雙曜神塔',
+    subtitle: '雙發質數導彈，同時執行 ÷2 與 ÷3 連除破甲',
+    cost: 160,
+    range: 175,
+    fireRate: 1.5,
+    damage: 38,
+    color: '#06b6d4',
+    label: '2×3'
+  },
+  FUSION_15: {
+    type: 'fusion_15',
+    factor: [3, 5],
+    category: 'fusion',
+    name: '3×5 星軌聚財加農',
+    subtitle: '3與5交織金星軌道，每次命中額外奪取金幣',
+    cost: 210,
+    range: 180,
+    fireRate: 1.2,
+    damage: 50,
+    color: '#f59e0b',
+    label: '3×5'
+  },
+  FUSION_ABS_SQRT: {
+    type: 'fusion_abs_sqrt',
+    factor: null,
+    category: 'fusion',
+    name: '|√x| 虛數引力稜鏡',
+    subtitle: '負數直開虛數根 $\\sqrt{|-x|}$，附加極限減速引力井',
+    cost: 260,
+    range: 185,
+    fireRate: 1.1,
+    damage: 60,
+    color: '#ec4899',
+    label: '|√x|'
+  },
+  FUSION_FACTORIAL: {
+    type: 'fusion_factorial',
+    factor: null,
+    category: 'fusion',
+    name: 'n! 階乘坍縮衝擊波',
+    subtitle: '微積分階乘連鎖波，貫穿路徑衰減全場怪物因數階層',
+    cost: 240,
+    range: 190,
+    fireRate: 0.9,
+    damage: 70,
+    color: '#a855f7',
+    label: 'n!'
   }
 };
+

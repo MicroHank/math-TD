@@ -1,0 +1,257 @@
+// Endless Mode & Boss Rush Generator for Math Tower Defense
+import { LEVELS } from '../levels/LevelData.js';
+
+export class EndlessManager {
+  constructor() {
+    // 預設無盡地圖使用雙流道或交叉地圖
+    this.defaultMapKey = '1-4'; // 雙流道交會地圖
+  }
+
+  // 取得無盡模式地圖配置
+  getEndlessLevelConfig(waveNumber = 1) {
+    const baseLevel = LEVELS['1-4'] || LEVELS['1-1'];
+    return {
+      id: 'endless',
+      name: '♾️ 無盡算力試煉 (Endless Mode)',
+      difficulty: '難度隨波次無上限提升',
+      gold: 240,
+      description: '面對無窮無盡的數論洪流！每通關 5 波獲得 +5 顆科研星級！',
+      lanes: baseLevel.lanes,
+      buildPads: baseLevel.buildPads,
+      unlockedTowers: ['PRIME_2', 'PRIME_3', 'PRIME_5', 'PRIME_7', 'ABSOLUTE', 'OPERATOR', 'SQRT', 'ZERO_FREEZE', 'FUSION_6', 'FUSION_15', 'FUSION_ABS_SQRT', 'FUSION_FACTORIAL'],
+      waves: [this.generateEndlessWave(waveNumber)]
+    };
+  }
+
+  // 動態生成指定波次的數論怪物陣容
+  generateEndlessWave(waveNumber) {
+    const isBossWave = waveNumber % 5 === 0;
+    const enemyCount = Math.min(28, 7 + Math.floor(waveNumber * 1.4));
+    const baseSpeed = Math.min(105, 58 + Math.floor(waveNumber * 2.2));
+    const enemies = [];
+
+    // 孿生質數池
+    const twinPairs = [
+      [11, 13], [17, 19], [29, 31], [41, 43], [59, 61], [71, 73]
+    ];
+
+    // 完全平方數池
+    const squares = [16, 25, 36, 49, 64, 81, 100, 144, 196, 225];
+
+    // 費波那契衝鋒怪池
+    const fibs = [8, 13, 21, 34, 55, 89];
+
+    // 1. 若為魔王波次：加入強大魔王怪
+    if (isBossWave) {
+      const bossTier = Math.floor(waveNumber / 5);
+      let bossVal = 60 * bossTier;
+      let bossName = `數論霸主 Wave ${waveNumber}`;
+      const bossSkills = ['split_adds'];
+
+      if (bossTier >= 2) {
+        bossSkills.push('polarity_flip');
+        bossName = `負極奇點皇 Wave ${waveNumber}`;
+        if (Math.random() < 0.5) bossVal = -bossVal;
+      }
+      if (bossTier >= 3) {
+        bossName = `歐拉萬象神君 Wave ${waveNumber}`;
+      }
+
+      enemies.push({
+        val: bossVal,
+        delay: 2.0,
+        speed: Math.max(38, baseSpeed * 0.65),
+        isBoss: true,
+        bossName: bossName,
+        bossSkills: bossSkills
+      });
+    }
+
+    // 2. 隨機生成其餘精英與常規怪
+    for (let i = 0; i < enemyCount; i++) {
+      const roll = Math.random();
+
+      // 完全數 (6, 28, 496)
+      if (waveNumber >= 4 && roll < 0.12) {
+        const perfVal = waveNumber >= 15 && Math.random() < 0.3 ? 496 : (waveNumber >= 8 ? 28 : 6);
+        enemies.push({
+          val: perfVal,
+          delay: 0.9,
+          speed: baseSpeed * 0.85
+        });
+        continue;
+      }
+
+      // 孿生質數雙子 (成對生成)
+      if (waveNumber >= 3 && roll < 0.28 && i < enemyCount - 1) {
+        const pairIdx = Math.min(twinPairs.length - 1, Math.floor(Math.random() * (1 + Math.floor(waveNumber / 4))));
+        const pair = twinPairs[pairIdx];
+        enemies.push({
+          val: pair[0],
+          delay: 0.6,
+          speed: baseSpeed
+        });
+        enemies.push({
+          val: pair[1],
+          delay: 0.2,
+          speed: baseSpeed
+        });
+        i++; // 消耗兩個怪位
+        continue;
+      }
+
+      // 費波那契衝鋒隊
+      if (waveNumber >= 2 && roll < 0.42) {
+        const fibVal = fibs[Math.min(fibs.length - 1, Math.floor(Math.random() * (2 + Math.floor(waveNumber / 3))))];
+        enemies.push({
+          val: fibVal,
+          delay: 0.7,
+          speed: baseSpeed * 1.35
+        });
+        continue;
+      }
+
+      // 負數護盾怪
+      if (waveNumber >= 3 && roll < 0.58) {
+        const negVal = -(Math.floor(Math.random() * (waveNumber * 10)) + 12);
+        enemies.push({
+          val: negVal,
+          delay: 0.8,
+          speed: baseSpeed * 0.95
+        });
+        continue;
+      }
+
+      // 完全平方數
+      if (waveNumber >= 2 && roll < 0.72) {
+        const sqVal = squares[Math.min(squares.length - 1, Math.floor(Math.random() * (3 + Math.floor(waveNumber / 4))))];
+        enemies.push({
+          val: sqVal,
+          delay: 0.8,
+          speed: baseSpeed * 0.9
+        });
+        continue;
+      }
+
+      // 基礎高因數合數
+      const baseFactors = [2, 3, 5, 7];
+      let composite = baseFactors[Math.floor(Math.random() * 3)];
+      const depth = Math.min(4, 1 + Math.floor(waveNumber / 5));
+      for (let k = 0; k < depth; k++) {
+        composite *= baseFactors[Math.floor(Math.random() * baseFactors.length)];
+      }
+
+      enemies.push({
+        val: composite,
+        delay: 0.75,
+        speed: baseSpeed
+      });
+    }
+
+    return {
+      waveNumber: waveNumber,
+      title: isBossWave ? `👑 第 ${waveNumber} 波：魔王算力霸主降臨！` : `第 ${waveNumber} 波：數論複合潮汐 (深度 ${waveNumber})`,
+      tip: isBossWave ? '魔王擁有分裂與反轉技能，請集中複合神塔火力！' : '孿生雙子陣亡會狂暴，請先以 ±1 運算子擊碎完全數護盾！',
+      enemies: enemies
+    };
+  }
+
+  // 取得魔王連戰 (Boss Rush) 關卡列表 (5 階段連續挑戰)
+  getBossRushStages() {
+    return [
+      {
+        id: 'boss_rush_1',
+        stageIndex: 1,
+        name: '👑 魔王連戰 I：質因數長老之試',
+        gold: 300,
+        mapId: '1-2',
+        boss: { val: 60, name: '質因數長老 (Lv.1)', skills: ['split_adds'] },
+        adds: [12, 18, 24, 30, 36, 48]
+      },
+      {
+        id: 'boss_rush_2',
+        stageIndex: 2,
+        name: '👑 魔王連戰 II：負極奇點王',
+        gold: 350,
+        mapId: '1-3',
+        boss: { val: -120, name: '負極奇點王 (Lv.2)', skills: ['polarity_flip', 'split_adds'] },
+        adds: [-24, -36, 40, 54, -60]
+      },
+      {
+        id: 'boss_rush_3',
+        stageIndex: 3,
+        name: '👑 魔王連戰 III：完全數泰坦雙神',
+        gold: 420,
+        mapId: '3-4',
+        boss: { val: 496, name: '完全數大泰坦 (Lv.3)', skills: ['split_adds'] },
+        adds: [28, 28, 56, 84, 112, 140]
+      },
+      {
+        id: 'boss_rush_4',
+        stageIndex: 4,
+        name: '👑 魔王連戰 IV：高斯方根狂暴巨獸',
+        gold: 500,
+        mapId: '4-4',
+        boss: { val: 225, name: '高斯方根暴君 (Lv.4)', skills: ['split_adds', 'polarity_flip'] },
+        adds: [64, 81, 100, 121, 144, 196]
+      },
+      {
+        id: 'boss_rush_5',
+        stageIndex: 5,
+        name: '👑 魔王連戰 V：歐拉終焉萬數真神',
+        gold: 650,
+        mapId: '5-4',
+        boss: { val: 999, name: '歐拉萬象終焉神 (MAX)', skills: ['split_adds', 'polarity_flip'] },
+        adds: [210, 315, 420, -504, 630, 720]
+      }
+    ];
+  }
+
+  // 取得指定魔王連戰關卡資料
+  getBossRushLevelConfig(stageIndex = 1) {
+    const stages = this.getBossRushStages();
+    const stage = stages.find(s => s.stageIndex === stageIndex) || stages[0];
+    const baseLevel = LEVELS[stage.mapId] || LEVELS['1-4'];
+
+    const waveEnemies = [];
+    // 前鋒隨從怪
+    stage.adds.forEach((val, idx) => {
+      waveEnemies.push({
+        val: val,
+        delay: 0.8,
+        speed: 68
+      });
+    });
+
+    // 壓軸魔王
+    waveEnemies.push({
+      val: stage.boss.val,
+      delay: 2.2,
+      speed: 45,
+      isBoss: true,
+      bossName: stage.boss.name,
+      bossSkills: stage.boss.skills
+    });
+
+    return {
+      id: stage.id,
+      name: stage.name,
+      difficulty: `魔王連戰 Stage ${stageIndex}/5`,
+      gold: stage.gold,
+      description: `魔王連戰挑戰！擊敗「${stage.boss.name}」與其因數親衛隊！`,
+      lanes: baseLevel.lanes,
+      buildPads: baseLevel.buildPads,
+      unlockedTowers: ['PRIME_2', 'PRIME_3', 'PRIME_5', 'PRIME_7', 'ABSOLUTE', 'OPERATOR', 'SQRT', 'ZERO_FREEZE', 'FUSION_6', 'FUSION_15', 'FUSION_ABS_SQRT', 'FUSION_FACTORIAL'],
+      waves: [
+        {
+          waveNumber: 1,
+          title: stage.name,
+          tip: '魔王防禦堅不可摧，請善用複合神塔破甲與主動法術！',
+          enemies: waveEnemies
+        }
+      ]
+    };
+  }
+}
+
+export const endlessManager = new EndlessManager();

@@ -405,3 +405,261 @@ export class FreezeRingEffect {
     ctx.restore();
   }
 }
+
+// 雙質數複合飛彈 (Dual Prime Projectile for 2x3 & 3x5)
+export class DualPrimeProjectile {
+  constructor({ x, y, target, factors = [2, 3], damage = 35, speed = 360, isGoldBonus = false }) {
+    this.x = x;
+    this.y = y;
+    this.target = target;
+    this.factors = factors; // [2, 3] or [3, 5]
+    this.damage = damage;
+    this.speed = speed;
+    this.isGoldBonus = isGoldBonus;
+    this.radius = 10;
+    this.isDead = false;
+    this.angle = 0;
+    this.trail = [];
+    this.colors = factors.map(f => {
+      if (f === 2) return '#38bdf8';
+      if (f === 3) return '#fbbf24';
+      if (f === 5) return '#34d399';
+      return '#8b5cf6';
+    });
+  }
+
+  update(dt, game) {
+    if (this.isDead) return;
+    if (!this.target || this.target.isDead) {
+      this.isDead = true;
+      return;
+    }
+
+    this.angle += dt * 10;
+    this.trail.push({ x: this.x, y: this.y, life: 0.16 });
+    for (let i = this.trail.length - 1; i >= 0; i--) {
+      this.trail[i].life -= dt;
+      if (this.trail[i].life <= 0) this.trail.splice(i, 1);
+    }
+
+    const dx = this.target.x - this.x;
+    const dy = this.target.y - this.y;
+    const dist = Math.hypot(dx, dy);
+    const step = this.speed * dt;
+
+    if (dist <= step || dist < this.radius + this.target.radius) {
+      // 命中目標：發動雙質數連除！
+      let didHit = false;
+      for (const factor of this.factors) {
+        if (!this.target.isDead) {
+          const res = this.target.takePrimeHit(factor, this.damage, game);
+          if (res) didHit = true;
+        }
+      }
+
+      if (didHit) {
+        this.target.addFloatingText(`⚛️ 雙質數融合 [${this.factors.join('×')}]!`, '#38bdf8');
+        if (this.isGoldBonus && game) {
+          // 3x5 星軌聚財：額外獲得金幣
+          game.addGold(4, this.x, this.y);
+          this.target.addFloatingText('💰 +4G 聚財', '#fbbf24');
+        }
+      }
+      this.isDead = true;
+    } else {
+      this.x += (dx / dist) * step;
+      this.y += (dy / dist) * step;
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    // 雙色尾跡
+    this.trail.forEach((pt, idx) => {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, this.radius * 0.45, 0, Math.PI * 2);
+      ctx.fillStyle = idx % 2 === 0 ? this.colors[0] : this.colors[1];
+      ctx.globalAlpha = Math.max(0, pt.life / 0.16) * 0.4;
+      ctx.fill();
+    });
+
+    // 雙子星旋轉核心
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.angle);
+
+    // 軌道光環
+    ctx.beginPath();
+    ctx.arc(0, 0, 9, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // 質數球 1
+    ctx.beginPath();
+    ctx.arc(7, 0, 5, 0, Math.PI * 2);
+    ctx.fillStyle = this.colors[0];
+    ctx.shadowColor = this.colors[0];
+    ctx.shadowBlur = 8;
+    ctx.fill();
+
+    // 質數球 2
+    ctx.beginPath();
+    ctx.arc(-7, 0, 5, 0, Math.PI * 2);
+    ctx.fillStyle = this.colors[1];
+    ctx.shadowColor = this.colors[1];
+    ctx.shadowBlur = 8;
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+// 虛數引力稜鏡射線 (|√x| Imaginary Gravity Prism Beam)
+export class ImaginaryPrismBeam {
+  constructor({ startX, startY, target, duration = 0.35, color = '#ec4899' }) {
+    this.startX = startX;
+    this.startY = startY;
+    this.target = target;
+    this.duration = duration;
+    this.life = duration;
+    this.isDead = false;
+    this.color = color;
+    this.targetX = target ? target.x : startX;
+    this.targetY = target ? target.y : startY;
+  }
+
+  update(dt, game) {
+    if (this.isDead) return;
+    this.life -= dt;
+    if (this.target && !this.target.isDead) {
+      this.targetX = this.target.x;
+      this.targetY = this.target.y;
+    }
+    if (this.life <= 0) {
+      this.isDead = true;
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    const progress = Math.max(0, this.life / this.duration);
+    ctx.globalAlpha = progress;
+
+    // 主稜鏡光束
+    ctx.beginPath();
+    ctx.moveTo(this.startX, this.startY);
+    ctx.lineTo(this.targetX, this.targetY);
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = 4 * progress + 2;
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 16;
+    ctx.stroke();
+
+    // 光束內芯
+    ctx.beginPath();
+    ctx.moveTo(this.startX, this.startY);
+    ctx.lineTo(this.targetX, this.targetY);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // 命中點引力波紋
+    ctx.beginPath();
+    ctx.arc(this.targetX, this.targetY, (1 - progress) * 28 + 6, 0, Math.PI * 2);
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.restore();
+  }
+}
+
+// n! 階乘坍縮光波 (Factorial Decay Wave)
+export class FactorialDecayWave {
+  constructor({ startX, startY, targetX, targetY, range = 200, damage = 70 }) {
+    this.x = startX;
+    this.y = startY;
+    this.targetX = targetX;
+    this.targetY = targetY;
+    this.range = range;
+    this.damage = damage;
+    this.life = 0.5;
+    this.maxLife = 0.5;
+    this.isDead = false;
+    this.angle = Math.atan2(targetY - startY, targetX - startX);
+    this.hitMonsters = new Set();
+  }
+
+  update(dt, game) {
+    if (this.isDead) return;
+    this.life -= dt;
+    if (this.life <= 0) {
+      this.isDead = true;
+      return;
+    }
+
+    const progress = 1 - (this.life / this.maxLife);
+    const waveDist = this.range * progress;
+    const waveX = this.x + Math.cos(this.angle) * waveDist;
+    const waveY = this.y + Math.sin(this.angle) * waveDist;
+
+    // 貫穿路徑周圍敵人
+    if (game && game.monsters) {
+      for (const m of game.monsters) {
+        if (m.isDead || this.hitMonsters.has(m.id)) continue;
+        const d = Math.hypot(m.x - waveX, m.y - waveY);
+        if (d <= 45) {
+          this.hitMonsters.add(m.id);
+          // 階乘坍縮：若是負數轉正，若是大於 2 則嘗試連續削減或因數除法
+          if (m.isNegative) {
+            m.takeAbsolutePurify(game);
+          }
+          let reduced = false;
+          for (const factor of [7, 5, 3, 2]) {
+            if (m.value % factor === 0 && !m.isDead) {
+              m.takePrimeHit(factor, this.damage, game);
+              reduced = true;
+              break;
+            }
+          }
+          if (!reduced && !m.isDead) {
+            m.takeOperatorHit(-1, game);
+          }
+          m.addFloatingText('n! 階乘坍縮!', '#a855f7');
+          game.createSparks(m.x, m.y, '#c084fc', 10);
+        }
+      }
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    const progress = 1 - (this.life / this.maxLife);
+    const alpha = Math.max(0, this.life / this.maxLife);
+    const waveDist = this.range * progress;
+    const waveX = this.x + Math.cos(this.angle) * waveDist;
+    const waveY = this.y + Math.sin(this.angle) * waveDist;
+
+    ctx.globalAlpha = alpha;
+    ctx.translate(waveX, waveY);
+    ctx.rotate(this.angle);
+
+    // 弧形衝擊波
+    ctx.beginPath();
+    ctx.arc(0, 0, 36, -Math.PI / 3, Math.PI / 3);
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 3.5;
+    ctx.shadowColor = '#a855f7';
+    ctx.shadowBlur = 14;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(4, 0, 24, -Math.PI / 4, Math.PI / 4);
+    ctx.strokeStyle = '#e879f9';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.restore();
+  }
+}
+

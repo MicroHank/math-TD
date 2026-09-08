@@ -4,6 +4,7 @@ import { LEVELS, CHAPTERS } from './levels/LevelData.js';
 import { progress } from './engine/ProgressManager.js';
 import { sound } from './engine/Audio.js';
 import { techTree, TECH_BRANCHES, TECH_NODES } from './engine/TechTreeManager.js';
+import { endlessManager } from './engine/EndlessManager.js';
 
 window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('game-canvas');
@@ -34,6 +35,18 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnResetGameMap = document.getElementById('btn-reset-game-map');
   const stagesGrid = document.getElementById('stages-grid');
   const chapterTabs = document.querySelectorAll('.chapter-tabs .tab-btn');
+
+  // 地圖模式切換元素
+  const tabModeAdventure = document.getElementById('tab-mode-adventure');
+  const tabModeEndless = document.getElementById('tab-mode-endless');
+  const tabModeBossRush = document.getElementById('tab-mode-boss-rush');
+  const mapViewAdventure = document.getElementById('map-view-adventure');
+  const mapViewEndless = document.getElementById('map-view-endless');
+  const mapViewBossRush = document.getElementById('map-view-boss-rush');
+  const btnStartEndless = document.getElementById('btn-start-endless');
+  const endlessRecordText = document.getElementById('endless-record-text');
+  const bossRushRecordText = document.getElementById('boss-rush-record-text');
+  const bossRushGrid = document.getElementById('boss-rush-grid');
 
   // 數論研究院科技樹元素
   const btnTechTree = document.getElementById('btn-tech-tree');
@@ -93,6 +106,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnUpgradeSpeed = document.getElementById('btn-upgrade-speed');
   const costUpgradeSpeed = document.getElementById('cost-upgrade-speed');
 
+  const btnFuseTower = document.getElementById('btn-fuse-tower');
   const btnSell = document.getElementById('btn-sell-tower');
   const btnDeselect = document.getElementById('btn-deselect-tower');
 
@@ -101,26 +115,26 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnCloseBuildPanel = document.getElementById('btn-close-build-panel');
   const tabBuildPrime = document.getElementById('tab-build-prime');
   const tabBuildSpecial = document.getElementById('tab-build-special');
+  const tabBuildFusion = document.getElementById('tab-build-fusion');
   const buildListPrime = document.getElementById('build-list-prime');
   const buildListSpecial = document.getElementById('build-list-special');
+  const buildListFusion = document.getElementById('build-list-fusion');
   const buildOptionCards = document.querySelectorAll('.build-option-card');
 
   function switchBuildTab(tabKey) {
-    if (tabKey === 'prime') {
-      if (tabBuildPrime) tabBuildPrime.classList.add('active');
-      if (tabBuildSpecial) tabBuildSpecial.classList.remove('active');
-      if (buildListPrime) buildListPrime.classList.remove('hidden');
-      if (buildListSpecial) buildListSpecial.classList.add('hidden');
-    } else {
-      if (tabBuildPrime) tabBuildPrime.classList.remove('active');
-      if (tabBuildSpecial) tabBuildSpecial.classList.add('active');
-      if (buildListPrime) buildListPrime.classList.add('hidden');
-      if (buildListSpecial) buildListSpecial.classList.remove('hidden');
-    }
+    if (tabBuildPrime) tabBuildPrime.classList.toggle('active', tabKey === 'prime');
+    if (tabBuildSpecial) tabBuildSpecial.classList.toggle('active', tabKey === 'special');
+    if (tabBuildFusion) tabBuildFusion.classList.toggle('active', tabKey === 'fusion');
+
+    if (buildListPrime) buildListPrime.classList.toggle('hidden', tabKey !== 'prime');
+    if (buildListSpecial) buildListSpecial.classList.toggle('hidden', tabKey !== 'special');
+    if (buildListFusion) buildListFusion.classList.toggle('hidden', tabKey !== 'fusion');
   }
 
   if (tabBuildPrime) tabBuildPrime.addEventListener('click', () => switchBuildTab('prime'));
   if (tabBuildSpecial) tabBuildSpecial.addEventListener('click', () => switchBuildTab('special'));
+  if (tabBuildFusion) tabBuildFusion.addEventListener('click', () => switchBuildTab('fusion'));
+
   if (btnCloseBuildPanel) {
     btnCloseBuildPanel.addEventListener('click', () => {
       if (game) game.selectPad(null);
@@ -195,13 +209,13 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnRestart = document.getElementById('btn-restart');
   const btnGameoverMap = document.getElementById('btn-gameover-map');
 
-  let currentGold = 160;
-  let currentNextLevelId = null;
   let currentActiveChapter = 'world-1';
+  let currentMapMode = 'adventure';
 
   // 渲染大地圖關卡清單
   function renderStageMap(chapterId) {
     currentActiveChapter = chapterId;
+    if (!stagesGrid) return;
     stagesGrid.innerHTML = '';
     const chapter = CHAPTERS.find(c => c.id === chapterId);
     if (!chapter) return;
@@ -258,6 +272,81 @@ window.addEventListener('DOMContentLoaded', () => {
       });
 
       stagesGrid.appendChild(card);
+    });
+  }
+
+  // 大地圖模式切換 (冒險 / 無盡 / 魔王連戰)
+  function switchMapMode(mode) {
+    currentMapMode = mode;
+    if (tabModeAdventure) tabModeAdventure.classList.toggle('active', mode === 'adventure');
+    if (tabModeEndless) tabModeEndless.classList.toggle('active', mode === 'endless');
+    if (tabModeBossRush) tabModeBossRush.classList.toggle('active', mode === 'boss_rush');
+
+    if (mapViewAdventure) mapViewAdventure.classList.toggle('hidden', mode !== 'adventure');
+    if (mapViewEndless) mapViewEndless.classList.toggle('hidden', mode !== 'endless');
+    if (mapViewBossRush) mapViewBossRush.classList.toggle('hidden', mode !== 'boss_rush');
+
+    if (mode === 'adventure') {
+      renderStageMap(currentActiveChapter);
+    } else if (mode === 'endless') {
+      if (endlessRecordText) {
+        const rec = progress.getEndlessRecord();
+        endlessRecordText.textContent = rec > 0 ? `第 ${rec} 波` : '尚未挑戰';
+      }
+    } else if (mode === 'boss_rush') {
+      renderBossRush();
+    }
+  }
+
+  if (tabModeAdventure) tabModeAdventure.addEventListener('click', () => switchMapMode('adventure'));
+  if (tabModeEndless) tabModeEndless.addEventListener('click', () => switchMapMode('endless'));
+  if (tabModeBossRush) tabModeBossRush.addEventListener('click', () => switchMapMode('boss_rush'));
+
+  if (btnStartEndless) {
+    btnStartEndless.addEventListener('click', () => {
+      modalStageMap.classList.add('hidden');
+      game.loadLevel('endless', 'endless');
+    });
+  }
+
+  function renderBossRush() {
+    if (!bossRushGrid) return;
+    const stages = endlessManager.getBossRushStages();
+    const currentRecord = progress.getBossRushRecord();
+    if (bossRushRecordText) {
+      bossRushRecordText.textContent = `Stage ${currentRecord}/5`;
+    }
+
+    bossRushGrid.innerHTML = '';
+    stages.forEach(s => {
+      const isCleared = currentRecord >= s.stageIndex;
+      const card = document.createElement('div');
+      card.className = `boss-rush-card ${isCleared ? 'cleared' : ''}`;
+
+      const skillsHtml = s.boss.skills.map(sk => {
+        let label = sk;
+        if (sk === 'split_adds') label = '分裂侍從';
+        else if (sk === 'polarity_flip') label = '極性反轉';
+        return `<span class="rush-skill-chip">${label}</span>`;
+      }).join('');
+
+      card.innerHTML = `
+        <div class="rush-card-header">
+          <span class="rush-stage-badge">Stage ${s.stageIndex}</span>
+          <span class="rush-boss-icon">👑</span>
+        </div>
+        <div class="rush-boss-name">${s.name}</div>
+        <div class="rush-boss-value">首領數值: ${s.boss.val} [${s.adds.length} 隨從]</div>
+        <div class="rush-skills-row">${skillsHtml}</div>
+        <button class="btn-challenge-rush">${isCleared ? '✔ 再次挑戰 (+3⭐)' : '⚔️ 開始討伐'}</button>
+      `;
+
+      card.addEventListener('click', () => {
+        modalStageMap.classList.add('hidden');
+        game.loadLevel(s.id, 'boss_rush', s.stageIndex);
+      });
+
+      bossRushGrid.appendChild(card);
     });
   }
 
@@ -484,6 +573,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 初始化遊戲實體
   let game;
+  let currentGold = 0;
+  let currentNextLevelId = null;
+
   game = new Game(canvas, {
     onShowPerkChoice: showPerkChoiceModal,
     onStatsChange: (stats, gameInstance) => {
@@ -492,7 +584,7 @@ window.addEventListener('DOMContentLoaded', () => {
       elLives.textContent = `${stats.lives} / ${stats.maxLives}`;
       hudLevelName.textContent = stats.currentLevelName;
 
-      const currentWave = stats.isLevelFinished ? stats.totalWaves : Math.min(Math.max(1, stats.displayWaveNumber), stats.totalWaves);
+      const currentWave = stats.isLevelFinished ? stats.totalWaves : Math.min(Math.max(1, stats.displayWaveNumber), stats.totalWaves === '∞' ? 999 : stats.totalWaves);
       elWave.textContent = `第 ${currentWave} / ${stats.totalWaves} 波`;
       if (elEnemies) {
         elEnemies.textContent = stats.remainingEnemies !== undefined ? stats.remainingEnemies : 0;
@@ -582,23 +674,25 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     },
 
-    onLevelVictory: ({ levelId, levelName, stars, nextLevelId }) => {
+    onLevelVictory: ({ levelId, levelName, stars, nextLevelId, isBossRush, bossRushStage }) => {
       currentNextLevelId = nextLevelId;
-      modalLevelVictory.classList.remove('hidden');
-      victoryLevelTitle.textContent = `🎉【${levelName}】通關！`;
-
-      let starsDisplay = '☆☆☆';
-      if (stars === 3) starsDisplay = '⭐⭐⭐ (完美防守！)';
-      else if (stars === 2) starsDisplay = '⭐⭐☆ (穩健過關！)';
-      else if (stars === 1) starsDisplay = '⭐☆☆ (險勝生還！)';
+      victoryLevelTitle.textContent = isBossRush ? `👑 魔王 Stage ${bossRushStage} 討伐成功！` : `🏆 關卡【${levelName}】守衛成功！`;
+      let starsDisplay = '⭐⭐⭐';
+      if (stars === 2) starsDisplay = '⭐⭐☆';
+      else if (stars === 1) starsDisplay = '⭐☆☆';
       victoryStars.textContent = starsDisplay;
+      victoryLevelDesc.textContent = isBossRush
+        ? (nextLevelId ? `成功擊潰魔王！準備迎戰下一階強敵！(獲得 +3 研究點數 ⭐)` : `🎉 恭喜！你已成功通關全部 5 階魔王連戰！`)
+        : `成功擊潰該關卡全部怪物波次！(獲得 +1 研究點數 ⭐)`;
 
       if (nextLevelId) {
         btnNextLevel.style.display = 'block';
-        btnNextLevel.textContent = `▶ 前進下一關卡 (${nextLevelId})`;
+        btnNextLevel.textContent = isBossRush ? `▶ 挑戰魔王 Stage ${bossRushStage + 1}` : `▶ 前進下一關卡`;
       } else {
         btnNextLevel.style.display = 'none';
       }
+
+      modalLevelVictory.classList.remove('hidden');
     }
   });
 
@@ -608,6 +702,11 @@ window.addEventListener('DOMContentLoaded', () => {
     else if (tower.label === '±1') labelDesc = '運算子調整塔';
     else if (tower.label === '√x') labelDesc = '方根重力井';
     else if (tower.label === '×0') labelDesc = '絕對零度力場塔';
+    else if (tower.label === '2×3') labelDesc = '六芒雙曜神塔';
+    else if (tower.label === '3×5') labelDesc = '星軌聚財加農';
+    else if (tower.label === '|√x|') labelDesc = '虛數引力稜鏡';
+    else if (tower.label === 'n!') labelDesc = '階乘坍縮波';
+
     towerName.textContent = `${tower.label} - ${labelDesc}`;
     const totalUpgradePoints = (tower.rangeLevel - 1) + (tower.damageLevel - 1) + (tower.speedLevel - 1);
     towerLevel.textContent = totalUpgradePoints > 0 ? `Lv ${tower.level} (★+${totalUpgradePoints})` : `Lv 1`;
@@ -660,7 +759,27 @@ window.addEventListener('DOMContentLoaded', () => {
       btnUpgradeSpeed.disabled = goldAmount < cost;
     }
 
-    // 4. 變賣按鈕 (含快捷鍵提示 [S])
+    // 4. 複合神塔融合選項
+    if (btnFuseTower) {
+      const fusions = tower.getAvailableFusions ? tower.getAvailableFusions() : [];
+      if (fusions.length > 0) {
+        const fusion = fusions[0];
+        btnFuseTower.classList.remove('hidden');
+        btnFuseTower.textContent = `⚛️ 融合為 ${fusion.targetType.label} (${fusion.cost}🪙)`;
+        btnFuseTower.disabled = goldAmount < fusion.cost;
+        btnFuseTower.onclick = () => {
+          if (game.gold >= fusion.cost) {
+            game.gold -= fusion.cost;
+            tower.fuseInto(fusion.key);
+            game.syncUI();
+          }
+        };
+      } else {
+        btnFuseTower.classList.add('hidden');
+      }
+    }
+
+    // 5. 變賣按鈕 (含快捷鍵提示 [S])
     btnSell.textContent = `💰 變賣 (+${tower.sellValue}🪙) [S]`;
   }
 
@@ -713,7 +832,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 關卡地圖 Modal
   btnMap.addEventListener('click', () => {
-    renderStageMap(currentActiveChapter);
+    switchMapMode(currentMapMode);
     modalStageMap.classList.remove('hidden');
   });
 
@@ -761,13 +880,18 @@ window.addEventListener('DOMContentLoaded', () => {
   btnNextLevel.addEventListener('click', () => {
     modalLevelVictory.classList.add('hidden');
     if (currentNextLevelId) {
-      game.loadLevel(currentNextLevelId);
+      if (currentNextLevelId.startsWith('boss_rush_')) {
+        const stageIdx = parseInt(currentNextLevelId.split('_')[2]) || 1;
+        game.loadLevel(currentNextLevelId, 'boss_rush', stageIdx);
+      } else {
+        game.loadLevel(currentNextLevelId);
+      }
     }
   });
 
   btnBackToMap.addEventListener('click', () => {
     modalLevelVictory.classList.add('hidden');
-    renderStageMap(currentActiveChapter);
+    switchMapMode('adventure');
     modalStageMap.classList.remove('hidden');
   });
 
@@ -785,7 +909,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   btnGameoverMap.addEventListener('click', () => {
     modalGameOver.classList.add('hidden');
-    renderStageMap(currentActiveChapter);
+    switchMapMode('adventure');
     modalStageMap.classList.remove('hidden');
   });
 
@@ -862,6 +986,11 @@ window.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         game.sellSelectedTower();
       }
+    } else if (e.key === 'f' || e.key === 'F') {
+      if (game.selectedTower && btnFuseTower && !btnFuseTower.classList.contains('hidden') && !btnFuseTower.disabled) {
+        e.preventDefault();
+        btnFuseTower.click();
+      }
     } else if (e.key === '1') {
       if (game.selectedPad) game.buildTowerOnSelectedPad('PRIME_2');
     } else if (e.key === '2') {
@@ -870,6 +999,14 @@ window.addEventListener('DOMContentLoaded', () => {
       if (game.selectedPad) game.buildTowerOnSelectedPad('PRIME_5');
     } else if (e.key === '4') {
       if (game.selectedPad) game.buildTowerOnSelectedPad('PRIME_7');
+    } else if (e.key === '5') {
+      if (game.selectedPad) game.buildTowerOnSelectedPad('FUSION_6');
+    } else if (e.key === '6') {
+      if (game.selectedPad) game.buildTowerOnSelectedPad('FUSION_15');
+    } else if (e.key === '7') {
+      if (game.selectedPad) game.buildTowerOnSelectedPad('FUSION_ABS_SQRT');
+    } else if (e.key === '8') {
+      if (game.selectedPad) game.buildTowerOnSelectedPad('FUSION_FACTORIAL');
     } else if (e.key === 'q' || e.key === 'Q') {
       if (game.selectedPad) {
         game.buildTowerOnSelectedPad('ABSOLUTE');
@@ -894,7 +1031,7 @@ window.addEventListener('DOMContentLoaded', () => {
     } else if (e.key === 'r' || e.key === 'R') {
       if (game.selectedPad) game.buildTowerOnSelectedPad('ZERO_FREEZE');
     } else if (e.key === 'm' || e.key === 'M') {
-      renderStageMap(currentActiveChapter);
+      switchMapMode(currentMapMode);
       modalStageMap.classList.toggle('hidden');
     } else if (e.key === 't' || e.key === 'T') {
       // 快捷鍵 T 開啟數論研究院

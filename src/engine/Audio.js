@@ -140,6 +140,16 @@ class SoundManager {
     this.playTone(330, 'square', 0.1, 0.12, 0.01);
   }
 
+  // 升級音效
+  playUpgrade() {
+    this.playTone(587.33, 'triangle', 0.15, 0.2, 0.01);
+  }
+
+  // 波次完成 / 清除
+  playWaveClear() {
+    this.playWaveComplete();
+  }
+
   // 抵擋無效 (Resist - 悶音)
   playResist() {
     this.playTone(180, 'sawtooth', 0.1, 0.1, 0.01);

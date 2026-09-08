@@ -10,6 +10,7 @@ import { SpellManager } from './SpellManager.js';
 import { GeometricResonanceManager } from './GeometricResonanceManager.js';
 import { LcmMergeManager } from './LcmMergeManager.js';
 import { techTree } from './TechTreeManager.js';
+import { endlessManager } from './EndlessManager.js';
 
 export class Game {
   constructor(canvas, uiCallbacks) {
@@ -18,6 +19,8 @@ export class Game {
     this.ui = uiCallbacks || {};
 
     // 遊戲參數與經濟
+    this.gameMode = 'adventure'; // 'adventure', 'endless', 'boss_rush'
+    this.bossRushStageIndex = 1;
     this.currentLevelId = '1-1';
     this.currentLevel = LEVELS['1-1'];
     this.gold = this.currentLevel.initialGold + techTree.getInitialGoldBonus();
@@ -75,11 +78,25 @@ export class Game {
     requestAnimationFrame(this.loop.bind(this));
   }
 
-  loadLevel(levelId) {
-    const levelData = LEVELS[levelId] || LEVELS['1-1'];
-    this.currentLevelId = levelId;
+  loadLevel(levelId, mode = 'adventure', stageIndex = 1) {
+    let levelData;
+    if (mode === 'endless' || levelId === 'endless') {
+      this.gameMode = 'endless';
+      this.currentLevelId = 'endless';
+      levelData = endlessManager.getEndlessLevelConfig(1);
+    } else if (mode === 'boss_rush' || (typeof levelId === 'string' && levelId.startsWith('boss_rush'))) {
+      this.gameMode = 'boss_rush';
+      this.bossRushStageIndex = stageIndex || (parseInt(levelId.split('_')[2]) || 1);
+      this.currentLevelId = `boss_rush_${this.bossRushStageIndex}`;
+      levelData = endlessManager.getBossRushLevelConfig(this.bossRushStageIndex);
+    } else {
+      this.gameMode = 'adventure';
+      levelData = LEVELS[levelId] || LEVELS['1-1'];
+      this.currentLevelId = levelId;
+    }
+
     this.currentLevel = levelData;
-    this.gold = levelData.initialGold + techTree.getInitialGoldBonus();
+    this.gold = (levelData.initialGold !== undefined ? levelData.initialGold : (levelData.gold || 200)) + techTree.getInitialGoldBonus();
     const baseInitialLives = (levelData.initialLives || 10);
     this.lives = Math.max(25, baseInitialLives * 2);
     this.maxLives = this.lives;
@@ -517,7 +534,26 @@ export class Game {
       stars = 2;
     }
 
-    // 完成最後一波也獲得 +1 點數論研究院科技研究點數
+    // 魔王連戰勝利結算
+    if (this.gameMode === 'boss_rush') {
+      progress.updateBossRushRecord(this.bossRushStageIndex);
+      progress.addTechPoints(3);
+      this.coinFloats.push(new CoinFloat({ x: 480, y: 230, text: '👑 魔王討伐！研究點數 +3 ⭐', color: '#fbbf24' }));
+      if (this.ui.onLevelVictory) {
+        this.ui.onLevelVictory({
+          levelId: this.currentLevelId,
+          levelName: this.currentLevel.name,
+          stars: stars,
+          isBossRush: true,
+          bossRushStage: this.bossRushStageIndex,
+          nextLevelId: this.bossRushStageIndex < 5 ? `boss_rush_${this.bossRushStageIndex + 1}` : null
+        });
+      }
+      this.syncUI();
+      return;
+    }
+
+    // 完成常規關卡最後一波獲得 +1 點數論研究院科技研究點數
     progress.addTechPoints(1);
     this.coinFloats.push(new CoinFloat({ x: 480, y: 230, text: '✨ 研究點數 +1 ⭐', color: '#38bdf8' }));
 
@@ -544,6 +580,8 @@ export class Game {
         gold: this.gold,
         lives: this.lives,
         maxLives: this.maxLives,
+        gameMode: this.gameMode,
+        bossRushStageIndex: this.bossRushStageIndex,
         wave: this.waveManager.currentWaveIndex + (this.waveManager.waveInProgress ? 1 : 0),
         displayWaveNumber: this.waveManager.currentWaveIndex + 1,
         totalWaves: totalWaves,
