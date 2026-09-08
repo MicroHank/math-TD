@@ -215,6 +215,20 @@ body {
   box-shadow: 0 0 14px rgba(245, 158, 11, 0.4);
 }
 
+.btn-tool.btn-danger-reset {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.btn-tool.btn-danger-reset:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
+  transform: translateY(-1px);
+}
+
 /* ================= 波次任務指引條 ================= */
 #wave-banner {
   display: flex;

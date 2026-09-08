@@ -30,6 +30,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const modalStageMap = document.getElementById('modal-stage-map');
   const btnCloseMap = document.getElementById('btn-close-map');
   const btnUnlockAll = document.getElementById('btn-unlock-all');
+  const btnResetGame = document.getElementById('btn-reset-game');
+  const btnResetGameMap = document.getElementById('btn-reset-game-map');
   const stagesGrid = document.getElementById('stages-grid');
   const chapterTabs = document.querySelectorAll('.chapter-tabs .tab-btn');
 
@@ -736,6 +738,23 @@ window.addEventListener('DOMContentLoaded', () => {
       progress.unlockAllLevels();
       renderStageMap(currentActiveChapter);
     });
+  }
+
+  // 重置遊戲全部進度與 LocalStorage
+  function handleResetGame() {
+    const ok = window.confirm('⚠️ 確定要重置整個遊戲嗎？\n\n這將會清除所有本地存檔紀錄，包含已解鎖關卡、數論科技樹研發、研究點數等，完全恢復至最初狀態！');
+    if (ok) {
+      progress.clearAllData();
+      techTree.reset();
+      window.location.reload();
+    }
+  }
+
+  if (btnResetGame) {
+    btnResetGame.addEventListener('click', handleResetGame);
+  }
+  if (btnResetGameMap) {
+    btnResetGameMap.addEventListener('click', handleResetGame);
   }
 
   // 單關通關按鈕

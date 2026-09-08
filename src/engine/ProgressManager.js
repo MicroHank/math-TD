@@ -109,6 +109,17 @@ export class ProgressManager {
     this.save();
   }
 
+  // 完全清除所有 LocalStorage 存檔並重置至遊戲最初始狀態
+  clearAllData() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.clear();
+    } catch (e) {
+      console.warn('LocalStorage clear error:', e);
+    }
+    this.resetProgress();
+  }
+
   unlockAllLevels() {
     const all = [
       '1-1', '1-2', '1-3', '1-4',
