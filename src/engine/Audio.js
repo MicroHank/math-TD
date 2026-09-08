@@ -8,11 +8,13 @@ class SoundManager {
   }
 
   init() {
-    if (!this.ctx) {
+    if (!this.ctx && typeof window !== 'undefined') {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      this.ctx = new AudioContext();
+      if (AudioContext) {
+        this.ctx = new AudioContext();
+      }
     }
-    if (this.ctx.state === 'suspended') {
+    if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
   }

@@ -80,11 +80,11 @@ export class GeometricResonanceManager {
             power: isHarmonic ? 1.6 : 1.0
           });
 
-          // 賦予塔身基礎共鳴加成
+          // 賦予塔身基礎共鳴加成 (+6% 攻速)
           t1.inGeometricMatrix = true;
           t2.inGeometricMatrix = true;
-          t1.geometricSpeedBonus = Math.max(t1.geometricSpeedBonus, 0.10);
-          t2.geometricSpeedBonus = Math.max(t2.geometricSpeedBonus, 0.10);
+          t1.geometricSpeedBonus = Math.max(t1.geometricSpeedBonus, 0.06);
+          t2.geometricSpeedBonus = Math.max(t2.geometricSpeedBonus, 0.06);
         }
       }
     }
@@ -143,11 +143,13 @@ export class GeometricResonanceManager {
               pulseAngle: Math.random() * Math.PI * 2
             });
 
-            // 結界內/頂點塔享有高階攻速與射程加成
+            // 結界內/頂點塔享有溫和攻速與射程加成 (+12% ~ +18%)
+            const baseTriSpeed = techTree.getTriangleSpeedBonus();
+            const triSpeed = isPythagorean ? Math.min(0.25, baseTriSpeed + 0.05) : baseTriSpeed;
             for (const vt of [t1, t2, t3]) {
               vt.inGeometricMatrix = true;
-              vt.geometricSpeedBonus = Math.max(vt.geometricSpeedBonus, isPythagorean ? 0.35 : 0.25);
-              vt.geometricRangeBonus = Math.max(vt.geometricRangeBonus, 0.20);
+              vt.geometricSpeedBonus = Math.max(vt.geometricSpeedBonus, triSpeed);
+              vt.geometricRangeBonus = Math.max(vt.geometricRangeBonus, 0.10);
               vt.geometricColor = triColor;
             }
           }
@@ -170,45 +172,39 @@ export class GeometricResonanceManager {
 
     if (this.links.length === 0 && this.triangles.length === 0) return;
 
-    // 結界為指揮官持續提供算力回充 (每座結界 +0.6 Mana/s)
+    // 結界為指揮官持續提供溫和算力回充 (每座結界 +0.25 Mana/s)
     if (this.game.spellManager && this.triangles.length > 0) {
-      this.game.spellManager.addMana(this.triangles.length * 0.6 * dt);
+      this.game.spellManager.addMana(this.triangles.length * 0.25 * dt);
     }
 
-    // 1. 光弦雷射對穿過怪物的切割判定
+    // 1. 光弦雷射對穿過怪物的切割判定 (溫和輔助微量傷害)
     for (const link of this.links) {
       for (const m of this.game.monsters) {
         if (m.isDead) continue;
         const d = distToSegment(m, link.t1, link.t2);
 
         if (d <= m.radius + 6) {
-          // 怪物觸碰雷射弦線！
-          m.applySlow(0.80, 0.3); // 減速 20%
-          m.hitFlashTimer = 0.15;
+          // 怪物觸碰雷射弦線 (減速 10%)
+          m.applySlow(0.90, 0.3);
+          m.hitFlashTimer = 0.12;
 
           if (link.isHarmonic && link.factor) {
-            // 同質數諧波切割：扣減階層耐受度 (每秒 40 傷害)
-            m.stageHp = Math.max(0, m.stageHp - 40 * dt * link.power);
-            if (m.stageHp <= 0 && m.value % link.factor === 0) {
-              // 觸發因數整除！
-              m.takePrimeHit(link.factor, 50, this.game);
-            } else if (m.stageHp <= 0) {
-              m.stageHp = 1;
-            }
+            // 同質數諧波切割 (每秒 15 傷害)
+            m.stageHp = Math.max(1, m.stageHp - 15 * dt * link.power);
           } else {
-            // 基礎光弦切割
-            m.stageHp = Math.max(1, m.stageHp - 20 * dt);
+            // 基礎光弦切割 (每秒 8 傷害)
+            m.stageHp = Math.max(1, m.stageHp - 8 * dt);
           }
 
           // 產生微粒子火花
-          if (Math.random() < 0.25) {
+          if (Math.random() < 0.2) {
             this.game.createSparks(m.x, m.y, link.color, 2);
           }
         }
       }
     }
 
-    // 2. 三角結界領域效果
+    // 2. 三角結界領域效果 (微量重力壓制與輔助傷害)
     for (const tri of this.triangles) {
       tri.pulseAngle = (tri.pulseAngle || 0) + dt * 2.5;
 
@@ -217,10 +213,10 @@ export class GeometricResonanceManager {
         const inside = pointInTriangle(m, tri.t1, tri.t2, tri.t3);
 
         if (inside) {
-          // 結界重力壓制：減速 (享受科技樹三角聖域強化)
+          // 結界重力壓制：減速 15% (享受科技樹三角聖域強化)
           const slowRatio = techTree.getTriangleSlowRatio();
           m.applySlow(slowRatio, 0.4);
-          m.stageHp = Math.max(1, m.stageHp - (tri.isPythagorean ? 28 : 16) * dt);
+          m.stageHp = Math.max(1, m.stageHp - (tri.isPythagorean ? 10 : 6) * dt);
 
           // 質數三相聖環額外掉落標記
           if (tri.isPrimeTrinity) {
@@ -230,26 +226,22 @@ export class GeometricResonanceManager {
       }
     }
 
-    // 3. 畢氏聖光定期脈衝 (發動間隔與傷害享受科技樹畢氏光能矩陣增益)
+    // 3. 畢氏聖光定期脈衝 (傷害適度削弱為溫和爆發)
     const pythInterval = techTree.getPythagoreanInterval();
     if (this.pulseIntervalTimer >= pythInterval) {
       this.pulseIntervalTimer = 0;
       for (const tri of this.triangles) {
         if (tri.isPythagorean) {
           sound.playResonancePulse();
-          this.game.createExplosion(tri.centroid.x, tri.centroid.y, '#fbbf24', 25);
+          this.game.createExplosion(tri.centroid.x, tri.centroid.y, '#fbbf24', 18);
 
           const pulseDmg = techTree.getPythagoreanPulseDamage();
           for (const m of this.game.monsters) {
             if (m.isDead) continue;
             if (pointInTriangle(m, tri.t1, tri.t2, tri.t3)) {
-              m.stageHp = Math.max(0, m.stageHp - pulseDmg);
+              m.stageHp = Math.max(1, m.stageHp - pulseDmg);
               m.addFloatingText(`⚡ 畢氏聖光 -${pulseDmg}!`, '#fbbf24');
-              this.game.createSparks(m.x, m.y, '#f59e0b', 12);
-              if (m.stageHp <= 0 && m.value > 1) {
-                const handled = m.takePrimeHit(3, 40, this.game) || m.takeSqrtHit(60, this.game);
-                if (!handled) m.stageHp = 1;
-              }
+              this.game.createSparks(m.x, m.y, '#f59e0b', 8);
             }
           }
         }
@@ -387,8 +379,8 @@ export class GeometricResonanceManager {
       trianglesCount: this.triangles.length,
       specialNames,
       hasMatrix: (this.links.length > 0 || this.triangles.length > 0),
-      speedBonus: this.triangles.length > 0 ? '+25%' : (this.links.length > 0 ? '+10%' : '+0%'),
-      manaGenBonus: +(this.triangles.length * 0.6).toFixed(1)
+      speedBonus: this.triangles.length > 0 ? '+12%' : (this.links.length > 0 ? '+6%' : '+0%'),
+      manaGenBonus: +(this.triangles.length * 0.25).toFixed(1)
     };
   }
 }

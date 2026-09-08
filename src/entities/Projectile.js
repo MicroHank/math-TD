@@ -183,10 +183,12 @@ export class Particle {
 
 // 掉落金幣漂浮動畫
 export class CoinFloat {
-  constructor({ x, y, amount, life = 1.0 }) {
+  constructor({ x, y, amount = 0, text = null, color = '#fbbf24', life = 1.2 }) {
     this.x = x;
     this.y = y;
     this.amount = amount;
+    this.text = text;
+    this.color = color;
     this.life = life;
     this.maxLife = life;
     this.isDead = false;
@@ -204,12 +206,13 @@ export class CoinFloat {
     ctx.save();
     const alpha = Math.max(0, this.life / this.maxLife);
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = '#fbbf24';
+    ctx.fillStyle = this.color;
     ctx.font = 'bold 14px "Outfit", sans-serif';
     ctx.textAlign = 'center';
     ctx.shadowColor = '#000000';
     ctx.shadowBlur = 5;
-    ctx.fillText(`+${this.amount} 🪙`, this.x, this.y);
+    const display = this.text !== null ? this.text : `+${this.amount} 🪙`;
+    ctx.fillText(display, this.x, this.y);
     ctx.restore();
   }
 }

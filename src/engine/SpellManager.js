@@ -19,29 +19,29 @@ export const SPELLS = {
     name: '最大公因數引爆',
     hotkey: 'Q',
     icon: '👑',
-    cost: 35,
+    cost: 50,
     cooldown: 6.0,
-    radius: 110,
+    radius: 68,
     type: 'target_ground',
-    desc: '【快捷鍵 Q】框選範圍群怪計算 GCD 最大公因數，直接連鎖除法引爆！'
+    desc: '【快捷鍵 Q】框選小範圍群怪計算 GCD 最大公因數，直接連鎖除法引爆！'
   },
   vortex: {
     id: 'vortex',
     name: '同餘黑洞 mod 5',
     hotkey: 'W',
     icon: '🌀',
-    cost: 45,
+    cost: 85,
     cooldown: 10.0,
     radius: 90,
     type: 'target_ground',
-    desc: '【快捷鍵 W】放置 5.5 秒旋轉黑洞，經過數值變 x%5；5 的倍數怪直接湮滅秒殺！'
+    desc: '【快捷鍵 W】放置 5.5 秒旋轉黑洞（消耗 85 能量），經過數值變 x%5；5 的倍數怪直接湮滅秒殺！'
   },
   overdrive: {
     id: 'overdrive',
     name: '黃金分割超頻',
     hotkey: 'E',
     icon: '⚡',
-    cost: 40,
+    cost: 50,
     cooldown: 12.0,
     radius: 0,
     type: 'instant',
@@ -54,7 +54,7 @@ export class SpellManager {
     this.game = game;
     this.maxMana = 100 + techTree.getMaxManaBonus();
     this.mana = this.maxMana;
-    this.regenRate = 4.0 + techTree.getManaRegenBonus(); // Mana per second
+    this.regenRate = 1.8 + techTree.getManaRegenBonus(); // Mana per second (大幅調降恢復速度)
 
     this.cooldowns = {
       gcd: 0,
@@ -72,7 +72,7 @@ export class SpellManager {
   reset() {
     this.maxMana = 100 + techTree.getMaxManaBonus();
     this.mana = this.maxMana;
-    this.regenRate = 4.0 + techTree.getManaRegenBonus();
+    this.regenRate = 1.8 + techTree.getManaRegenBonus();
     this.cooldowns = { gcd: 0, vortex: 0, overdrive: 0 };
     this.aimingSpell = null;
     this.activeVortices = [];
@@ -418,9 +418,13 @@ export class SpellManager {
       const spell = SPELLS[this.aimingSpell];
       const mouse = this.game.mousePos;
       if (spell && mouse && mouse.x > 0 && mouse.y > 0) {
+        const effectiveRadius = this.aimingSpell === 'gcd'
+          ? spell.radius * techTree.getGcdRadiusMultiplier()
+          : spell.radius;
+
         ctx.save();
         ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, spell.radius, 0, Math.PI * 2);
+        ctx.arc(mouse.x, mouse.y, effectiveRadius, 0, Math.PI * 2);
 
         const color = this.aimingSpell === 'gcd' ? '#fbbf24' : '#c084fc';
         ctx.fillStyle = this.aimingSpell === 'gcd' ? 'rgba(251, 191, 36, 0.15)' : 'rgba(192, 132, 252, 0.15)';
@@ -447,7 +451,7 @@ export class SpellManager {
         ctx.font = 'bold 12px "Outfit", sans-serif';
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center';
-        ctx.fillText(`【點擊施放】${spell.name}`, mouse.x, mouse.y - spell.radius - 8);
+        ctx.fillText(`【點擊施放】${spell.name}`, mouse.x, mouse.y - effectiveRadius - 8);
         ctx.restore();
       }
     }

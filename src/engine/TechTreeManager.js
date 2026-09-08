@@ -95,8 +95,8 @@ export const TECH_NODES = {
     reqId: null,
     icon: '⚡',
     name: '算力超頻核心',
-    desc: '初始算力上限提升至 125，每秒自然恢復速度 +1.5',
-    formula: 'Mana_{max} = 125, +1.5/s'
+    desc: '初始算力上限提升至 125，每秒自然恢復速度 +0.8',
+    formula: 'Mana_{max} = 125, +0.8/s'
   },
   cm_2: {
     id: 'cm_2',
@@ -106,8 +106,8 @@ export const TECH_NODES = {
     reqId: 'cm_1',
     icon: '📐',
     name: '歐幾里得爆發',
-    desc: 'GCD 引爆範圍 +35%，對互質怪造成的震波傷害提升至 80',
-    formula: 'Radius +35\\%, Dmg = 80'
+    desc: 'GCD 引爆範圍 +20%，對互質怪造成的震波傷害提升至 60',
+    formula: 'Radius +20\\%, Dmg = 60'
   },
   cm_3: {
     id: 'cm_3',
@@ -174,8 +174,8 @@ export const TECH_NODES = {
     reqId: 'ge_2',
     icon: '🔺',
     name: '三角聖域強化',
-    desc: '共鳴三角結界攻速加成升至 +35%，怪物減速升至 35%',
-    formula: 'Buff +35\\%, Slow 35\\%'
+    desc: '共鳴三角結界攻速加成升至 +18%，怪物減速升至 22%',
+    formula: 'Buff +18\\%, Slow 22\\%'
   },
   ge_4: {
     id: 'ge_4',
@@ -185,8 +185,8 @@ export const TECH_NODES = {
     reqId: 'ge_3',
     icon: '✨',
     name: '畢氏光能矩陣',
-    desc: '畢氏聖光打擊傷害提升至 120 且發動間隔縮短至 1.2s',
-    formula: 'Dmg = 120, Int = 1.2s'
+    desc: '畢氏聖光打擊傷害提升至 50 且發動間隔縮短至 2.0s',
+    formula: 'Dmg = 50, Int = 2.0s'
   },
   ge_5: {
     id: 'ge_5',
@@ -293,15 +293,15 @@ export class TechTreeManager {
   }
 
   getManaRegenBonus() {
-    return this.isUnlocked('cm_1') ? 1.5 : 0;
+    return this.isUnlocked('cm_1') ? 0.8 : 0;
   }
 
   getGcdRadiusMultiplier() {
-    return this.isUnlocked('cm_2') ? 1.35 : 1.0;
+    return this.isUnlocked('cm_2') ? 1.20 : 1.0;
   }
 
   getGcdCoprimeDamage() {
-    return this.isUnlocked('cm_2') ? 80 : 40;
+    return this.isUnlocked('cm_2') ? 60 : 30;
   }
 
   getVortexDuration() {
@@ -325,19 +325,19 @@ export class TechTreeManager {
   }
 
   getTriangleSpeedBonus() {
-    return this.isUnlocked('ge_3') ? 0.35 : 0.25;
+    return this.isUnlocked('ge_3') ? 0.18 : 0.12;
   }
 
   getTriangleSlowRatio() {
-    return this.isUnlocked('ge_3') ? 0.65 : 0.75;
+    return this.isUnlocked('ge_3') ? 0.78 : 0.85;
   }
 
   getPythagoreanPulseDamage() {
-    return this.isUnlocked('ge_4') ? 120 : 65;
+    return this.isUnlocked('ge_4') ? 50 : 28;
   }
 
   getPythagoreanInterval() {
-    return this.isUnlocked('ge_4') ? 1.2 : 1.6;
+    return this.isUnlocked('ge_4') ? 2.0 : 2.5;
   }
 
   getLcmGoldBonus() {

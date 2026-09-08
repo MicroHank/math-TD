@@ -419,9 +419,9 @@ window.addEventListener('DOMContentLoaded', () => {
     hudManaFill.style.width = `${Math.min(100, Math.max(0, (stats.mana / stats.maxMana) * 100))}%`;
 
     const spellDefs = [
-      { id: 'gcd', btn: btnSpellGcd, cdEl: cdSpellGcd, cost: 35 },
-      { id: 'vortex', btn: btnSpellVortex, cdEl: cdSpellVortex, cost: 45 },
-      { id: 'overdrive', btn: btnSpellOverdrive, cdEl: cdSpellOverdrive, cost: 40 }
+      { id: 'gcd', btn: btnSpellGcd, cdEl: cdSpellGcd, cost: 50 },
+      { id: 'vortex', btn: btnSpellVortex, cdEl: cdSpellVortex, cost: 85 },
+      { id: 'overdrive', btn: btnSpellOverdrive, cdEl: cdSpellOverdrive, cost: 50 }
     ];
 
     spellDefs.forEach(({ id, btn, cdEl, cost }) => {

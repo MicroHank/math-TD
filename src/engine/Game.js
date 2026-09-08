@@ -461,6 +461,10 @@ export class Game {
     const bonus = Math.round((70 + completedWaveNum * 30) * multiplier);
     this.addGold(bonus, 480, 280);
 
+    // 每波完成獲得 +1 點數論研究院科技研究點數
+    progress.addTechPoints(1);
+    this.coinFloats.push(new CoinFloat({ x: 480, y: 230, text: '✨ 研究點數 +1 ⭐', color: '#38bdf8' }));
+
     // 結算複利增長利息
     if (this.perkManager) {
       const interest = this.perkManager.calculateInterest(this.gold);
@@ -510,6 +514,10 @@ export class Game {
     } else if (this.lives >= Math.ceil(this.maxLives * 0.5)) {
       stars = 2;
     }
+
+    // 完成最後一波也獲得 +1 點數論研究院科技研究點數
+    progress.addTechPoints(1);
+    this.coinFloats.push(new CoinFloat({ x: 480, y: 230, text: '✨ 研究點數 +1 ⭐', color: '#38bdf8' }));
 
     progress.completeLevel(this.currentLevelId, stars, this.currentLevel.nextLevelId);
 

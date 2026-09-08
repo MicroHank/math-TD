@@ -45,11 +45,55 @@ export class WaveManager {
     const wave = this.currentWaveData;
     if (!wave) return false;
 
-    this.spawnQueue = [...wave.enemies];
+    // 1. 複製敵軍資料並區分普通怪與魔王
+    const enemies = wave.enemies.map(e => ({ ...e }));
+    const normalEnemies = [];
+    const bossEnemies = [];
+
+    enemies.forEach(e => {
+      if (e.isBoss) {
+        bossEnemies.push(e);
+      } else {
+        normalEnemies.push(e);
+      }
+    });
+
+    // 2. Fisher-Yates 洗牌演算法：打亂普通怪物出場順序，避免固定時間出特定怪
+    for (let i = normalEnemies.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [normalEnemies[i], normalEnemies[j]] = [normalEnemies[j], normalEnemies[i]];
+    }
+
+    // 3. 隨機路線分配 (避免固定在上路或下路) 與時間延遲/速度微幅抖動
+    const numLanes = this.lanes ? this.lanes.length : 1;
+    const allEnemies = [...normalEnemies, ...bossEnemies];
+
+    this.spawnQueue = allEnemies.map(e => {
+      // 若有多條路線，進行隨機路徑分配
+      const chosenLane = numLanes > 1
+        ? Math.floor(Math.random() * numLanes)
+        : (e.lane !== undefined ? e.lane : 0);
+
+      // 出怪間隔隨機抖動 (0.75 ~ 1.25x)
+      const baseDelay = e.delay || 0.8;
+      const jitteredDelay = +(baseDelay * (0.75 + Math.random() * 0.50)).toFixed(2);
+
+      // 行進速度微幅隨機浮動 (92% ~ 108%)，形成自然的梯隊節奏
+      const baseSpeed = e.speed || (58 + Math.min(20, this.currentWaveIndex * 4));
+      const jitteredSpeed = Math.round(baseSpeed * (0.92 + Math.random() * 0.16));
+
+      return {
+        ...e,
+        lane: chosenLane,
+        delay: jitteredDelay,
+        speed: jitteredSpeed
+      };
+    });
+
     this.monstersCountThisWave = this.spawnQueue.length;
     this.isSpawning = true;
     this.waveInProgress = true;
-    this.spawnTimer = 0.5;
+    this.spawnTimer = 0.3 + Math.random() * 0.4;
     return true;
   }
 

@@ -10,16 +10,21 @@ export class ProgressManager {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        if (typeof parsed.techPoints !== 'number') {
+          parsed.techPoints = 0;
+        }
+        return parsed;
       }
     } catch (e) {
       console.warn('LocalStorage error:', e);
     }
-    // 預設進度：1-1 解鎖
+    // 預設進度：1-1 解鎖，科技研究點數為 0
     return {
       unlockedLevels: ['1-1'],
       levelStars: {}, // { '1-1': 3, '1-2': 2 }
-      unlockedTechs: [] // ['pa_1', 'cm_1', ...]
+      unlockedTechs: [], // ['pa_1', 'cm_1', ...]
+      techPoints: 0 // 科技研究點數 (一開始為 0，每防守完成一波 +1)
     };
   }
 
@@ -39,18 +44,23 @@ export class ProgressManager {
     return this.data.levelStars[levelId] || 0;
   }
 
-  // 取得玩家累積獲得的總星數 (若解鎖全關卡則贈送足夠星數以便體驗全科技)
+  // 取得累積獲得的科技研究點數 (一開始為 0，每防守成功一波增加 1 點)
   getTotalStars() {
-    let sum = 0;
-    for (const k in this.data.levelStars) {
-      sum += (this.data.levelStars[k] || 0);
+    return typeof this.data.techPoints === 'number' ? this.data.techPoints : 0;
+  }
+
+  getTechPoints() {
+    return this.getTotalStars();
+  }
+
+  // 每一波防守成功增加 1 點科技研究點數
+  addTechPoints(amount = 1) {
+    if (typeof this.data.techPoints !== 'number') {
+      this.data.techPoints = 0;
     }
-    // 若玩家已解鎖所有 20 關或尚未通關很多，給予保底星星或以解鎖關卡為準
-    if (this.data.unlockedLevels.length >= 20) {
-      return Math.max(60, sum);
-    }
-    // 每解鎖一關至少可作為 3 星測試點數
-    return Math.max(sum, (this.data.unlockedLevels.length - 1) * 3);
+    this.data.techPoints += amount;
+    this.save();
+    return this.data.techPoints;
   }
 
   getUnlockedTechs() {
@@ -93,7 +103,8 @@ export class ProgressManager {
     this.data = {
       unlockedLevels: ['1-1'],
       levelStars: {},
-      unlockedTechs: []
+      unlockedTechs: [],
+      techPoints: 0
     };
     this.save();
   }
