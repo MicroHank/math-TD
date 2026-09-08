@@ -46,9 +46,15 @@ export class Monster {
     this.operatorCooldown = 0; // 避免運算子塔在短時間內連續刷同隻怪
     this.bossSkillTimer = 6.0; // 魔王技能計時器
 
-    // 減速與冰凍狀態
+    // 減速、冰凍與定身狀態
     this.slowTimer = 0;
     this.slowRatio = 1.0;
+    this.stunTimer = 0;
+  }
+
+  applyStun(duration) {
+    this.stunTimer = Math.max(this.stunTimer || 0, duration);
+    this.addFloatingText('定身!', '#c084fc');
   }
 
   // 計算每個數字階段分解前所需的耐受度血量 (例如 6 面對 2 號砲 25 傷害，需承受 70 點約 3 發打擊)
@@ -135,8 +141,17 @@ export class Monster {
     // 無法整除判定
     if (this.value % primeFactor !== 0) {
       sound.playResist();
-      this.addFloatingText(`無法被 ${primeFactor} 整除!`, '#94a3b8');
-      game.createSparks(this.x, this.y, '#94a3b8', 5);
+      if (game && game.perkManager && game.perkManager.getCoprimePierceBonus() > 0) {
+        const pierceDmg = Math.round(damage * game.perkManager.getCoprimePierceBonus());
+        this.hitFlashTimer = 0.22;
+        this.prevStageHp = Math.max(this.prevStageHp, this.stageHp);
+        this.stageHp -= pierceDmg;
+        this.addFloatingText(`互質削甲 -${pierceDmg}!`, '#a5b4fc');
+        game.createSparks(this.x, this.y, '#818cf8', 8);
+      } else {
+        this.addFloatingText(`無法被 ${primeFactor} 整除!`, '#94a3b8');
+        game.createSparks(this.x, this.y, '#94a3b8', 5);
+      }
       return false;
     }
 
@@ -185,10 +200,16 @@ export class Monster {
     if (this.value <= 1) {
       this.isDead = true;
       sound.playEliminate();
-      const baseBounty = Math.max(25, Math.floor(Math.abs(this.originalValue) * 1.6));
+      const goldMult = game && game.perkManager ? (1 + game.perkManager.getGoldMultiplier()) : 1.0;
+      const baseBounty = Math.max(25, Math.floor(Math.abs(this.originalValue) * 1.6 * goldMult));
       const reward = this.isBoss ? Math.max(300, baseBounty * 2) : baseBounty;
       game.addGold(reward, this.x, this.y);
       game.createExplosion(this.x, this.y, this.isBoss ? '#f59e0b' : '#22c55e', this.isBoss ? 50 : 24);
+
+      // 歐拉篩法因數連鎖引爆
+      if (game && game.perkManager && game.perkManager.hasEulerSieve()) {
+        game.triggerEulerSieveExplosion(this.x, this.y, primeFactor);
+      }
     } else {
       // 重設新階層耐受血量
       this.maxStageHp = this.calcStageMaxHp(newVal, this.isBoss);
@@ -261,9 +282,10 @@ export class Monster {
     this.prevStageHp = Math.max(this.prevStageHp, this.stageHp);
 
     if (this.isSquare) {
-      // 完全平方數：造成 2.5 倍暴擊破甲！
+      // 完全平方數：造成方根暴擊破甲！
       sound.playShoot(5);
-      const critDmg = Math.round(damage * 2.5);
+      const critMult = game && game.perkManager ? game.perkManager.getSquareCritMultiplier() : 2.5;
+      const critDmg = Math.round(damage * critMult);
       this.stageHp -= critDmg;
       game.createSparks(this.x, this.y, '#f59e0b', 12);
 
@@ -402,6 +424,12 @@ export class Monster {
     }
 
     if (this.isDead) return;
+
+    // 定身狀態檢查
+    if (this.stunTimer > 0) {
+      this.stunTimer -= dt;
+      return;
+    }
 
     // 沿著路線節點行進
     if (this.currentWaypointIndex < this.waypoints.length - 1) {

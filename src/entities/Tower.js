@@ -94,15 +94,19 @@ export class Tower {
   }
 
   // 獨立升級方法
-  upgradeRange() {
+  upgradeRange(rangeMultiplier = 1.0) {
     if (this.rangeLevel >= this.maxRangeLevel) return false;
     const cost = this.getUpgradeRangeCost();
     this.totalInvested += cost;
     this.rangeLevel++;
-    this.range = Math.round(this.baseRange * (1 + (this.rangeLevel - 1) * 0.18));
+    this.recalculateRange(rangeMultiplier);
     this.updateCompositeLevel();
     sound.playBuild();
     return true;
+  }
+
+  recalculateRange(multiplier = 1.0) {
+    this.range = Math.round(this.baseRange * (1 + (this.rangeLevel - 1) * 0.18) * multiplier);
   }
 
   upgradeDamage() {
@@ -229,7 +233,8 @@ export class Tower {
 
   update(dt, monsters, game) {
     if (this.cooldown > 0) {
-      this.cooldown -= dt;
+      const speedMult = game && game.perkManager ? game.perkManager.getTwinPrimeAttackSpeedMultiplier(this.factor === 2 ? 'PRIME_2' : (this.factor === 3 ? 'PRIME_3' : this.type)) : 1.0;
+      this.cooldown -= dt * speedMult;
     }
 
     // 絕對零度力場塔 (Zero Freeze Field)：持續範圍減速光環
@@ -272,12 +277,16 @@ export class Tower {
   fire(target, game) {
     if (this.type === 'prime') {
       sound.playShoot(this.factor);
+      const isDouble = game && game.perkManager ? Math.random() < game.perkManager.getPrimeDoubleChance() : false;
+      const speedMult = game && game.perkManager ? game.perkManager.getBulletSpeedMultiplier() : 1.0;
       game.addProjectile(new PrimeProjectile({
         x: this.x,
         y: this.y,
         target: target,
         factor: this.factor,
-        damage: this.damage
+        damage: this.damage,
+        speed: 340 * speedMult,
+        isDouble: isDouble
       }));
     } else if (this.type === 'absolute') {
       sound.playShoot('abs');
@@ -287,6 +296,9 @@ export class Tower {
         target: target
       }));
       target.takeAbsolutePurify(game);
+      if (game && game.perkManager && game.perkManager.getStunDuration() > 0) {
+        target.applyStun(game.perkManager.getStunDuration());
+      }
     } else if (this.type === 'operator') {
       sound.playShoot(3);
       // 智慧決定 +1 或 -1

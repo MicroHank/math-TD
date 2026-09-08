@@ -5,6 +5,7 @@ import { WaveManager } from '../levels/WaveManager.js';
 import { LEVELS } from '../levels/LevelData.js';
 import { progress } from './ProgressManager.js';
 import { sound } from './Audio.js';
+import { PerkManager } from './PerkManager.js';
 
 export class Game {
   constructor(canvas, uiCallbacks) {
@@ -22,6 +23,9 @@ export class Game {
     this.isPaused = false;
     this.isGameOver = false;
     this.isGameOverReported = false;
+
+    // 波次肉鴿天賦管理器
+    this.perkManager = new PerkManager(this);
 
     // 地圖路線點 (支援單路或多路)
     this.lanes = this.currentLevel.lanes;
@@ -79,6 +83,10 @@ export class Game {
     this.selectedBuildType = null;
     this.isGameOver = false;
     this.isGameOverReported = false;
+
+    if (this.perkManager) {
+      this.perkManager.reset();
+    }
 
     this.waveManager = new WaveManager(levelData);
     this.syncUI();
@@ -187,16 +195,18 @@ export class Game {
     }
   }
 
-  buildTowerOnSelectedPad(typeKey) {
-    if (!this.selectedPad || this.selectedPad.tower) return false;
-    const config = TOWER_TYPES[typeKey];
+  buildTowerOnSelectedPad(towerType, pad = this.selectedPad) {
+    if (!pad) return false;
+    const config = TOWER_TYPES[towerType];
     if (!config) return false;
 
-    if (this.gold >= config.cost) {
-      const pad = this.selectedPad;
-      this.selectedPad = null;
-      if (this.ui.onPadSelect) {
-        this.ui.onPadSelect(null);
+    const discount = this.perkManager ? this.perkManager.getCostDiscount() : 0;
+    const finalCost = Math.round(config.cost * (1 - discount));
+
+    if (this.gold >= finalCost) {
+      const existingTower = pad.tower;
+      if (existingTower) {
+        this.towers = this.towers.filter(t => t !== existingTower);
       }
       this.buildTower(pad, config);
       this.syncUI();
@@ -208,16 +218,20 @@ export class Game {
   }
 
   buildTower(pad, config) {
-    this.gold -= config.cost;
+    const discount = this.perkManager ? this.perkManager.getCostDiscount() : 0;
+    const finalCost = Math.round(config.cost * (1 - discount));
+    this.gold -= finalCost;
+
+    const rangeMult = this.perkManager ? this.perkManager.getRangeMultiplier() : 1.0;
     const tower = new Tower({
       id: `t_${Date.now()}_${Math.random()}`,
       x: pad.x,
       y: pad.y,
       type: config.type,
-      range: config.range,
+      range: Math.round(config.range * rangeMult),
       fireRate: config.fireRate,
       damage: config.damage,
-      cost: config.cost,
+      cost: finalCost,
       color: config.color,
       label: config.label,
       factor: config.factor
@@ -287,7 +301,8 @@ export class Game {
   sellSelectedTower() {
     if (!this.selectedTower) return;
     const pad = this.buildPads.find(p => p.tower === this.selectedTower);
-    const refund = this.selectedTower.sellValue;
+    const refundRatio = this.perkManager ? this.perkManager.getRefundRatio() : 0.7;
+    const refund = Math.floor(this.selectedTower.totalInvested * refundRatio);
     this.addGold(refund, this.selectedTower.x, this.selectedTower.y);
 
     if (pad) pad.tower = null;
@@ -391,12 +406,51 @@ export class Game {
   onWaveCompleted() {
     sound.playWaveComplete();
     const completedWaveNum = this.waveManager.currentWaveIndex;
-    const isChapter2 = this.currentLevelId.startsWith('2-');
+    const chapterNum = parseInt(this.currentLevelId.split('-')[0]) || 1;
     const isBossStage = this.currentLevelId.endsWith('-4');
-    const multiplier = isChapter2 ? 1.6 : (isBossStage ? 1.3 : 1.0);
+    const multiplier = (1 + (chapterNum - 1) * 0.4) * (isBossStage ? 1.3 : 1.0);
     const bonus = Math.round((70 + completedWaveNum * 30) * multiplier);
     this.addGold(bonus, 480, 280);
+
+    // 結算複利增長利息
+    if (this.perkManager) {
+      const interest = this.perkManager.calculateInterest(this.gold);
+      if (interest > 0) {
+        this.addGold(interest, 480, 320);
+      }
+    }
+
     this.syncUI();
+
+    // 若還有下一波次，觸發波次肉鴿三選一視窗
+    if (this.waveManager.currentWaveIndex < this.waveManager.totalWaves) {
+      if (this.ui.onShowPerkChoice && this.perkManager) {
+        const choices = this.perkManager.drawThreePerks();
+        if (choices && choices.length > 0) {
+          this.ui.onShowPerkChoice(choices, (selectedPerkId) => {
+            if (selectedPerkId === 'SKIP_GOLD') {
+              this.addGold(60, 480, 280);
+            } else if (selectedPerkId) {
+              this.perkManager.activatePerk(selectedPerkId);
+              sound.playUpgrade();
+            }
+            this.syncUI();
+          });
+        }
+      }
+    }
+  }
+
+  triggerEulerSieveExplosion(x, y, factor = 2) {
+    this.createExplosion(x, y, '#38bdf8', 28);
+    for (const m of this.monsters) {
+      if (m.isDead) continue;
+      const d = Math.hypot(m.x - x, m.y - y);
+      if (d <= 130) {
+        m.takePrimeHit(factor, 30, this);
+        m.addFloatingText('🌀 歐拉篩震波!', '#38bdf8');
+      }
+    }
   }
 
   onLevelCompleted() {
@@ -447,6 +501,7 @@ export class Game {
         isGameOver: this.isGameOver,
         currentLevelId: this.currentLevelId,
         currentLevelName: this.currentLevel.name,
+        activePerks: this.perkManager ? this.perkManager.activePerks : [],
         activeBoss: this.activeBoss ? {
           name: this.activeBoss.bossName,
           value: this.activeBoss.value,

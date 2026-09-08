@@ -63,6 +63,10 @@
         <h2 id="wave-title">準備就緒：佈署你的防線</h2>
         <p id="wave-tip">💡 在基座（+）上建造防禦塔，按鍵盤 [1] ~ [5] 或點選下方卡片選擇防禦塔！</p>
       </div>
+
+      <!-- 當前已啟動的數論定理天賦徽章 -->
+      <div id="hud-active-perks" class="hud-active-perks"></div>
+
       <button id="btn-start-wave" class="btn-action">▶ 開始下一波 (Space)</button>
     </section>
 
@@ -272,6 +276,23 @@
         </div>
         <div id="stages-grid" class="stages-container">
           <!-- 動態由 main.js 渲染關卡卡片與星級 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 波次肉鴿天賦三選一 Modal (Roguelike Perks Selection) -->
+    <div id="modal-perk-choice" class="modal-overlay hidden">
+      <div class="modal-content perk-modal-box">
+        <div class="perk-modal-header">
+          <div class="perk-badge-glow">✨ 波次戰利品</div>
+          <h2>數論秘術祝福（定理三選一）</h2>
+          <p>波次防守成功！請從下列 3 項數論定理中選擇 1 項強化你的防禦防線：</p>
+        </div>
+        <div id="perk-cards-grid" class="perk-cards-container">
+          <!-- 動態由 main.js 渲染 3 張定理卡牌 -->
+        </div>
+        <div class="perk-modal-footer">
+          <button id="btn-skip-perk" class="btn-skip-perk">💰 略過並折換軍費 (+60 🪙)</button>
         </div>
       </div>
     </div>

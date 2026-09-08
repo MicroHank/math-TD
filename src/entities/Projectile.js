@@ -1,13 +1,14 @@
 // Projectiles & Particle Effects for Math Tower Defense
 
 export class PrimeProjectile {
-  constructor({ x, y, target, factor, damage = 25, speed = 340 }) {
+  constructor({ x, y, target, factor, damage = 25, speed = 340, isDouble = false }) {
     this.x = x;
     this.y = y;
     this.target = target;
     this.factor = factor;
     this.damage = damage;
     this.speed = speed;
+    this.isDouble = isDouble;
     this.radius = 8;
     this.isDead = false;
 
@@ -46,6 +47,10 @@ export class PrimeProjectile {
     if (dist <= step || dist < this.radius + this.target.radius) {
       // 命中目標！
       this.target.takePrimeHit(this.factor, this.damage, game);
+      if (this.isDouble && !this.target.isDead) {
+        this.target.takePrimeHit(this.factor, this.damage, game);
+        this.target.addFloatingText('⚡ 質數連除 x2!', '#fde047');
+      }
       this.isDead = true;
     } else {
       this.x += (dx / dist) * step;
