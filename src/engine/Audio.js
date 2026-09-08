@@ -233,7 +233,9 @@ class SoundManager {
       gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
       osc.connect(gain);
       gain.connect(this.ctx.destination);
-      } catch (e) {}
+      osc.start(t);
+      osc.stop(t + 0.4);
+    } catch (e) {}
   }
   // 幾何共鳴矩陣：連線/結界生成音 (三和弦空靈能量聲)
   playResonanceForm() {
@@ -277,6 +279,66 @@ class SoundManager {
       gain.connect(this.ctx.destination);
       osc.start(t);
       osc.stop(t + 0.25);
+    } catch (e) {}
+  }
+
+  // 模組三：公倍數融合音效 (重力融合音與上升衝擊)
+  playLcmMerge() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const t = this.ctx.currentTime;
+      // 低頻重力引力下潛
+      const osc1 = this.ctx.createOscillator();
+      const gain1 = this.ctx.createGain();
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(160, t);
+      osc1.frequency.exponentialRampToValueAtTime(60, t + 0.2);
+      osc1.frequency.exponentialRampToValueAtTime(320, t + 0.45);
+      gain1.gain.setValueAtTime(0.25, t);
+      gain1.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+      osc1.connect(gain1);
+      gain1.connect(this.ctx.destination);
+      osc1.start(t);
+      osc1.stop(t + 0.5);
+
+      // 上升和弦泛音
+      [330, 495, 660].forEach((freq, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t + 0.15 + i * 0.04);
+        gain.gain.setValueAtTime(0.12, t + 0.15 + i * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t + 0.15 + i * 0.04);
+        osc.stop(t + 0.45);
+      });
+    } catch (e) {}
+  }
+
+  // 模組三：因數裂變震波音效 (清脆晶裂與擴散震波)
+  playFission() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(900, t);
+      osc.frequency.exponentialRampToValueAtTime(150, t + 0.35);
+      gain.gain.setValueAtTime(0.22, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.35);
     } catch (e) {}
   }
 }

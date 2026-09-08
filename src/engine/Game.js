@@ -8,6 +8,7 @@ import { sound } from './Audio.js';
 import { PerkManager } from './PerkManager.js';
 import { SpellManager } from './SpellManager.js';
 import { GeometricResonanceManager } from './GeometricResonanceManager.js';
+import { LcmMergeManager } from './LcmMergeManager.js';
 
 export class Game {
   constructor(canvas, uiCallbacks) {
@@ -34,6 +35,9 @@ export class Game {
 
     // 模組二：幾何共鳴矩陣管理器
     this.resonanceManager = new GeometricResonanceManager(this);
+
+    // 模組三：公倍數合體危機管理器
+    this.lcmManager = new LcmMergeManager(this);
 
     // 地圖路線點 (支援單路或多路)
     this.lanes = this.currentLevel.lanes;
@@ -600,6 +604,11 @@ export class Game {
       this.resonanceManager.update(dt);
     }
 
+    // 更新公倍數合體危機管理器
+    if (this.lcmManager) {
+      this.lcmManager.update(dt);
+    }
+
     // 更新防禦塔
     for (const t of this.towers) {
       t.update(dt, this.monsters, this);
@@ -823,6 +832,11 @@ export class Game {
     // 繪製秘術實體與瞄準光圈
     if (this.spellManager) {
       this.spellManager.draw(this.ctx);
+    }
+
+    // 繪製公倍數融合與裂變震波特效
+    if (this.lcmManager) {
+      this.lcmManager.draw(this.ctx);
     }
 
     // 建造預覽

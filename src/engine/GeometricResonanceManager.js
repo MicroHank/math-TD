@@ -186,14 +186,16 @@ export class GeometricResonanceManager {
 
           if (link.isHarmonic && link.factor) {
             // 同質數諧波切割：扣減階層耐受度 (每秒 40 傷害)
-            m.stageHp -= 40 * dt * link.power;
+            m.stageHp = Math.max(0, m.stageHp - 40 * dt * link.power);
             if (m.stageHp <= 0 && m.value % link.factor === 0) {
               // 觸發因數整除！
               m.takePrimeHit(link.factor, 50, this.game);
+            } else if (m.stageHp <= 0) {
+              m.stageHp = 1;
             }
           } else {
             // 基礎光弦切割
-            m.stageHp -= 20 * dt;
+            m.stageHp = Math.max(1, m.stageHp - 20 * dt);
           }
 
           // 產生微粒子火花
@@ -215,7 +217,7 @@ export class GeometricResonanceManager {
         if (inside) {
           // 結界重力壓制：減速 25%
           m.applySlow(0.75, 0.4);
-          m.stageHp -= (tri.isPythagorean ? 28 : 16) * dt;
+          m.stageHp = Math.max(1, m.stageHp - (tri.isPythagorean ? 28 : 16) * dt);
 
           // 質數三相聖環額外掉落標記
           if (tri.isPrimeTrinity) {
@@ -236,11 +238,12 @@ export class GeometricResonanceManager {
           for (const m of this.game.monsters) {
             if (m.isDead) continue;
             if (pointInTriangle(m, tri.t1, tri.t2, tri.t3)) {
-              m.stageHp -= 65;
+              m.stageHp = Math.max(0, m.stageHp - 65);
               m.addFloatingText('⚡ 畢氏聖光 -65!', '#fbbf24');
               this.game.createSparks(m.x, m.y, '#f59e0b', 12);
               if (m.stageHp <= 0 && m.value > 1) {
-                m.takePrimeHit(3, 40, this.game) || m.takeSqrtHit(60, this.game);
+                const handled = m.takePrimeHit(3, 40, this.game) || m.takeSqrtHit(60, this.game);
+                if (!handled) m.stageHp = 1;
               }
             }
           }

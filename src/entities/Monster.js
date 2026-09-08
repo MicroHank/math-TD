@@ -50,6 +50,11 @@ export class Monster {
     this.slowTimer = 0;
     this.slowRatio = 1.0;
     this.stunTimer = 0;
+
+    // 模組三：公倍數合體屬性
+    this.lcmMergeCooldown = 0; // 融合免疫冷卻
+    this.isLcmMerged = false;  // 是否為公倍數合體巨獸
+    this.lcmMergeCount = 0;    // 累計融合次數
   }
 
   applyStun(duration) {
@@ -201,10 +206,16 @@ export class Monster {
       this.isDead = true;
       sound.playEliminate();
       const goldMult = game && game.perkManager ? (1 + game.perkManager.getGoldMultiplier()) : 1.0;
-      const baseBounty = Math.max(25, Math.floor(Math.abs(this.originalValue) * 1.6 * goldMult));
+      const lcmBountyBonus = this.isLcmMerged ? 2.0 : 1.0;
+      const baseBounty = Math.max(25, Math.floor(Math.abs(this.originalValue) * 1.6 * goldMult * lcmBountyBonus));
       const reward = this.isBoss ? Math.max(300, baseBounty * 2) : baseBounty;
       game.addGold(reward, this.x, this.y);
-      game.createExplosion(this.x, this.y, this.isBoss ? '#f59e0b' : '#22c55e', this.isBoss ? 50 : 24);
+      game.createExplosion(this.x, this.y, this.isLcmMerged ? '#ec4899' : (this.isBoss ? '#f59e0b' : '#22c55e'), this.isBoss || this.isLcmMerged ? 50 : 24);
+
+      // 模組三：公倍數合體巨獸因數裂變引爆
+      if (this.isLcmMerged && game && game.lcmManager) {
+        game.lcmManager.triggerFissionShockwave(this.x, this.y, primeFactor);
+      }
 
       // 歐拉篩法因數連鎖引爆
       if (game && game.perkManager && game.perkManager.hasEulerSieve()) {
@@ -393,6 +404,7 @@ export class Monster {
     if (this.hitFlashTimer > 0) {
       this.hitFlashTimer -= dt;
     }
+    this.stageHp = Math.max(0, Math.min(this.maxStageHp, this.stageHp));
     if (this.prevStageHp > this.stageHp) {
       const drainSpeed = Math.max(30, this.maxStageHp * 2.8);
       this.prevStageHp = Math.max(this.stageHp, this.prevStageHp - dt * drainSpeed);
@@ -436,6 +448,11 @@ export class Monster {
     }
 
     if (this.isDead) return;
+
+    // 模組三：更新融合冷卻計時
+    if (this.lcmMergeCooldown > 0) {
+      this.lcmMergeCooldown = Math.max(0, this.lcmMergeCooldown - dt);
+    }
 
     // 數論安全防線：正數怪數值若因任何原因縮減至 <= 1，直接因數歸一消滅
     if (!this.isNegative && this.value <= 1) {
@@ -570,6 +587,26 @@ export class Monster {
       ctx.restore();
     }
 
+    // 模組三：公倍數合體巨獸 (LCM Colossus) 專屬能量波紋與徽章
+    if (this.isLcmMerged && !this.isBoss) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius + 7 + Math.sin(this.pulseAngle * 2) * 2.5, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ec4899';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#ec4899';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+
+      // LCM 標記
+      ctx.fillStyle = '#f472b6';
+      ctx.font = 'bold 10px "Outfit", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('lcm', this.x, this.y - this.radius - 8);
+      ctx.restore();
+    }
+
     // 冰凍減速光環
     if (this.slowTimer > 0) {
       ctx.save();
@@ -594,16 +631,17 @@ export class Monster {
       ctx.fillText('👑', this.x, this.y - this.radius - 8);
     }
 
-    // 繪製中心數字
+    // 繪製中心數字 (整數四捨五入防浮點數誤差)
     ctx.shadowBlur = 0;
     ctx.fillStyle = this.isNegative ? '#fbcfe8' : '#ffffff';
     ctx.font = `bold ${this.isBoss ? 20 : 18}px "Outfit", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`${this.value}`, this.x, this.y - (this.isNegative ? 0 : 2));
+    const displayVal = Math.round(this.value);
+    ctx.fillText(`${displayVal}`, this.x, this.y - (this.isNegative ? 0 : 2));
 
     // 質因數提示小彩燈
-    if (!this.isNegative && this.value > 1) {
+    if (!this.isNegative && displayVal > 1) {
       const factors = this.getFactors();
       const dotRadius = 3.5;
       const startX = this.x - ((factors.length - 1) * 9) / 2;
@@ -718,17 +756,21 @@ export class Monster {
       fillRounded(barX, barY, Math.max(2, barWidth * stageRatio), barHeight, radius);
     }
 
-    // 5. 血量數值標籤 (Micro HP Text: 顯示當前耐受 HP)
+    // 5. 血量數值標籤 (Micro HP Text: 顯示當前耐受 HP，整數四捨五入)
     ctx.shadowBlur = 0;
     ctx.font = 'bold 8px "JetBrains Mono", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
+    const curStageHp = Math.max(0, Math.ceil(this.stageHp));
+    const curMaxStageHp = Math.max(1, Math.round(this.maxStageHp));
+    const displayVal = Math.round(this.value);
+
     if (this.isNegative) {
       ctx.fillStyle = '#d8b4fe';
-      ctx.fillText(`🛡️|${this.value}| [${this.stageHp}/${this.maxStageHp}]`, this.x, barY - 1);
+      ctx.fillText(`🛡️|${displayVal}| [${curStageHp}/${curMaxStageHp}]`, this.x, barY - 1);
     } else {
       ctx.fillStyle = '#94a3b8';
-      ctx.fillText(`${this.stageHp}/${this.maxStageHp}`, this.x, barY - 1);
+      ctx.fillText(`${curStageHp}/${curMaxStageHp}`, this.x, barY - 1);
     }
 
     ctx.restore();
