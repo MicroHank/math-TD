@@ -12,65 +12,172 @@
 </head>
 <body>
   <div id="game-app">
-    <!-- 頂部導航與狀態儀表列 -->
-    <header id="game-header">
-      <div class="brand-section">
-        <div class="brand-badge">🧮</div>
-        <div>
-          <h1 id="game-title">數論防線 <span class="tag">Math TD</span></h1>
-          <p class="brand-subtitle" id="hud-level-name">第一章：1-1 偶數小徑</p>
+    <!-- ================= 遊戲首頁與主選單 (Game Home Screen) ================= -->
+    <section id="home-view" class="home-screen-container">
+      <!-- 頂部 Logo 與介紹橫幅 -->
+      <div class="home-hero-card">
+        <div class="home-hero-brand">
+          <div class="home-brand-badge">🧮</div>
+          <div class="home-brand-text">
+            <h1 class="home-title">數論防線 <span class="tag">Prime Matrix</span></h1>
+            <p class="home-subtitle">數論 × 質因數分解 × 幾何共鳴 × 複合神塔</p>
+          </div>
+        </div>
+        <p class="home-intro-text">
+          運用 2、3、5、7 質數重砲連環分解合數，以絕對值稜鏡淨化負數幽靈，構建幾何三角結界，並融合極限神塔抵禦大魔王侵襲！
+        </p>
+        <div class="home-features-chips">
+          <span class="home-chip">✨ 質因數分解</span>
+          <span class="home-chip">🔮 絕對值淨化</span>
+          <span class="home-chip">📐 幾何共鳴結界</span>
+          <span class="home-chip">⚛️ 複合神塔融合</span>
+          <span class="home-chip">🌊 肉鴿定理天賦</span>
         </div>
       </div>
 
-      <!-- 控制工具組 -->
-      <div class="hud-controls">
-        <button id="btn-tech-tree" class="btn-tool highlight" title="【快捷鍵 T】開啟數論研究院，使用波次累積的研究點數研發永久科技">🏛️ 數論研究院 (T)</button>
-        <button id="btn-map" class="btn-tool highlight-gold" title="切換關卡大地圖 (M)">🗺️ 關卡地圖 (M)</button>
-        <button id="btn-speed" class="btn-tool" title="切換遊戲速度 (1x/2x)">1x 速度</button>
-        <button id="btn-pause" class="btn-tool" title="暫停 / 繼續">⏸ 暫停</button>
-        <button id="btn-sound" class="btn-tool" title="音效開關">🔊 音效</button>
-        <button id="btn-guide" class="btn-tool" title="數論作戰教學手冊">📖 數論指南</button>
-        <button id="btn-reset-game" class="btn-tool btn-danger-reset" title="清除全部 LocalStorage 紀錄，重置回遊戲最初狀態">🔄 重置遊戲</button>
+      <!-- 主選單核心按鈕導航組 -->
+      <div class="home-menu-grid">
+        <!-- 1. 開始冒險 -->
+        <button id="btn-home-adventure" class="home-menu-card primary" title="開啟數論冒險星圖，挑戰 5 大世界 20 道關卡">
+          <div class="menu-card-icon">🚀</div>
+          <div class="menu-card-body">
+            <div class="menu-card-title">開始冒險 / 選擇關卡</div>
+            <div class="menu-card-desc">探索合數平原、負數深淵、平方之峰與極限終焉</div>
+          </div>
+          <span class="menu-card-action">進入星圖 ➔</span>
+        </button>
+
+        <!-- 2. 無盡算力試煉 -->
+        <button id="btn-home-endless" class="home-menu-card mode-endless" title="挑戰程序化無盡敵軍波次">
+          <div class="menu-card-icon">♾️</div>
+          <div class="menu-card-body">
+            <div class="menu-card-title">無盡算力試煉</div>
+            <div class="menu-card-desc">面對無窮隨機數論洪流，挑戰生存極限</div>
+          </div>
+          <span class="menu-card-action" id="home-endless-badge">紀錄: 第 0 波</span>
+        </button>
+
+        <!-- 3. 魔王連戰 -->
+        <button id="btn-home-boss-rush" class="home-menu-card mode-boss-rush" title="挑戰 5 大階段數論首領">
+          <div class="menu-card-icon">👑</div>
+          <div class="menu-card-body">
+            <div class="menu-card-title">魔王連戰 (Boss Rush)</div>
+            <div class="menu-card-desc">迎戰質因數長老、負極奇點王與歐拉萬數真神</div>
+          </div>
+          <span class="menu-card-action" id="home-boss-rush-badge">紀錄: Stage 0/5</span>
+        </button>
+
+        <!-- 4. 數論研究院 (科技樹) - 必須通關後才能解鎖 -->
+        <button id="btn-home-tech-tree" class="home-menu-card mode-tech-tree" title="研發 15 項永久科技天賦 (需通關任意關卡)">
+          <div class="menu-card-icon">🏛️</div>
+          <div class="menu-card-body">
+            <div class="menu-card-title">數論研究院 (科技樹)</div>
+            <div class="menu-card-desc" id="home-tech-desc">研發三大領域永久科技天賦</div>
+          </div>
+          <span class="menu-card-action" id="home-tech-tree-badge">🔒 需通關任意關卡</span>
+        </button>
+
+        <!-- 5. 數論作戰指南 -->
+        <button id="btn-home-guide" class="home-menu-card mode-guide" title="速查質數砲、運算子、負數幽靈與魔王技能">
+          <div class="menu-card-icon">📖</div>
+          <div class="menu-card-body">
+            <div class="menu-card-title">數論作戰指南</div>
+            <div class="menu-card-desc">查看因數分解、代數塔與克制機制教學</div>
+          </div>
+          <span class="menu-card-action">查看手冊 ➔</span>
+        </button>
       </div>
-    </header>
 
-    <!-- 波次任務指引條 (最左側含資源儀表：金錢、剩餘盾牌、波次、敵軍數量) -->
-    <section id="wave-banner">
-      <!-- 資源監控器 (最左側) -->
-      <div class="hud-resources">
-        <div class="resource-item gold" title="目前可用金幣">
-          <span class="icon">🪙</span>
-          <span class="val" id="hud-gold">160</span>
-          <span class="unit">G</span>
+      <!-- 首頁底欄：音效設定、重置遊戲與戰績摘要 -->
+      <div class="home-footer-toolbar">
+        <div class="home-settings-group">
+          <!-- 音效設定 ON / OFF -->
+          <button id="btn-home-sound" class="btn-home-setting" title="開啟或關閉遊戲背景與音效">
+            <span id="home-sound-icon">🔊</span>
+            <span id="home-sound-text">音效：開啟</span>
+          </button>
+
+          <!-- 重置遊戲存檔 -->
+          <button id="btn-home-reset" class="btn-home-setting btn-danger" title="清除所有進度與 LocalStorage 存檔">
+            <span>🔄</span>
+            <span>重置遊戲存檔</span>
+          </button>
         </div>
 
-        <div class="resource-item lives" title="防禦核心剩餘生命">
-          <span class="icon">🛡️</span>
-          <span class="val" id="hud-lives">10 / 10</span>
-        </div>
-
-        <div class="resource-item wave" title="當前挑戰波次">
-          <span class="icon">🌊</span>
-          <span class="val" id="hud-wave">第 1 / 3 波</span>
-        </div>
-
-        <div class="resource-item enemies" title="當前剩餘敵軍數量">
-          <span class="icon">👾</span>
-          <span class="label">敵軍</span>
-          <span class="val" id="hud-enemies">0</span>
+        <!-- 戰績摘要總覽 -->
+        <div class="home-stats-pills">
+          <div class="home-stat-pill" title="已攻克一般冒險關卡數">
+            <span class="stat-icon">🏆</span>
+            <span class="stat-label">關卡進度:</span>
+            <span id="home-stat-stages" class="stat-val">0 / 20</span>
+          </div>
+          <div class="home-stat-pill" title="可用 / 累積獲得研究點數">
+            <span class="stat-icon">⭐</span>
+            <span class="stat-label">研究點數:</span>
+            <span id="home-stat-stars" class="stat-val">0 ⭐</span>
+          </div>
         </div>
       </div>
-
-      <div class="wave-info">
-        <h2 id="wave-title">準備就緒：佈署你的防線</h2>
-        <p id="wave-tip">💡 在基座（+）上建造防禦塔，按鍵盤 [1] ~ [5] 或點選下方卡片選擇防禦塔！</p>
-      </div>
-
-      <!-- 當前已啟動的數論定理天賦徽章 -->
-      <div id="hud-active-perks" class="hud-active-perks"></div>
-
-      <button id="btn-start-wave" class="btn-action">▶ 開始下一波 (Space)</button>
     </section>
+
+    <!-- ================= 戰鬥主畫面 (Battle View) ================= -->
+    <section id="battle-view" class="battle-screen-container hidden">
+      <!-- 精簡頂部戰鬥 HUD (抬高一層) -->
+      <header id="battle-header" class="battle-header">
+        <div class="battle-header-left">
+          <button id="btn-back-home" class="btn-battle-nav" title="暫停並返回主選單首頁">🏠 返回首頁</button>
+          <div class="battle-level-info">
+            <span class="level-indicator">📍</span>
+            <h2 id="hud-level-name" class="hud-level-title">第一章：1-1 偶數小徑</h2>
+          </div>
+        </div>
+
+        <!-- 戰鬥控制工具組：速度、暫停、地圖、指南 -->
+        <div class="battle-header-controls">
+          <button id="btn-map" class="btn-tool highlight-gold" title="切換關卡大地圖 (M)">🗺️ 關卡地圖 (M)</button>
+          <button id="btn-speed" class="btn-tool btn-speed" title="切換遊戲速度 (1x/2x)">1x 速度</button>
+          <button id="btn-pause" class="btn-tool btn-pause" title="暫停 / 繼續">⏸ 暫停</button>
+          <button id="btn-guide-in-game" class="btn-tool" title="數論作戰教學手冊">📖 指南</button>
+        </div>
+      </header>
+
+      <!-- 波次任務指引條 (最左側含資源儀表：金錢、剩餘盾牌、波次、敵軍數量) -->
+      <section id="wave-banner">
+        <!-- 資源監控器 (最左側) -->
+        <div class="hud-resources">
+          <div class="resource-item gold" title="目前可用金幣">
+            <span class="icon">🪙</span>
+            <span class="val" id="hud-gold">160</span>
+            <span class="unit">G</span>
+          </div>
+
+          <div class="resource-item lives" title="防禦核心剩餘生命">
+            <span class="icon">🛡️</span>
+            <span class="val" id="hud-lives">10 / 10</span>
+          </div>
+
+          <div class="resource-item wave" title="當前挑戰波次">
+            <span class="icon">🌊</span>
+            <span class="val" id="hud-wave">第 1 / 3 波</span>
+          </div>
+
+          <div class="resource-item enemies" title="當前剩餘敵軍數量">
+            <span class="icon">👾</span>
+            <span class="label">敵軍</span>
+            <span class="val" id="hud-enemies">0</span>
+          </div>
+        </div>
+
+        <div class="wave-info">
+          <h2 id="wave-title">準備就緒：佈署你的防線</h2>
+          <p id="wave-tip">💡 在基座（+）上建造防禦塔，按鍵盤 [1] ~ [5] 或點選下方卡片選擇防禦塔！</p>
+        </div>
+
+        <!-- 當前已啟動的數論定理天賦徽章 -->
+        <div id="hud-active-perks" class="hud-active-perks"></div>
+
+        <button id="btn-start-wave" class="btn-action">▶ 開始下一波 (Space)</button>
+      </section>
 
     <!-- 遊戲中央舞台 -->
     <main id="stage-wrapper">
@@ -360,18 +467,15 @@
         </div>
       </div>
     </main>
+    </section>
 
-    <!-- 關卡地圖 Modal (World & Stage Select & Endless & Boss Rush) -->
+    <!-- 關卡地圖 Modal (Adventure Mode Stage Select) -->
     <div id="modal-stage-map" class="modal-overlay hidden">
       <div class="modal-content map-modal-box">
         <div class="modal-header">
           <div>
             <h2>🗺️ 數論作戰星圖</h2>
-            <div class="map-mode-tabs">
-              <button class="map-mode-tab active" data-map-mode="adventure" id="tab-mode-adventure">🗺️ 關卡冒險 (5大章節)</button>
-              <button class="map-mode-tab" data-map-mode="endless" id="tab-mode-endless">♾️ 無盡算力試煉</button>
-              <button class="map-mode-tab" data-map-mode="boss_rush" id="tab-mode-boss-rush">👑 魔王連戰 (Boss Rush)</button>
-            </div>
+            <p class="modal-subtitle">挑戰 5 大世界 20 道數論防線關卡，迎戰合數巨獸！</p>
           </div>
           <div style="display: flex; gap: 10px; align-items: center;">
             <button id="btn-unlock-all" class="btn-unlock-all" title="一鍵解鎖全部 5 大章節關卡以便自由探索與測試">🔓 解鎖全關卡</button>
@@ -380,7 +484,7 @@
           </div>
         </div>
 
-        <!-- 1. 常規冒險模式容器 -->
+        <!-- 常規冒險模式容器 -->
         <div id="map-view-adventure" class="map-mode-view active">
           <div class="chapter-tabs">
             <button class="tab-btn active" data-chapter="world-1">第一章：合數平原</button>
@@ -393,47 +497,27 @@
             <!-- 動態由 main.js 渲染關卡卡片與星級 -->
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- 2. 無盡模式容器 -->
-        <div id="map-view-endless" class="map-mode-view hidden">
-          <div class="endless-banner-card">
-            <div class="endless-header-badge">♾️ ENDLESS COMPUTING TRIAL</div>
-            <h3 class="endless-title">無盡算力試煉：迎戰無窮數論洪流</h3>
-            <p class="endless-desc">
-              敵軍由演算法動態程序化生成！隨著波次推進，將湧現 3~4 位數複合巨獸、負數亂流、孿生質數狂暴群與完全數聖靈泰坦！
-            </p>
-            <div class="endless-rewards-grid">
-              <div class="reward-pill">
-                <span class="pill-icon">⭐</span>
-                <span class="pill-text">每通過 5 波：<strong>+5 顆研究點數</strong></span>
-              </div>
-              <div class="reward-pill">
-                <span class="pill-icon">🏆</span>
-                <span class="pill-text">個人最佳紀錄：<strong id="endless-record-text">第 0 波</strong></span>
-              </div>
-              <div class="reward-pill">
-                <span class="pill-icon">⚛️</span>
-                <span class="pill-text">解鎖全系列複合神塔與主動秘術</span>
-              </div>
-            </div>
-            <button id="btn-start-endless" class="btn-start-mode pulse">🚀 進入無盡算力試煉</button>
+    <!-- 專屬魔王連戰 Modal (Dedicated Boss Rush Modal) -->
+    <div id="modal-boss-rush" class="modal-overlay hidden">
+      <div class="modal-content map-modal-box">
+        <div class="modal-header">
+          <div class="rush-title-wrap">
+            <h2>👑 魔王五階連戰 (Boss Rush)</h2>
+            <p class="modal-subtitle">連續迎戰 5 大具備分裂、反轉、護盾與方根重壓的數論霸主！每擊破一階獲得 <strong>+3 研究點數</strong>！</p>
           </div>
-        </div>
-
-        <!-- 3. 魔王連戰容器 -->
-        <div id="map-view-boss-rush" class="map-mode-view hidden">
-          <div class="boss-rush-header">
-            <div class="rush-title-wrap">
-              <h3>👑 魔王五階連戰 (Boss Rush)</h3>
-              <p>連續迎戰 5 大具備分裂、反轉、護盾與方根重壓的數論霸主！每擊破一階獲得 <strong>+3 研究點數</strong>！</p>
-            </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
             <div class="rush-record-tag">
               最高通關：<span id="boss-rush-record-text" class="record-val">Stage 0/5</span>
             </div>
+            <button id="btn-close-boss-rush" class="btn-close">✕</button>
           </div>
-          <div id="boss-rush-grid" class="boss-rush-grid">
-            <!-- 動態由 main.js 渲染 5 階段魔王卡片 -->
-          </div>
+        </div>
+
+        <div id="boss-rush-grid" class="boss-rush-grid">
+          <!-- 動態由 main.js 渲染 5 階段魔王卡片 -->
         </div>
       </div>
     </div>

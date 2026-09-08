@@ -202,9 +202,7 @@ export class SpellManager {
         m.addFloatingText(`÷ ${primeDivisor} = ${newVal}!`, '#fde047');
         this.game.createSparks(m.x, m.y, '#f59e0b', 20);
         if (m.value <= 1) {
-          m.isDead = true;
-          sound.playEliminate();
-          this.game.addGold(12, m.x, m.y);
+          m.onEliminated(null, this.game);
         }
       } else {
         m.stageHp = Math.max(1, m.stageHp - 45);
@@ -234,11 +232,7 @@ export class SpellManager {
         this.game.createSparks(m.x, m.y, '#f59e0b', 22);
 
         if (m.value <= 1) {
-          m.isDead = true;
-          sound.playEliminate();
-          const bounty = Math.max(8, Math.floor(Math.abs(m.originalValue) * 0.40));
-          this.game.addGold(bounty, m.x, m.y);
-          this.game.createExplosion(m.x, m.y, '#fbbf24', 30);
+          m.onEliminated(null, this.game);
         }
       }
 
@@ -331,13 +325,9 @@ export class SpellManager {
 
             if (remainder <= 1) {
               // 餘數為 0 或 1：直接因數歸一/整除湮滅！
-              m.isDead = true;
-              sound.playEliminate();
               const tag = remainder === 0 ? `${oldVal} mod 5 = 0 (整除湮滅!)` : `${oldVal} mod 5 = 1 (歸一消滅!)`;
               m.addFloatingText(tag, '#c084fc');
-              this.game.createExplosion(m.x, m.y, '#c084fc', 35);
-              const bounty = Math.max(8, Math.floor(absVal * 0.40));
-              this.game.addGold(bounty, m.x, m.y);
+              m.onEliminated(null, this.game);
             } else {
               // 餘數為 2, 3, 4：血量直接縮減至餘數，保證能被 2號砲、3號砲、方根井完美消滅！
               const newVal = m.isNegative ? -remainder : remainder;

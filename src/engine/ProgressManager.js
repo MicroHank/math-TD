@@ -44,6 +44,19 @@ export class ProgressManager {
     return this.data.levelStars[levelId] || 0;
   }
 
+  // 判斷是否至少通關過任意關卡或模式 (用於科技樹解鎖條件)
+  hasClearedAnyLevel() {
+    const clearedNormal = Object.keys(this.data.levelStars || {}).length > 0;
+    const clearedEndless = this.getEndlessRecord() > 0;
+    const clearedBossRush = this.getBossRushRecord() > 0;
+    return clearedNormal || clearedEndless || clearedBossRush;
+  }
+
+  // 取得已通關的一般關卡數量
+  getClearedLevelsCount() {
+    return Object.keys(this.data.levelStars || {}).length;
+  }
+
   // 取得累積獲得的科技研究點數 (一開始為 0，每防守成功一波增加 1 點)
   getTotalStars() {
     return typeof this.data.techPoints === 'number' ? this.data.techPoints : 0;

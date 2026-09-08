@@ -9,7 +9,32 @@ import { endlessManager } from './engine/EndlessManager.js';
 window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('game-canvas');
 
-  // DOM 元素引用
+  // 畫面容器引用
+  const homeView = document.getElementById('home-view');
+  const battleView = document.getElementById('battle-view');
+
+  // 首頁 DOM 元素引用
+  const btnHomeAdventure = document.getElementById('btn-home-adventure');
+  const btnHomeEndless = document.getElementById('btn-home-endless');
+  const btnHomeBossRush = document.getElementById('btn-home-boss-rush');
+  const btnHomeTechTree = document.getElementById('btn-home-tech-tree');
+  const btnHomeGuide = document.getElementById('btn-home-guide');
+  const homeEndlessBadge = document.getElementById('home-endless-badge');
+  const homeBossRushBadge = document.getElementById('home-boss-rush-badge');
+  const homeTechTreeBadge = document.getElementById('home-tech-tree-badge');
+  const homeTechDesc = document.getElementById('home-tech-desc');
+  const btnHomeSound = document.getElementById('btn-home-sound');
+  const homeSoundIcon = document.getElementById('home-sound-icon');
+  const homeSoundText = document.getElementById('home-sound-text');
+  const btnHomeReset = document.getElementById('btn-home-reset');
+  const homeStatStages = document.getElementById('home-stat-stages');
+  const homeStatStars = document.getElementById('home-stat-stars');
+
+  // 戰鬥頂部導航
+  const btnBackHome = document.getElementById('btn-back-home');
+  const btnGuideInGame = document.getElementById('btn-guide-in-game');
+
+  // 戰鬥 HUD 元素引用
   const elGold = document.getElementById('hud-gold');
   const elLives = document.getElementById('hud-lives');
   const elWave = document.getElementById('hud-wave');
@@ -21,7 +46,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnStartWave = document.getElementById('btn-start-wave');
   const btnSpeed = document.getElementById('btn-speed');
   const btnPause = document.getElementById('btn-pause');
-  const btnSound = document.getElementById('btn-sound');
   const btnGuide = document.getElementById('btn-guide');
   const modalGuide = document.getElementById('modal-guide');
   const btnCloseGuide = document.getElementById('btn-close-guide');
@@ -31,20 +55,13 @@ window.addEventListener('DOMContentLoaded', () => {
   const modalStageMap = document.getElementById('modal-stage-map');
   const btnCloseMap = document.getElementById('btn-close-map');
   const btnUnlockAll = document.getElementById('btn-unlock-all');
-  const btnResetGame = document.getElementById('btn-reset-game');
   const btnResetGameMap = document.getElementById('btn-reset-game-map');
   const stagesGrid = document.getElementById('stages-grid');
   const chapterTabs = document.querySelectorAll('.chapter-tabs .tab-btn');
 
-  // 地圖模式切換元素
-  const tabModeAdventure = document.getElementById('tab-mode-adventure');
-  const tabModeEndless = document.getElementById('tab-mode-endless');
-  const tabModeBossRush = document.getElementById('tab-mode-boss-rush');
-  const mapViewAdventure = document.getElementById('map-view-adventure');
-  const mapViewEndless = document.getElementById('map-view-endless');
-  const mapViewBossRush = document.getElementById('map-view-boss-rush');
-  const btnStartEndless = document.getElementById('btn-start-endless');
-  const endlessRecordText = document.getElementById('endless-record-text');
+  // 專屬魔王連戰元素
+  const modalBossRush = document.getElementById('modal-boss-rush');
+  const btnCloseBossRush = document.getElementById('btn-close-boss-rush');
   const bossRushRecordText = document.getElementById('boss-rush-record-text');
   const bossRushGrid = document.getElementById('boss-rush-grid');
 
@@ -193,6 +210,69 @@ window.addEventListener('DOMContentLoaded', () => {
     panelElement.style.bottom = 'auto';
   }
 
+  // 更新首頁選單動態狀態（戰績、科技樹解鎖狀態、音效圖示等）
+  function updateHomeScreenState() {
+    if (homeStatStages) homeStatStages.textContent = `${progress.getClearedLevelsCount()} / 20`;
+    if (homeStatStars) homeStatStars.textContent = `${techTree.getAvailableStars()} ⭐ (${techTree.getTotalEarnedStars()} 總獲取)`;
+
+    if (homeEndlessBadge) {
+      const rec = progress.getEndlessRecord();
+      homeEndlessBadge.textContent = rec > 0 ? `紀錄: 第 ${rec} 波` : '尚未挑戰';
+    }
+
+    if (homeBossRushBadge) {
+      const rec = progress.getBossRushRecord();
+      homeBossRushBadge.textContent = `紀錄: Stage ${rec}/5`;
+    }
+
+    // 需求4: 數論研究所 科技樹 放在遊戲首頁選單，必須通關後才能點擊科技樹
+    const hasCleared = progress.hasClearedAnyLevel();
+    if (btnHomeTechTree && homeTechTreeBadge && homeTechDesc) {
+      if (hasCleared) {
+        btnHomeTechTree.classList.remove('locked');
+        homeTechTreeBadge.textContent = `⭐ ${techTree.getAvailableStars()} 點可用`;
+        homeTechTreeBadge.classList.remove('locked');
+        homeTechDesc.textContent = '研發三大領域 15 項永久數論科技天賦';
+      } else {
+        btnHomeTechTree.classList.add('locked');
+        homeTechTreeBadge.textContent = '🔒 需通關任意關卡';
+        homeTechTreeBadge.classList.add('locked');
+        homeTechDesc.textContent = '🔒 需通關任意關卡後方可解鎖數論科技樹';
+      }
+    }
+
+    // 需求2: 音效放在遊戲首頁做 ON、OFF 的設定
+    if (homeSoundIcon && homeSoundText) {
+      homeSoundIcon.textContent = sound.muted ? '🔇' : '🔊';
+      homeSoundText.textContent = sound.muted ? '音效：已靜音' : '音效：開啟';
+    }
+  }
+
+  // 切換至遊戲首頁
+  function showHomeScreen() {
+    if (game) {
+      game.isPaused = true;
+      if (btnPause) btnPause.textContent = '▶ 繼續';
+    }
+    if (battleView) battleView.classList.add('hidden');
+    if (homeView) homeView.classList.remove('hidden');
+    updateHomeScreenState();
+  }
+
+  // 切換至戰鬥主畫面並載入關卡
+  function showBattleScreen(levelId = null, mode = 'adventure', stageIndex = 1) {
+    if (homeView) homeView.classList.add('hidden');
+    if (battleView) battleView.classList.remove('hidden');
+    if (game) {
+      if (levelId) {
+        game.loadLevel(levelId, mode, stageIndex);
+      }
+      game.isPaused = false;
+      if (btnPause) btnPause.textContent = '⏸ 暫停';
+      game.syncUI();
+    }
+  }
+
   // 單關通關結算彈窗
   const modalLevelVictory = document.getElementById('modal-level-victory');
   const victoryLevelTitle = document.getElementById('victory-level-title');
@@ -262,50 +342,16 @@ window.addEventListener('DOMContentLoaded', () => {
               progress.data.unlockedLevels.push(levelId);
               progress.save();
             }
-            game.loadLevel(levelId);
             modalStageMap.classList.add('hidden');
+            showBattleScreen(levelId);
           }
           return;
         }
-        game.loadLevel(levelId);
         modalStageMap.classList.add('hidden');
+        showBattleScreen(levelId);
       });
 
       stagesGrid.appendChild(card);
-    });
-  }
-
-  // 大地圖模式切換 (冒險 / 無盡 / 魔王連戰)
-  function switchMapMode(mode) {
-    currentMapMode = mode;
-    if (tabModeAdventure) tabModeAdventure.classList.toggle('active', mode === 'adventure');
-    if (tabModeEndless) tabModeEndless.classList.toggle('active', mode === 'endless');
-    if (tabModeBossRush) tabModeBossRush.classList.toggle('active', mode === 'boss_rush');
-
-    if (mapViewAdventure) mapViewAdventure.classList.toggle('hidden', mode !== 'adventure');
-    if (mapViewEndless) mapViewEndless.classList.toggle('hidden', mode !== 'endless');
-    if (mapViewBossRush) mapViewBossRush.classList.toggle('hidden', mode !== 'boss_rush');
-
-    if (mode === 'adventure') {
-      renderStageMap(currentActiveChapter);
-    } else if (mode === 'endless') {
-      if (endlessRecordText) {
-        const rec = progress.getEndlessRecord();
-        endlessRecordText.textContent = rec > 0 ? `第 ${rec} 波` : '尚未挑戰';
-      }
-    } else if (mode === 'boss_rush') {
-      renderBossRush();
-    }
-  }
-
-  if (tabModeAdventure) tabModeAdventure.addEventListener('click', () => switchMapMode('adventure'));
-  if (tabModeEndless) tabModeEndless.addEventListener('click', () => switchMapMode('endless'));
-  if (tabModeBossRush) tabModeBossRush.addEventListener('click', () => switchMapMode('boss_rush'));
-
-  if (btnStartEndless) {
-    btnStartEndless.addEventListener('click', () => {
-      modalStageMap.classList.add('hidden');
-      game.loadLevel('endless', 'endless');
     });
   }
 
@@ -342,8 +388,8 @@ window.addEventListener('DOMContentLoaded', () => {
       `;
 
       card.addEventListener('click', () => {
-        modalStageMap.classList.add('hidden');
-        game.loadLevel(s.id, 'boss_rush', s.stageIndex);
+        if (modalBossRush) modalBossRush.classList.add('hidden');
+        showBattleScreen(s.id, 'boss_rush', s.stageIndex);
       });
 
       bossRushGrid.appendChild(card);
@@ -796,6 +842,7 @@ window.addEventListener('DOMContentLoaded', () => {
     game.startNextWave();
   });
 
+  // 需求5: 速度與暫停放在遊戲區塊
   btnSpeed.addEventListener('click', () => {
     game.toggleSpeed();
   });
@@ -804,47 +851,139 @@ window.addEventListener('DOMContentLoaded', () => {
     game.togglePause();
   });
 
-  btnSound.addEventListener('click', () => {
-    sound.muted = !sound.muted;
-    btnSound.textContent = sound.muted ? '🔇 靜音' : '🔊 音效';
-  });
+  // 返回主選單首頁
+  if (btnBackHome) {
+    btnBackHome.addEventListener('click', () => {
+      showHomeScreen();
+    });
+  }
+
+  // 首頁主選單按鈕綁定
+  if (btnHomeAdventure) {
+    btnHomeAdventure.addEventListener('click', () => {
+      renderStageMap(currentActiveChapter);
+      modalStageMap.classList.remove('hidden');
+    });
+  }
+
+  if (btnHomeEndless) {
+    btnHomeEndless.addEventListener('click', () => {
+      showBattleScreen('endless', 'endless');
+    });
+  }
+
+  if (btnHomeBossRush) {
+    btnHomeBossRush.addEventListener('click', () => {
+      renderBossRush();
+      if (modalBossRush) modalBossRush.classList.remove('hidden');
+    });
+  }
+
+  if (btnCloseBossRush) {
+    btnCloseBossRush.addEventListener('click', () => {
+      if (modalBossRush) modalBossRush.classList.add('hidden');
+    });
+  }
+
+  if (modalBossRush) {
+    modalBossRush.addEventListener('click', (e) => {
+      if (e.target === modalBossRush) {
+        modalBossRush.classList.add('hidden');
+      }
+    });
+  }
+
+  // 需求4: 數論研究所 科技樹 放在遊戲首頁選單，必須通關後才能點擊科技樹
+  if (btnHomeTechTree) {
+    btnHomeTechTree.addEventListener('click', () => {
+      if (!progress.hasClearedAnyLevel()) {
+        alert('🔒【數論研究院】尚未開放！\n\n您必須至少通關任意冒險關卡、無盡試煉或魔王連戰，獲得數論權限後方可開啟科技樹！');
+        return;
+      }
+      renderTechTree();
+      modalTechTree.classList.remove('hidden');
+    });
+  }
+
+  if (btnHomeGuide) {
+    btnHomeGuide.addEventListener('click', () => {
+      modalGuide.classList.remove('hidden');
+    });
+  }
+
+  if (btnGuideInGame) {
+    btnGuideInGame.addEventListener('click', () => {
+      modalGuide.classList.remove('hidden');
+    });
+  }
+
+  // 需求2: 音效放在遊戲首頁做 ON、OFF 的設定
+  if (btnHomeSound) {
+    btnHomeSound.addEventListener('click', () => {
+      sound.muted = !sound.muted;
+      updateHomeScreenState();
+    });
+  }
+
+  // 需求3: 重置遊戲放在遊戲首頁
+  if (btnHomeReset) {
+    btnHomeReset.addEventListener('click', () => {
+      handleResetGame();
+    });
+  }
 
   // 塔三向獨立升級與變賣
-  btnUpgradeRange.addEventListener('click', () => {
-    game.upgradeSelectedTowerStat('range');
-  });
+  if (btnUpgradeRange) {
+    btnUpgradeRange.addEventListener('click', () => {
+      game.upgradeSelectedTowerStat('range');
+    });
+  }
 
-  btnUpgradeDamage.addEventListener('click', () => {
-    game.upgradeSelectedTowerStat('damage');
-  });
+  if (btnUpgradeDamage) {
+    btnUpgradeDamage.addEventListener('click', () => {
+      game.upgradeSelectedTowerStat('damage');
+    });
+  }
 
-  btnUpgradeSpeed.addEventListener('click', () => {
-    game.upgradeSelectedTowerStat('speed');
-  });
+  if (btnUpgradeSpeed) {
+    btnUpgradeSpeed.addEventListener('click', () => {
+      game.upgradeSelectedTowerStat('speed');
+    });
+  }
 
-  btnSell.addEventListener('click', () => {
-    game.sellSelectedTower();
-  });
+  if (btnSell) {
+    btnSell.addEventListener('click', () => {
+      game.sellSelectedTower();
+    });
+  }
 
-  btnDeselect.addEventListener('click', () => {
-    game.selectTower(null);
-  });
+  if (btnDeselect) {
+    btnDeselect.addEventListener('click', () => {
+      game.selectTower(null);
+    });
+  }
 
   // 關卡地圖 Modal
-  btnMap.addEventListener('click', () => {
-    switchMapMode(currentMapMode);
-    modalStageMap.classList.remove('hidden');
-  });
+  if (btnMap) {
+    btnMap.addEventListener('click', () => {
+      renderStageMap(currentActiveChapter);
+      modalStageMap.classList.remove('hidden');
+    });
+  }
 
-  btnCloseMap.addEventListener('click', () => {
-    modalStageMap.classList.add('hidden');
-  });
-
-  modalStageMap.addEventListener('click', (e) => {
-    if (e.target === modalStageMap) {
+  if (btnCloseMap) {
+    btnCloseMap.addEventListener('click', () => {
       modalStageMap.classList.add('hidden');
-    }
-  });
+    });
+  }
+
+  if (modalStageMap) {
+    modalStageMap.addEventListener('click', (e) => {
+      if (e.target === modalStageMap) {
+        modalStageMap.classList.add('hidden');
+      }
+    });
+  }
 
   chapterTabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -856,6 +995,7 @@ window.addEventListener('DOMContentLoaded', () => {
     btnUnlockAll.addEventListener('click', () => {
       progress.unlockAllLevels();
       renderStageMap(currentActiveChapter);
+      updateHomeScreenState();
     });
   }
 
@@ -869,64 +1009,77 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  if (btnResetGame) {
-    btnResetGame.addEventListener('click', handleResetGame);
-  }
   if (btnResetGameMap) {
     btnResetGameMap.addEventListener('click', handleResetGame);
   }
 
   // 單關通關按鈕
-  btnNextLevel.addEventListener('click', () => {
-    modalLevelVictory.classList.add('hidden');
-    if (currentNextLevelId) {
-      if (currentNextLevelId.startsWith('boss_rush_')) {
-        const stageIdx = parseInt(currentNextLevelId.split('_')[2]) || 1;
-        game.loadLevel(currentNextLevelId, 'boss_rush', stageIdx);
-      } else {
-        game.loadLevel(currentNextLevelId);
+  if (btnNextLevel) {
+    btnNextLevel.addEventListener('click', () => {
+      modalLevelVictory.classList.add('hidden');
+      if (currentNextLevelId) {
+        if (currentNextLevelId.startsWith('boss_rush_')) {
+          const stageIdx = parseInt(currentNextLevelId.split('_')[2]) || 1;
+          showBattleScreen(currentNextLevelId, 'boss_rush', stageIdx);
+        } else {
+          showBattleScreen(currentNextLevelId);
+        }
       }
-    }
-  });
+    });
+  }
 
-  btnBackToMap.addEventListener('click', () => {
-    modalLevelVictory.classList.add('hidden');
-    switchMapMode('adventure');
-    modalStageMap.classList.remove('hidden');
-  });
+  if (btnBackToMap) {
+    btnBackToMap.addEventListener('click', () => {
+      modalLevelVictory.classList.add('hidden');
+      switchMapMode('adventure');
+      modalStageMap.classList.remove('hidden');
+    });
+  }
 
-  btnReplayLevel.addEventListener('click', () => {
-    modalLevelVictory.classList.add('hidden');
-    game.restart();
-  });
+  if (btnReplayLevel) {
+    btnReplayLevel.addEventListener('click', () => {
+      modalLevelVictory.classList.add('hidden');
+      game.restart();
+    });
+  }
 
   // 遊戲結束按鈕
-  btnRestart.addEventListener('click', () => {
-    modalGameOver.classList.add('hidden');
-    game.isGameOverReported = false;
-    game.restart();
-  });
+  if (btnRestart) {
+    btnRestart.addEventListener('click', () => {
+      modalGameOver.classList.add('hidden');
+      game.isGameOverReported = false;
+      game.restart();
+    });
+  }
 
-  btnGameoverMap.addEventListener('click', () => {
-    modalGameOver.classList.add('hidden');
-    switchMapMode('adventure');
-    modalStageMap.classList.remove('hidden');
-  });
+  if (btnGameoverMap) {
+    btnGameoverMap.addEventListener('click', () => {
+      modalGameOver.classList.add('hidden');
+      switchMapMode('adventure');
+      modalStageMap.classList.remove('hidden');
+    });
+  }
 
   // 數論作戰指南 Modal
-  btnGuide.addEventListener('click', () => {
-    modalGuide.classList.remove('hidden');
-  });
+  if (btnGuide) {
+    btnGuide.addEventListener('click', () => {
+      modalGuide.classList.remove('hidden');
+    });
+  }
 
-  btnCloseGuide.addEventListener('click', () => {
-    modalGuide.classList.add('hidden');
-  });
-
-  modalGuide.addEventListener('click', (e) => {
-    if (e.target === modalGuide) {
+  if (btnCloseGuide) {
+    btnCloseGuide.addEventListener('click', () => {
       modalGuide.classList.add('hidden');
-    }
-  });
+    });
+  }
+
+  if (modalGuide) {
+    modalGuide.addEventListener('click', (e) => {
+      if (e.target === modalGuide) {
+        modalGuide.classList.add('hidden');
+      }
+    });
+  }
 
   // 點擊外部空白處關閉選單 (需求2: 點到旁邊空白時，就將選單關閉)
   document.addEventListener('click', (e) => {
@@ -1031,12 +1184,16 @@ window.addEventListener('DOMContentLoaded', () => {
     } else if (e.key === 'r' || e.key === 'R') {
       if (game.selectedPad) game.buildTowerOnSelectedPad('ZERO_FREEZE');
     } else if (e.key === 'm' || e.key === 'M') {
-      switchMapMode(currentMapMode);
+      renderStageMap(currentActiveChapter);
       modalStageMap.classList.toggle('hidden');
     } else if (e.key === 't' || e.key === 'T') {
       // 快捷鍵 T 開啟數論研究院
-      renderTechTree();
-      modalTechTree.classList.toggle('hidden');
+      if (progress.hasClearedAnyLevel()) {
+        renderTechTree();
+        modalTechTree.classList.toggle('hidden');
+      } else {
+        alert('🔒【數論研究院】尚未開放！\n\n您必須至少通關任意冒險關卡、無盡試煉或魔王連戰，獲得數論權限後方可開啟科技樹！');
+      }
     } else if (e.key === 'Escape') {
       if (game && game.spellManager && game.spellManager.isAiming) {
         game.spellManager.cancelAiming();
@@ -1046,6 +1203,7 @@ window.addEventListener('DOMContentLoaded', () => {
       game.selectPad(null);
       modalGuide.classList.add('hidden');
       modalStageMap.classList.add('hidden');
+      if (modalBossRush) modalBossRush.classList.add('hidden');
       modalTechTree.classList.add('hidden');
       game.syncUI();
     }
@@ -1059,4 +1217,7 @@ window.addEventListener('DOMContentLoaded', () => {
       positionPanelNear(panelTower, game.selectedTower.x, game.selectedTower.y);
     }
   });
+
+  // 初始載入時顯示遊戲首頁與主選單
+  showHomeScreen();
 });

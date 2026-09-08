@@ -275,8 +275,8 @@ export class Monster {
     sound.playEliminate();
     const goldMult = game && game.perkManager ? (1 + game.perkManager.getGoldMultiplier()) : 1.0;
     const lcmBountyBonus = this.isLcmMerged ? 1.5 : 1.0;
-    const baseBounty = Math.max(5, Math.floor(Math.abs(this.originalValue) * 0.40 * goldMult * lcmBountyBonus));
-    const reward = this.isBoss ? Math.max(60, baseBounty * 2) : baseBounty;
+    const baseBounty = Math.max(10, Math.floor(Math.abs(this.originalValue) * 0.58 * goldMult * lcmBountyBonus));
+    const reward = this.isBoss ? Math.max(80, Math.floor(baseBounty * 2.2)) : baseBounty;
     game.addGold(reward, this.x, this.y);
     game.createExplosion(this.x, this.y, this.isLcmMerged ? '#ec4899' : (this.isBoss ? '#f59e0b' : '#22c55e'), this.isBoss || this.isLcmMerged ? 50 : 24);
 
@@ -532,13 +532,7 @@ export class Monster {
 
     // 數論安全防線：正數怪數值若因任何原因縮減至 <= 1，直接因數歸一消滅
     if (!this.isNegative && this.value <= 1) {
-      this.isDead = true;
-      sound.playEliminate();
-      const goldMult = game && game.perkManager ? (1 + game.perkManager.getGoldMultiplier()) : 1.0;
-      const baseBounty = Math.max(5, Math.floor(Math.abs(this.originalValue) * 0.40 * goldMult));
-      const reward = this.isBoss ? Math.max(60, baseBounty * 2) : baseBounty;
-      game.addGold(reward, this.x, this.y);
-      game.createExplosion(this.x, this.y, '#22c55e', 24);
+      this.onEliminated(null, game);
       return;
     }
 
