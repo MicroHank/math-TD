@@ -132,12 +132,16 @@
           </div>
         </div>
 
-        <!-- 戰鬥控制工具組：速度、暫停、地圖、指南 -->
+        <div class="wave-info">
+          <h2 id="wave-title">準備就緒：佈署你的防線</h2>
+          <p id="wave-tip">💡 在基座（+）上建造防禦塔，按鍵盤 [1] ~ [5] 或點選下方卡片選擇防禦塔！</p>
+        </div>
+
+        <!-- 戰鬥控制工具組：速度、暫停 -->
         <div class="battle-header-controls">
-          <button id="btn-map" class="btn-tool highlight-gold" title="切換關卡大地圖 (M)">🗺️ 關卡地圖 (M)</button>
+          <button id="btn-start-wave" class="btn-action">▶ 開始下一波 (Space)</button>
           <button id="btn-speed" class="btn-tool btn-speed" title="切換遊戲速度 (1x/2x)">1x 速度</button>
           <button id="btn-pause" class="btn-tool btn-pause" title="暫停 / 繼續">⏸ 暫停</button>
-          <button id="btn-guide-in-game" class="btn-tool" title="數論作戰教學手冊">📖 指南</button>
         </div>
       </header>
 
@@ -168,15 +172,9 @@
           </div>
         </div>
 
-        <div class="wave-info">
-          <h2 id="wave-title">準備就緒：佈署你的防線</h2>
-          <p id="wave-tip">💡 在基座（+）上建造防禦塔，按鍵盤 [1] ~ [5] 或點選下方卡片選擇防禦塔！</p>
-        </div>
-
         <!-- 當前已啟動的數論定理天賦徽章 -->
         <div id="hud-active-perks" class="hud-active-perks"></div>
 
-        <button id="btn-start-wave" class="btn-action">▶ 開始下一波 (Space)</button>
       </section>
 
     <!-- 遊戲中央舞台 -->
