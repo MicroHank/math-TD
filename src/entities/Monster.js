@@ -32,11 +32,37 @@ export class Monster {
     this.reachedEnd = false;
     this.radius = isBoss ? 36 : 24;
 
+    // 總體數值生命與多段階層耐受度系統 (Multi-Hit Division Durability)
+    this.maxHp = Math.max(1, Math.abs(value));
+    this.hp = Math.max(0, Math.abs(value));
+    this.maxStageHp = this.calcStageMaxHp(value, isBoss);
+    this.stageHp = this.maxStageHp;
+    this.prevStageHp = this.stageHp; // 用於受擊緩衝條 (White/Red buffer decay)
+    this.hitFlashTimer = 0;
+
     this.floatingTexts = []; // { text, color, x, y, life, maxLife }
     this.pulseAngle = Math.random() * Math.PI * 2;
 
     this.operatorCooldown = 0; // 避免運算子塔在短時間內連續刷同隻怪
     this.bossSkillTimer = 6.0; // 魔王技能計時器
+  }
+
+  // 計算每個數字階段分解前所需的耐受度血量 (例如 6 面對 2 號砲 25 傷害，需承受 70 點約 3 發打擊)
+  calcStageMaxHp(val, isBoss = false) {
+    const absVal = Math.abs(val);
+    let base = 65;
+    if (absVal <= 2) base = 40;        // ~2 發 Lv1 砲 (25 傷害)
+    else if (absVal <= 4) base = 50;   // ~2 發 Lv1 砲
+    else if (absVal <= 6) base = 70;   // ~3 發 Lv1 砲 (25 傷害) -> 6 被 2 打需 3 下！
+    else if (absVal <= 12) base = 85;  // ~3-4 發 Lv1 砲
+    else if (absVal <= 24) base = 100; // ~4 發 Lv1 砲 (2 發 Lv2 砲)
+    else if (absVal <= 60) base = 120; // ~5 發 Lv1 砲
+    else base = 140;
+
+    if (isBoss) {
+      base = Math.round(base * 3.2); // 魔王耐受度更厚實
+    }
+    return base;
   }
 
   get isNegative() {
@@ -61,14 +87,14 @@ export class Monster {
       text,
       color,
       x: this.x + (Math.random() * 20 - 10),
-      y: this.y - this.radius - 8,
+      y: this.y - this.radius - 22,
       life: 1.0,
       maxLife: 1.0
     });
   }
 
-  // 受到質數砲攻擊
-  takePrimeHit(primeFactor, game) {
+  // 受到質數砲多段打擊 (damage 預設 25)
+  takePrimeHit(primeFactor, damage = 25, game) {
     if (this.isDead) return false;
 
     // 負數怪物對常規質數砲免疫！
@@ -87,14 +113,32 @@ export class Monster {
       return false;
     }
 
-    // 可以整除！
+    // 可以整除！扣減當前階層耐受度
+    this.hitFlashTimer = 0.22;
+    this.prevStageHp = Math.max(this.prevStageHp, this.stageHp);
+    this.stageHp -= damage;
+
+    if (this.stageHp > 0) {
+      // 尚未破除該階段：彈出傷害與剩餘打擊次數提示
+      sound.playShoot(primeFactor);
+      const remainingHits = Math.ceil(this.stageHp / damage);
+      this.addFloatingText(`-${damage} (剩${remainingHits}下)`, '#38bdf8');
+      game.createSparks(this.x, this.y, '#38bdf8', 6);
+      return true;
+    }
+
+    // 耐受值耗盡：正式發動質數除法分解！
     sound.playDivide();
     const oldVal = this.value;
     const newVal = Math.floor(oldVal / primeFactor);
 
-    // 彈出運算式動態回饋
-    this.addFloatingText(`${oldVal} ÷ ${primeFactor} = ${newVal}`, '#38bdf8');
-    game.createSparks(this.x, this.y, '#38bdf8', 12);
+    // 彈出金色醒目運算式動態回饋
+    this.addFloatingText(`${oldVal} ÷ ${primeFactor} = ${newVal}`, '#fde047');
+    game.createSparks(this.x, this.y, '#38bdf8', 18);
+
+    // 更新數值
+    this.value = newVal;
+    this.hp = Math.max(0, Math.abs(newVal));
 
     // 魔王分裂護衛侍從機制
     if (this.isBoss && this.bossSkills.includes('split_adds') && newVal > 10) {
@@ -105,13 +149,10 @@ export class Monster {
 
     // 一般特殊分裂怪機制
     if (this.splitOnDivide && newVal > 1) {
-      this.value = newVal;
       game.spawnSplitClone(this, newVal);
       this.splitOnDivide = false;
       return true;
     }
-
-    this.value = newVal;
 
     // 當數字除至 1，宣告完全分解消除！
     if (this.value <= 1) {
@@ -120,6 +161,11 @@ export class Monster {
       const reward = Math.max(20, Math.floor(Math.abs(this.originalValue) * 1.5));
       game.addGold(reward, this.x, this.y);
       game.createExplosion(this.x, this.y, this.isBoss ? '#f59e0b' : '#22c55e', this.isBoss ? 50 : 24);
+    } else {
+      // 重設新階層耐受血量
+      this.maxStageHp = this.calcStageMaxHp(newVal, this.isBoss);
+      this.stageHp = this.maxStageHp;
+      this.prevStageHp = this.stageHp;
     }
 
     return true;
@@ -133,6 +179,9 @@ export class Monster {
       sound.playPurify();
       const oldVal = this.value;
       this.value = Math.abs(this.value);
+      this.hp = Math.abs(this.value);
+      this.prevHp = this.hp;
+      this.hitFlashTimer = 0.22;
       this.addFloatingText(`|${oldVal}| ➔ ${this.value}`, '#a855f7');
       game.createSparks(this.x, this.y, '#c084fc', 18);
       return true;
@@ -154,7 +203,13 @@ export class Monster {
     this.operatorCooldown = 1.6;
     sound.playShoot(3);
     const oldVal = this.value;
-    this.value = oldVal + opValue;
+    const newVal = oldVal + opValue;
+
+    this.prevHp = Math.max(this.prevHp, this.hp);
+    this.value = newVal;
+    this.hp = Math.max(0, Math.abs(newVal));
+    this.maxHp = Math.max(this.maxHp, this.hp);
+    this.hitFlashTimer = 0.22;
 
     const opStr = opValue > 0 ? `+ ${opValue}` : `- ${Math.abs(opValue)}`;
     this.addFloatingText(`${oldVal} ${opStr} = ${this.value}!`, '#2dd4bf');
@@ -185,7 +240,7 @@ export class Monster {
       return;
     }
 
-    // 技能 B：乘倍激怒光環 (Multiply Aura)
+    // 技能 B：乘倍激怒光狂 (Multiply Aura)
     if (this.bossSkills.includes('multiply_aura')) {
       sound.playDamage();
       this.addFloatingText('🔥 領域技：乘倍光環 (×2)！', '#f59e0b');
@@ -197,6 +252,9 @@ export class Monster {
           const dist = Math.hypot(m.x - this.x, m.y - this.y);
           if (dist <= 260) {
             m.value = m.value * 2;
+            m.hp = Math.abs(m.value);
+            m.maxHp = Math.max(m.maxHp, m.hp);
+            m.prevHp = m.hp;
             m.addFloatingText('× 2 激怒!', '#fbbf24');
           }
         }
@@ -206,6 +264,17 @@ export class Monster {
 
   update(dt, game) {
     this.pulseAngle += dt * 3;
+
+    // 受擊閃爍與階層耐受度平滑衰減
+    if (this.hitFlashTimer > 0) {
+      this.hitFlashTimer -= dt;
+    }
+    if (this.prevStageHp > this.stageHp) {
+      const drainSpeed = Math.max(30, this.maxStageHp * 2.8);
+      this.prevStageHp = Math.max(this.stageHp, this.prevStageHp - dt * drainSpeed);
+    } else if (this.prevStageHp < this.stageHp) {
+      this.prevStageHp = this.stageHp;
+    }
 
     if (this.operatorCooldown > 0) {
       this.operatorCooldown -= dt;
@@ -359,6 +428,9 @@ export class Monster {
 
     ctx.restore();
 
+    // 繪製頭頂血量與護盾條
+    this.drawHealthBar(ctx);
+
     // 繪製頭頂浮動算式文字
     this.floatingTexts.forEach(ft => {
       ctx.save();
@@ -372,5 +444,99 @@ export class Monster {
       ctx.fillText(ft.text, ft.x, ft.y);
       ctx.restore();
     });
+  }
+
+  // 繪製頭頂現代動態血量條與護盾條 (以階層耐受血量為基準)
+  drawHealthBar(ctx) {
+    const isBoss = this.isBoss;
+    const barWidth = isBoss ? 64 : 40;
+    const barHeight = isBoss ? 7 : 5;
+    const barX = this.x - barWidth / 2;
+    // 頭頂位置：魔王若有皇冠則稍微向上留出空間
+    const barY = isBoss ? (this.y - this.radius - 22) : (this.y - this.radius - 13);
+    const radius = 2;
+
+    const stageRatio = Math.max(0, Math.min(1, this.stageHp / this.maxStageHp));
+    const bufferRatio = Math.max(0, Math.min(1, this.prevStageHp / this.maxStageHp));
+
+    ctx.save();
+
+    // 輔助繪製圓角矩形
+    const fillRounded = (x, y, w, h, r) => {
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(x, y, w, h, r);
+      } else {
+        ctx.rect(x, y, w, h);
+      }
+      ctx.fill();
+    };
+
+    const strokeRounded = (x, y, w, h, r) => {
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(x, y, w, h, r);
+      } else {
+        ctx.rect(x, y, w, h);
+      }
+      ctx.stroke();
+    };
+
+    // 1. 底框背景槽
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(6, 9, 17, 0.88)';
+    fillRounded(barX - 1, barY - 1, barWidth + 2, barHeight + 2, radius);
+
+    ctx.strokeStyle = this.isNegative ? 'rgba(192, 132, 252, 0.5)' : 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 1;
+    strokeRounded(barX - 1, barY - 1, barWidth + 2, barHeight + 2, radius);
+
+    // 2. 受擊緩衝條 (Buffer Bar: 柔和赤白殘影衰減)
+    if (bufferRatio > stageRatio) {
+      ctx.fillStyle = '#fca5a5';
+      fillRounded(barX, barY, Math.max(2, barWidth * bufferRatio), barHeight, radius);
+    }
+
+    // 3. 主耐受血條 (Stage HP Bar)
+    if (stageRatio > 0) {
+      if (this.isNegative) {
+        // 紫色水晶護盾條
+        ctx.fillStyle = '#c084fc';
+        ctx.shadowColor = '#a855f7';
+        ctx.shadowBlur = 4;
+      } else {
+        // 三段式健康色譜
+        if (stageRatio > 0.5) {
+          ctx.fillStyle = '#22c55e'; // 充沛綠
+        } else if (stageRatio > 0.25) {
+          ctx.fillStyle = '#f59e0b'; // 警戒黃
+        } else {
+          ctx.fillStyle = '#ef4444'; // 瀕危紅
+        }
+      }
+
+      fillRounded(barX, barY, Math.max(2, barWidth * stageRatio), barHeight, radius);
+    }
+
+    // 4. 受擊白光閃爍效果
+    if (this.hitFlashTimer > 0) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(0.75, this.hitFlashTimer * 3.5)})`;
+      fillRounded(barX, barY, Math.max(2, barWidth * stageRatio), barHeight, radius);
+    }
+
+    // 5. 血量數值標籤 (Micro HP Text: 顯示當前耐受 HP)
+    ctx.shadowBlur = 0;
+    ctx.font = 'bold 8px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    if (this.isNegative) {
+      ctx.fillStyle = '#d8b4fe';
+      ctx.fillText(`🛡️|${this.value}| [${this.stageHp}/${this.maxStageHp}]`, this.x, barY - 1);
+    } else {
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText(`${this.stageHp}/${this.maxStageHp}`, this.x, barY - 1);
+    }
+
+    ctx.restore();
   }
 }

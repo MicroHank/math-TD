@@ -21,6 +21,10 @@ export class Tower {
     this.label = label;
     this.angle = 0;
     this.target = null;
+
+    // 傷害屬性 (每次命中消耗怪物的階層耐受血量)
+    this.baseDamage = (TOWER_TYPES[type] && TOWER_TYPES[type].damage) || 25;
+    this.damage = this.baseDamage;
   }
 
   get upgradeCost() {
@@ -37,7 +41,8 @@ export class Tower {
     this.level++;
     this.totalInvested += this.upgradeCost;
     this.range = Math.floor(this.baseRange * (1 + (this.level - 1) * 0.2));
-    this.fireRate = +(this.fireRate * 1.25).toFixed(2);
+    this.fireRate = +(this.fireRate * 1.2).toFixed(2);
+    this.damage = Math.floor(this.baseDamage * (1 + (this.level - 1) * 0.65));
     sound.playBuild();
     return true;
   }
@@ -130,7 +135,8 @@ export class Tower {
         x: this.x,
         y: this.y,
         target: target,
-        factor: this.factor
+        factor: this.factor,
+        damage: this.damage
       }));
     } else if (this.type === 'absolute') {
       sound.playShoot('abs');
@@ -274,6 +280,7 @@ export const TOWER_TYPES = {
     cost: 50,
     range: 140,
     fireRate: 1.8,
+    damage: 25,
     color: '#38bdf8',
     label: '2'
   },
@@ -285,6 +292,7 @@ export const TOWER_TYPES = {
     cost: 75,
     range: 165,
     fireRate: 1.3,
+    damage: 32,
     color: '#fbbf24',
     label: '3'
   },
@@ -296,6 +304,7 @@ export const TOWER_TYPES = {
     cost: 100,
     range: 150,
     fireRate: 0.9,
+    damage: 45,
     color: '#34d399',
     label: '5'
   },
@@ -307,6 +316,7 @@ export const TOWER_TYPES = {
     cost: 120,
     range: 155,
     fireRate: 1.0,
+    damage: 35,
     color: '#c084fc',
     label: '|x|'
   },
@@ -318,6 +328,7 @@ export const TOWER_TYPES = {
     cost: 90,
     range: 160,
     fireRate: 1.1,
+    damage: 30,
     color: '#14b8a6',
     label: '±1'
   }
