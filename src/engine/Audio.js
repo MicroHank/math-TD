@@ -233,8 +233,50 @@ class SoundManager {
       gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
       osc.connect(gain);
       gain.connect(this.ctx.destination);
+      } catch (e) {}
+  }
+  // 幾何共鳴矩陣：連線/結界生成音 (三和弦空靈能量聲)
+  playResonanceForm() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const t = this.ctx.currentTime;
+      [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t + idx * 0.05);
+        gain.gain.setValueAtTime(0.12, t + idx * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.05 + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t + idx * 0.05);
+        osc.stop(t + idx * 0.05 + 0.35);
+      });
+    } catch (e) {}
+  }
+
+  // 幾何共鳴矩陣：畢氏聖光脈衝打擊音
+  playResonancePulse() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(880, t);
+      osc.frequency.exponentialRampToValueAtTime(220, t + 0.25);
+      gain.gain.setValueAtTime(0.2, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
       osc.start(t);
-      osc.stop(t + 0.4);
+      osc.stop(t + 0.25);
     } catch (e) {}
   }
 }

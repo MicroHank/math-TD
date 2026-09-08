@@ -143,8 +143,13 @@ export class Tower {
     return false;
   }
 
+  get effectiveRange() {
+    return Math.round(this.range * (this.geometricRangeBonus ? (1 + this.geometricRangeBonus) : 1.0));
+  }
+
   findTarget(monsters) {
     let bestTarget = null;
+    const currentRange = this.effectiveRange;
 
     if (this.type === 'absolute') {
       // 絕對值塔：優先鎖定射程內的「負數怪物」！
@@ -152,7 +157,7 @@ export class Tower {
       for (const m of monsters) {
         if (m.isDead || !m.isNegative) continue;
         const dist = Math.hypot(m.x - this.x, m.y - this.y);
-        if (dist <= this.range && m.progress > maxDistTravelled) {
+        if (dist <= currentRange && m.progress > maxDistTravelled) {
           maxDistTravelled = m.progress;
           bestTarget = m;
         }
@@ -166,7 +171,7 @@ export class Tower {
       for (const m of monsters) {
         if (m.isDead || m.isNegative || m.value <= 1 || m.operatorCooldown > 0) continue;
         const dist = Math.hypot(m.x - this.x, m.y - this.y);
-        if (dist <= this.range) {
+        if (dist <= currentRange) {
           const isFactored = (m.value % 2 === 0 || m.value % 3 === 0 || m.value % 5 === 0 || m.value % 7 === 0);
           if (!isFactored && m.progress > maxDist) {
             maxDist = m.progress;
@@ -187,7 +192,7 @@ export class Tower {
       for (const m of monsters) {
         if (m.isDead || m.isNegative) continue;
         const dist = Math.hypot(m.x - this.x, m.y - this.y);
-        if (dist <= this.range) {
+        if (dist <= currentRange) {
           if (m.isSquare && m.progress > maxSqDist) {
             maxSqDist = m.progress;
             bestSquare = m;
@@ -211,7 +216,7 @@ export class Tower {
       for (const m of monsters) {
         if (m.isDead) continue;
         const dist = Math.hypot(m.x - this.x, m.y - this.y);
-        if (dist <= this.range) {
+        if (dist <= currentRange) {
           if (!m.isNegative && m.value % this.factor === 0) {
             if (m.progress > maxDivDist) {
               maxDivDist = m.progress;
@@ -235,7 +240,8 @@ export class Tower {
     if (this.cooldown > 0) {
       const perkSpeedMult = game && game.perkManager ? game.perkManager.getTwinPrimeAttackSpeedMultiplier(this.factor === 2 ? 'PRIME_2' : (this.factor === 3 ? 'PRIME_3' : this.type)) : 1.0;
       const overdriveMult = game && game.spellManager && game.spellManager.isOverdriveActive ? 1.618 : 1.0;
-      this.cooldown -= dt * perkSpeedMult * overdriveMult;
+      const matrixSpeedMult = this.geometricSpeedBonus ? (1 + this.geometricSpeedBonus) : 1.0;
+      this.cooldown -= dt * perkSpeedMult * overdriveMult * matrixSpeedMult;
     }
 
     // 絕對零度力場塔 (Zero Freeze Field)：持續範圍減速光環

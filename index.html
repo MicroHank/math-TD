@@ -297,6 +297,19 @@
               <div class="spell-cd-overlay hidden" id="cd-spell-overdrive"></div>
             </button>
           </div>
+
+          <!-- 幾何共鳴矩陣即時狀態 (Geometric Resonance Matrix HUD) -->
+          <div id="hud-geometric-matrix" class="matrix-status-wrap" title="當防禦塔間距 <= 300px 時形成共鳴光弦；3 塔相連構成幾何三角結界 (+25% 攻速、怪物減速、算力回充)">
+            <div class="matrix-header">
+              <span class="matrix-title">📐 幾何共鳴矩陣</span>
+              <span id="matrix-buff-tag" class="matrix-buff-tag">攻速 +0%</span>
+            </div>
+            <div class="matrix-chips-row">
+              <span id="matrix-chip-links" class="matrix-chip">⚡ 0 弦線</span>
+              <span id="matrix-chip-triangles" class="matrix-chip">✨ 0 結界</span>
+              <span id="matrix-chip-special" class="matrix-chip special hidden"></span>
+            </div>
+          </div>
         </div>
       </div>
     </main>

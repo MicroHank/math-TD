@@ -7,6 +7,7 @@ import { progress } from './ProgressManager.js';
 import { sound } from './Audio.js';
 import { PerkManager } from './PerkManager.js';
 import { SpellManager } from './SpellManager.js';
+import { GeometricResonanceManager } from './GeometricResonanceManager.js';
 
 export class Game {
   constructor(canvas, uiCallbacks) {
@@ -30,6 +31,9 @@ export class Game {
 
     // 指揮官主動秘術與算力管理器
     this.spellManager = new SpellManager(this);
+
+    // 模組二：幾何共鳴矩陣管理器
+    this.resonanceManager = new GeometricResonanceManager(this);
 
     // 地圖路線點 (支援單路或多路)
     this.lanes = this.currentLevel.lanes;
@@ -93,6 +97,9 @@ export class Game {
     }
     if (this.spellManager) {
       this.spellManager.reset();
+    }
+    if (this.resonanceManager) {
+      this.resonanceManager.recalculate();
     }
 
     this.waveManager = new WaveManager(levelData);
@@ -231,6 +238,10 @@ export class Game {
         this.towers = this.towers.filter(t => t !== existingTower);
       }
       this.buildTower(pad, config);
+      // 購買成功時，立即關閉建造選單
+      this.selectPad(null);
+      this.selectTower(null);
+      this.selectedBuildType = null;
       this.syncUI();
       return true;
     } else {
@@ -265,6 +276,9 @@ export class Game {
     this.createSparks(pad.x, pad.y, config.color, 14);
     // 建立好砲塔時，先不直接出現升級選單，等待玩家點擊砲塔再出現升級選單
     this.selectTower(null);
+    if (this.resonanceManager) {
+      this.resonanceManager.recalculate();
+    }
   }
 
   upgradeSelectedTowerStat(statType) {
@@ -331,6 +345,9 @@ export class Game {
     this.towers = this.towers.filter(t => t !== this.selectedTower);
     sound.playEliminate();
     this.selectTower(null);
+    if (this.resonanceManager) {
+      this.resonanceManager.recalculate();
+    }
     this.syncUI();
   }
 
@@ -530,6 +547,7 @@ export class Game {
         aimingSpell: this.spellManager ? this.spellManager.aimingSpell : null,
         isOverdriveActive: this.spellManager ? this.spellManager.isOverdriveActive : false,
         overdriveRemaining: this.spellManager ? +this.spellManager.goldenOverdriveTimer.toFixed(1) : 0,
+        matrix: this.resonanceManager ? this.resonanceManager.getStats() : {},
         activeBoss: this.activeBoss ? {
           name: this.activeBoss.bossName,
           value: this.activeBoss.value,
@@ -575,6 +593,11 @@ export class Game {
     // 更新秘術管理器
     if (this.spellManager) {
       this.spellManager.update(dt);
+    }
+
+    // 更新幾何共鳴矩陣
+    if (this.resonanceManager) {
+      this.resonanceManager.update(dt);
     }
 
     // 更新防禦塔
@@ -761,6 +784,11 @@ export class Game {
     this.ctx.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
 
     this.drawMap();
+
+    // 繪製幾何共鳴矩陣 (雷射光弦與共振三角結界)
+    if (this.resonanceManager) {
+      this.resonanceManager.draw(this.ctx);
+    }
 
     // 繪製防禦塔
     for (const t of this.towers) {
