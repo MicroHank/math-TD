@@ -21,8 +21,9 @@ export class Game {
     this.currentLevelId = '1-1';
     this.currentLevel = LEVELS['1-1'];
     this.gold = this.currentLevel.initialGold + techTree.getInitialGoldBonus();
-    this.lives = this.currentLevel.initialLives;
-    this.maxLives = this.currentLevel.initialLives;
+    const baseInitialLives = (this.currentLevel.initialLives || 10);
+    this.lives = Math.max(25, baseInitialLives * 2);
+    this.maxLives = this.lives;
     this.gameSpeed = 1;
     this.isPaused = false;
     this.isGameOver = false;
@@ -79,8 +80,9 @@ export class Game {
     this.currentLevelId = levelId;
     this.currentLevel = levelData;
     this.gold = levelData.initialGold + techTree.getInitialGoldBonus();
-    this.lives = levelData.initialLives;
-    this.maxLives = levelData.initialLives;
+    const baseInitialLives = (levelData.initialLives || 10);
+    this.lives = Math.max(25, baseInitialLives * 2);
+    this.maxLives = this.lives;
     this.lanes = levelData.lanes;
     this.buildPads = levelData.buildPads.map(p => ({ ...p, tower: null }));
 
@@ -719,22 +721,84 @@ export class Game {
 
     // 終點防守核心 (所有路徑共用最後節點)
     const pEnd = this.lanes[0][this.lanes[0].length - 1];
+    const hpRatio = Math.max(0, this.lives / this.maxLives);
+    let coreColor = '#22c55e'; // 綠色
+    let coreBg = 'rgba(34, 197, 94, 0.2)';
+    if (hpRatio <= 0.3) {
+      coreColor = '#ef4444'; // 紅色警報
+      coreBg = 'rgba(239, 68, 68, 0.25)';
+    } else if (hpRatio <= 0.6) {
+      coreColor = '#f59e0b'; // 黃色警戒
+      coreBg = 'rgba(245, 158, 11, 0.25)';
+    }
+
     ctx.save();
+    // 1. 核心能量力場波紋
     ctx.beginPath();
-    ctx.arc(pEnd.x, pEnd.y, 24 + Math.cos(this.portalPulse) * 3, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(34, 197, 94, 0.2)';
+    ctx.arc(pEnd.x, pEnd.y, 25 + Math.cos(this.portalPulse) * 3, 0, Math.PI * 2);
+    ctx.fillStyle = coreBg;
     ctx.fill();
-    ctx.strokeStyle = '#22c55e';
+    ctx.strokeStyle = coreColor;
     ctx.lineWidth = 3;
-    ctx.shadowColor = '#22c55e';
-    ctx.shadowBlur = 12;
+    ctx.shadowColor = coreColor;
+    ctx.shadowBlur = 14;
     ctx.stroke();
     ctx.shadowBlur = 0;
-    ctx.fillStyle = '#4ade80';
+
+    // 2. 核心內核旋轉幾何防禦環
+    ctx.save();
+    ctx.translate(pEnd.x, pEnd.y);
+    ctx.rotate(this.portalPulse * 0.8);
+    ctx.beginPath();
+    ctx.arc(0, 0, 15, 0, Math.PI * 2);
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = coreColor;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+
+    // 核心文字標籤
+    ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 12px "Outfit", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('核心', pEnd.x, pEnd.y);
+
+    // 3. 核心旁邊/上方的生命值徽章與生命條 (Badge & HP Bar)
+    const badgeY = pEnd.y - 36;
+    const badgeW = 74;
+    const badgeH = 20;
+
+    // 徽章背景
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.strokeStyle = coreColor;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(pEnd.x - badgeW / 2, badgeY - badgeH / 2, badgeW, badgeH, 6);
+    } else {
+      ctx.rect(pEnd.x - badgeW / 2, badgeY - badgeH / 2, badgeW, badgeH);
+    }
+    ctx.fill();
+    ctx.stroke();
+
+    // 徽章生命數值文字
+    ctx.font = 'bold 11px "JetBrains Mono", monospace';
+    ctx.fillStyle = coreColor;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`🛡️ ${this.lives}/${this.maxLives}`, pEnd.x, badgeY - 1);
+
+    // 徽章底部的迷你生命進度條
+    const barW = badgeW - 10;
+    const barH = 3;
+    const barX = pEnd.x - barW / 2;
+    const barY = badgeY + badgeH / 2 - 3;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.fillRect(barX, barY, barW, barH);
+    ctx.fillStyle = coreColor;
+    ctx.fillRect(barX, barY, barW * hpRatio, barH);
+
     ctx.restore();
 
     // 繪製防禦塔建造基座

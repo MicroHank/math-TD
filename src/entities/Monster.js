@@ -206,9 +206,9 @@ export class Monster {
       this.isDead = true;
       sound.playEliminate();
       const goldMult = game && game.perkManager ? (1 + game.perkManager.getGoldMultiplier()) : 1.0;
-      const lcmBountyBonus = this.isLcmMerged ? 2.0 : 1.0;
-      const baseBounty = Math.max(25, Math.floor(Math.abs(this.originalValue) * 1.6 * goldMult * lcmBountyBonus));
-      const reward = this.isBoss ? Math.max(300, baseBounty * 2) : baseBounty;
+      const lcmBountyBonus = this.isLcmMerged ? 1.5 : 1.0;
+      const baseBounty = Math.max(5, Math.floor(Math.abs(this.originalValue) * 0.40 * goldMult * lcmBountyBonus));
+      const reward = this.isBoss ? Math.max(60, baseBounty * 2) : baseBounty;
       game.addGold(reward, this.x, this.y);
       game.createExplosion(this.x, this.y, this.isLcmMerged ? '#ec4899' : (this.isBoss ? '#f59e0b' : '#22c55e'), this.isBoss || this.isLcmMerged ? 50 : 24);
 
@@ -280,8 +280,8 @@ export class Monster {
       this.isDead = true;
       sound.playEliminate();
       const goldMult = game && game.perkManager ? (1 + game.perkManager.getGoldMultiplier()) : 1.0;
-      const baseBounty = Math.max(25, Math.floor(Math.abs(this.originalValue) * 1.5 * goldMult));
-      const reward = this.isBoss ? Math.max(300, baseBounty * 2) : baseBounty;
+      const baseBounty = Math.max(5, Math.floor(Math.abs(this.originalValue) * 0.40 * goldMult));
+      const reward = this.isBoss ? Math.max(60, baseBounty * 2) : baseBounty;
       game.addGold(reward, this.x, this.y);
       game.createExplosion(this.x, this.y, '#2dd4bf', 24);
     }
@@ -325,8 +325,8 @@ export class Monster {
         if (this.value <= 1) {
           this.isDead = true;
           sound.playEliminate();
-          const baseBounty = Math.max(30, Math.floor(Math.abs(this.originalValue) * 1.8));
-          const reward = this.isBoss ? Math.max(300, baseBounty * 2) : baseBounty;
+          const baseBounty = Math.max(6, Math.floor(Math.abs(this.originalValue) * 0.45));
+          const reward = this.isBoss ? Math.max(60, baseBounty * 2) : baseBounty;
           game.addGold(reward, this.x, this.y);
           game.createExplosion(this.x, this.y, '#f59e0b', this.isBoss ? 50 : 28);
         } else {
@@ -459,8 +459,8 @@ export class Monster {
       this.isDead = true;
       sound.playEliminate();
       const goldMult = game && game.perkManager ? (1 + game.perkManager.getGoldMultiplier()) : 1.0;
-      const baseBounty = Math.max(25, Math.floor(Math.abs(this.originalValue) * 1.5 * goldMult));
-      const reward = this.isBoss ? Math.max(300, baseBounty * 2) : baseBounty;
+      const baseBounty = Math.max(5, Math.floor(Math.abs(this.originalValue) * 0.40 * goldMult));
+      const reward = this.isBoss ? Math.max(60, baseBounty * 2) : baseBounty;
       game.addGold(reward, this.x, this.y);
       game.createExplosion(this.x, this.y, '#22c55e', 24);
       return;

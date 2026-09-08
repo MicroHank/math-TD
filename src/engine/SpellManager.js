@@ -204,7 +204,7 @@ export class SpellManager {
         if (m.value <= 1) {
           m.isDead = true;
           sound.playEliminate();
-          this.game.addGold(50, m.x, m.y);
+          this.game.addGold(12, m.x, m.y);
         }
       } else {
         m.stageHp = Math.max(1, m.stageHp - 45);
@@ -236,7 +236,7 @@ export class SpellManager {
         if (m.value <= 1) {
           m.isDead = true;
           sound.playEliminate();
-          const bounty = Math.max(35, Math.floor(Math.abs(m.originalValue) * 1.8));
+          const bounty = Math.max(8, Math.floor(Math.abs(m.originalValue) * 0.40));
           this.game.addGold(bounty, m.x, m.y);
           this.game.createExplosion(m.x, m.y, '#fbbf24', 30);
         }
@@ -336,7 +336,7 @@ export class SpellManager {
               const tag = remainder === 0 ? `${oldVal} mod 5 = 0 (整除湮滅!)` : `${oldVal} mod 5 = 1 (歸一消滅!)`;
               m.addFloatingText(tag, '#c084fc');
               this.game.createExplosion(m.x, m.y, '#c084fc', 35);
-              const bounty = Math.max(40, Math.floor(absVal * 1.5));
+              const bounty = Math.max(8, Math.floor(absVal * 0.40));
               this.game.addGold(bounty, m.x, m.y);
             } else {
               // 餘數為 2, 3, 4：血量直接縮減至餘數，保證能被 2號砲、3號砲、方根井完美消滅！
