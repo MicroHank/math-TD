@@ -250,8 +250,8 @@ window.addEventListener('DOMContentLoaded', () => {
       elLives.textContent = `${stats.lives} / ${stats.maxLives}`;
       hudLevelName.textContent = stats.currentLevelName;
 
-      const currentWaveDisplay = stats.waveInProgress ? stats.displayWaveNumber : `${stats.displayWaveNumber - 1}`;
-      elWave.textContent = `${currentWaveDisplay} / ${stats.totalWaves}`;
+      const currentWave = stats.isLevelFinished ? stats.totalWaves : Math.min(Math.max(1, stats.displayWaveNumber), stats.totalWaves);
+      elWave.textContent = `第 ${currentWave} / ${stats.totalWaves} 波`;
       if (elEnemies) {
         elEnemies.textContent = stats.remainingEnemies !== undefined ? stats.remainingEnemies : 0;
       }

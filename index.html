@@ -22,7 +22,19 @@
         </div>
       </div>
 
-      <!-- 資源監控器 -->
+      <!-- 控制工具組 -->
+      <div class="hud-controls">
+        <button id="btn-map" class="btn-tool highlight-gold" title="切換關卡大地圖">🗺️ 關卡地圖</button>
+        <button id="btn-speed" class="btn-tool" title="切換遊戲速度 (1x/2x)">1x 速度</button>
+        <button id="btn-pause" class="btn-tool" title="暫停 / 繼續">⏸ 暫停</button>
+        <button id="btn-sound" class="btn-tool" title="音效開關">🔊 音效</button>
+        <button id="btn-guide" class="btn-tool highlight" title="數論作戰教學手冊">📖 數論指南</button>
+      </div>
+    </header>
+
+    <!-- 波次任務指引條 (最左側含資源儀表：金錢、剩餘盾牌、波次、敵軍數量) -->
+    <section id="wave-banner">
+      <!-- 資源監控器 (最左側) -->
       <div class="hud-resources">
         <div class="resource-item gold" title="目前可用金幣">
           <span class="icon">🪙</span>
@@ -37,8 +49,7 @@
 
         <div class="resource-item wave" title="當前挑戰波次">
           <span class="icon">🌊</span>
-          <span class="label">波次</span>
-          <span class="val" id="hud-wave">0 / 3</span>
+          <span class="val" id="hud-wave">第 1 / 3 波</span>
         </div>
 
         <div class="resource-item enemies" title="當前剩餘敵軍數量">
@@ -48,18 +59,6 @@
         </div>
       </div>
 
-      <!-- 控制工具組 -->
-      <div class="hud-controls">
-        <button id="btn-map" class="btn-tool highlight-gold" title="切換關卡大地圖">🗺️ 關卡地圖</button>
-        <button id="btn-speed" class="btn-tool" title="切換遊戲速度 (1x/2x)">1x 速度</button>
-        <button id="btn-pause" class="btn-tool" title="暫停 / 繼續">⏸ 暫停</button>
-        <button id="btn-sound" class="btn-tool" title="音效開關">🔊 音效</button>
-        <button id="btn-guide" class="btn-tool highlight" title="數論作戰教學手冊">📖 數論指南</button>
-      </div>
-    </header>
-
-    <!-- 波次任務指引條 -->
-    <section id="wave-banner">
       <div class="wave-info">
         <h2 id="wave-title">準備就緒：佈署你的防線</h2>
         <p id="wave-tip">💡 在基座（+）上建造防禦塔，按鍵盤 [1] ~ [5] 或點選下方卡片選擇防禦塔！</p>
