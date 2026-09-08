@@ -233,8 +233,9 @@ export class Tower {
 
   update(dt, monsters, game) {
     if (this.cooldown > 0) {
-      const speedMult = game && game.perkManager ? game.perkManager.getTwinPrimeAttackSpeedMultiplier(this.factor === 2 ? 'PRIME_2' : (this.factor === 3 ? 'PRIME_3' : this.type)) : 1.0;
-      this.cooldown -= dt * speedMult;
+      const perkSpeedMult = game && game.perkManager ? game.perkManager.getTwinPrimeAttackSpeedMultiplier(this.factor === 2 ? 'PRIME_2' : (this.factor === 3 ? 'PRIME_3' : this.type)) : 1.0;
+      const overdriveMult = game && game.spellManager && game.spellManager.isOverdriveActive ? 1.618 : 1.0;
+      this.cooldown -= dt * perkSpeedMult * overdriveMult;
     }
 
     // 絕對零度力場塔 (Zero Freeze Field)：持續範圍減速光環

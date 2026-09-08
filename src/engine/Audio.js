@@ -171,6 +171,72 @@ class SoundManager {
       });
     } catch (e) {}
   }
+  // 秘術 1：GCD 最大公因數引爆 (金色爆裂連鎖音)
+  playGcdBlast() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const t = this.ctx.currentTime;
+      [440, 660, 880, 1320].forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, t + idx * 0.04);
+        gain.gain.setValueAtTime(0.25, t + idx * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.04 + 0.3);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t + idx * 0.04);
+        osc.stop(t + idx * 0.04 + 0.3);
+      });
+    } catch (e) {}
+  }
+
+  // 秘術 2：同餘黑洞召喚 (深邃旋渦聲)
+  playVortex() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400, t);
+      osc.frequency.exponentialRampToValueAtTime(80, t + 0.4);
+      gain.gain.setValueAtTime(0.3, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.45);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.45);
+    } catch (e) {}
+  }
+
+  // 秘術 3：黃金超頻充能 (極速升調能量音)
+  playOverdrive() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(300, t);
+      osc.frequency.exponentialRampToValueAtTime(1200, t + 0.35);
+      gain.gain.setValueAtTime(0.25, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.4);
+    } catch (e) {}
+  }
 }
 
 export const sound = new SoundManager();

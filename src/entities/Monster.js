@@ -263,6 +263,18 @@ export class Monster {
     const opStr = opValue > 0 ? `+ ${opValue}` : `- ${Math.abs(opValue)}`;
     this.addFloatingText(`${oldVal} ${opStr} = ${this.value}!`, '#2dd4bf');
     game.createSparks(this.x, this.y, '#14b8a6', 15);
+
+    // 若運算後數值歸一 (<= 1) 且非負數，直接達成因數歸一消滅
+    if (this.value <= 1 && !this.isNegative) {
+      this.isDead = true;
+      sound.playEliminate();
+      const goldMult = game && game.perkManager ? (1 + game.perkManager.getGoldMultiplier()) : 1.0;
+      const baseBounty = Math.max(25, Math.floor(Math.abs(this.originalValue) * 1.5 * goldMult));
+      const reward = this.isBoss ? Math.max(300, baseBounty * 2) : baseBounty;
+      game.addGold(reward, this.x, this.y);
+      game.createExplosion(this.x, this.y, '#2dd4bf', 24);
+    }
+
     return true;
   }
 
@@ -424,6 +436,18 @@ export class Monster {
     }
 
     if (this.isDead) return;
+
+    // 數論安全防線：正數怪數值若因任何原因縮減至 <= 1，直接因數歸一消滅
+    if (!this.isNegative && this.value <= 1) {
+      this.isDead = true;
+      sound.playEliminate();
+      const goldMult = game && game.perkManager ? (1 + game.perkManager.getGoldMultiplier()) : 1.0;
+      const baseBounty = Math.max(25, Math.floor(Math.abs(this.originalValue) * 1.5 * goldMult));
+      const reward = this.isBoss ? Math.max(300, baseBounty * 2) : baseBounty;
+      game.addGold(reward, this.x, this.y);
+      game.createExplosion(this.x, this.y, '#22c55e', 24);
+      return;
+    }
 
     // 定身狀態檢查
     if (this.stunTimer > 0) {

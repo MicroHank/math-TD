@@ -6,6 +6,7 @@ import { LEVELS } from '../levels/LevelData.js';
 import { progress } from './ProgressManager.js';
 import { sound } from './Audio.js';
 import { PerkManager } from './PerkManager.js';
+import { SpellManager } from './SpellManager.js';
 
 export class Game {
   constructor(canvas, uiCallbacks) {
@@ -26,6 +27,9 @@ export class Game {
 
     // 波次肉鴿天賦管理器
     this.perkManager = new PerkManager(this);
+
+    // 指揮官主動秘術與算力管理器
+    this.spellManager = new SpellManager(this);
 
     // 地圖路線點 (支援單路或多路)
     this.lanes = this.currentLevel.lanes;
@@ -87,6 +91,9 @@ export class Game {
     if (this.perkManager) {
       this.perkManager.reset();
     }
+    if (this.spellManager) {
+      this.spellManager.reset();
+    }
 
     this.waveManager = new WaveManager(levelData);
     this.syncUI();
@@ -128,6 +135,14 @@ export class Game {
       this.handleClick();
     });
 
+    this.canvas.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      if (this.spellManager && this.spellManager.isAiming) {
+        this.spellManager.cancelAiming();
+        this.syncUI();
+      }
+    });
+
     this.canvas.addEventListener('touchstart', (e) => {
       sound.init();
       if (e.touches.length > 0) {
@@ -142,6 +157,13 @@ export class Game {
 
   handleClick() {
     if (this.isGameOver) return;
+
+    // 0. 若處於秘術瞄準施法狀態 -> 施放秘術
+    if (this.spellManager && this.spellManager.isAiming) {
+      this.spellManager.castAt(this.mousePos.x, this.mousePos.y);
+      this.syncUI();
+      return;
+    }
 
     // 1. 點擊了已有防禦塔的基座 -> 顯示可以升級的項目
     const clickedPadWithTower = this.buildPads.find(
@@ -502,6 +524,12 @@ export class Game {
         currentLevelId: this.currentLevelId,
         currentLevelName: this.currentLevel.name,
         activePerks: this.perkManager ? this.perkManager.activePerks : [],
+        mana: this.spellManager ? Math.round(this.spellManager.mana) : 100,
+        maxMana: this.spellManager ? this.spellManager.maxMana : 100,
+        spellCooldowns: this.spellManager ? this.spellManager.cooldowns : {},
+        aimingSpell: this.spellManager ? this.spellManager.aimingSpell : null,
+        isOverdriveActive: this.spellManager ? this.spellManager.isOverdriveActive : false,
+        overdriveRemaining: this.spellManager ? +this.spellManager.goldenOverdriveTimer.toFixed(1) : 0,
         activeBoss: this.activeBoss ? {
           name: this.activeBoss.bossName,
           value: this.activeBoss.value,
@@ -542,6 +570,11 @@ export class Game {
       if (m.isDead) {
         this.monsters.splice(i, 1);
       }
+    }
+
+    // 更新秘術管理器
+    if (this.spellManager) {
+      this.spellManager.update(dt);
     }
 
     // 更新防禦塔
@@ -757,6 +790,11 @@ export class Game {
     // 繪製漂浮金幣文字
     for (const cf of this.coinFloats) {
       cf.draw(this.ctx);
+    }
+
+    // 繪製秘術實體與瞄準光圈
+    if (this.spellManager) {
+      this.spellManager.draw(this.ctx);
     }
 
     // 建造預覽

@@ -39,6 +39,16 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnSkipPerk = document.getElementById('btn-skip-perk');
   const hudActivePerks = document.getElementById('hud-active-perks');
 
+  // 指揮官秘術元素
+  const hudManaVal = document.getElementById('hud-mana-val');
+  const hudManaFill = document.getElementById('hud-mana-fill');
+  const btnSpellGcd = document.getElementById('btn-spell-gcd');
+  const btnSpellVortex = document.getElementById('btn-spell-vortex');
+  const btnSpellOverdrive = document.getElementById('btn-spell-overdrive');
+  const cdSpellGcd = document.getElementById('cd-spell-gcd');
+  const cdSpellVortex = document.getElementById('cd-spell-vortex');
+  const cdSpellOverdrive = document.getElementById('cd-spell-overdrive');
+
   // 魔王血條
   const bossBarContainer = document.getElementById('boss-bar-container');
   const bossName = document.getElementById('boss-name');
@@ -293,6 +303,44 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function updateSpellButtons(stats) {
+    if (!hudManaVal || !hudManaFill) return;
+    hudManaVal.textContent = `${stats.mana} / ${stats.maxMana}`;
+    hudManaFill.style.width = `${Math.min(100, Math.max(0, (stats.mana / stats.maxMana) * 100))}%`;
+
+    const spellDefs = [
+      { id: 'gcd', btn: btnSpellGcd, cdEl: cdSpellGcd, cost: 35 },
+      { id: 'vortex', btn: btnSpellVortex, cdEl: cdSpellVortex, cost: 45 },
+      { id: 'overdrive', btn: btnSpellOverdrive, cdEl: cdSpellOverdrive, cost: 40 }
+    ];
+
+    spellDefs.forEach(({ id, btn, cdEl, cost }) => {
+      if (!btn) return;
+      const cd = stats.spellCooldowns ? (stats.spellCooldowns[id] || 0) : 0;
+      const isAiming = stats.aimingSpell === id;
+
+      if (isAiming) {
+        btn.classList.add('aiming');
+      } else {
+        btn.classList.remove('aiming');
+      }
+
+      if (cd > 0) {
+        btn.disabled = true;
+        if (cdEl) {
+          cdEl.classList.remove('hidden');
+          cdEl.textContent = `${cd.toFixed(1)}s`;
+        }
+      } else if (stats.mana < cost) {
+        btn.disabled = true;
+        if (cdEl) cdEl.classList.add('hidden');
+      } else {
+        btn.disabled = false;
+        if (cdEl) cdEl.classList.add('hidden');
+      }
+    });
+  }
+
   // 初始化遊戲實體
   let game;
   game = new Game(canvas, {
@@ -347,6 +395,9 @@ window.addEventListener('DOMContentLoaded', () => {
       if (stats.activePerks) {
         renderActivePerks(stats.activePerks);
       }
+
+      // 更新指揮官秘術面板
+      updateSpellButtons(stats);
 
       // 更新建造按鈕金幣可負擔狀態
       updateBuildOptions(stats.gold);
@@ -595,6 +646,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!e.target.closest('#game-canvas') &&
         !e.target.closest('#tower-details-panel') &&
         !e.target.closest('#pad-build-panel') &&
+        !e.target.closest('.commander-spells-bar') &&
         !e.target.closest('.modal-content') &&
         !e.target.closest('.control-btn') &&
         !e.target.closest('#btn-start-wave')) {
@@ -604,6 +656,37 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // 指揮官秘術按鈕點擊綁定
+  if (btnSpellGcd) {
+    btnSpellGcd.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (game && game.spellManager) {
+        game.spellManager.startAiming('gcd');
+        game.syncUI();
+      }
+    });
+  }
+
+  if (btnSpellVortex) {
+    btnSpellVortex.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (game && game.spellManager) {
+        game.spellManager.startAiming('vortex');
+        game.syncUI();
+      }
+    });
+  }
+
+  if (btnSpellOverdrive) {
+    btnSpellOverdrive.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (game && game.spellManager) {
+        game.spellManager.castInstant('overdrive');
+        game.syncUI();
+      }
+    });
+  }
 
   // 鍵盤快捷鍵支援
   window.addEventListener('keydown', (e) => {
@@ -625,22 +708,41 @@ window.addEventListener('DOMContentLoaded', () => {
     } else if (e.key === '4') {
       if (game.selectedPad) game.buildTowerOnSelectedPad('PRIME_7');
     } else if (e.key === 'q' || e.key === 'Q') {
-      if (game.selectedPad) game.buildTowerOnSelectedPad('ABSOLUTE');
+      if (game.selectedPad) {
+        game.buildTowerOnSelectedPad('ABSOLUTE');
+      } else if (game.spellManager) {
+        game.spellManager.startAiming('gcd');
+        game.syncUI();
+      }
     } else if (e.key === 'w' || e.key === 'W') {
-      if (game.selectedPad) game.buildTowerOnSelectedPad('SQRT');
+      if (game.selectedPad) {
+        game.buildTowerOnSelectedPad('SQRT');
+      } else if (game.spellManager) {
+        game.spellManager.startAiming('vortex');
+        game.syncUI();
+      }
     } else if (e.key === 'e' || e.key === 'E') {
-      if (game.selectedPad) game.buildTowerOnSelectedPad('OPERATOR');
+      if (game.selectedPad) {
+        game.buildTowerOnSelectedPad('OPERATOR');
+      } else if (game.spellManager) {
+        game.spellManager.castInstant('overdrive');
+        game.syncUI();
+      }
     } else if (e.key === 'r' || e.key === 'R') {
       if (game.selectedPad) game.buildTowerOnSelectedPad('ZERO_FREEZE');
     } else if (e.key === 'm' || e.key === 'M') {
       renderStageMap(currentActiveChapter);
       modalStageMap.classList.toggle('hidden');
     } else if (e.key === 'Escape') {
+      if (game && game.spellManager && game.spellManager.isAiming) {
+        game.spellManager.cancelAiming();
+      }
       game.selectBuildType(null);
       game.selectTower(null);
       game.selectPad(null);
       modalGuide.classList.add('hidden');
       modalStageMap.classList.add('hidden');
+      game.syncUI();
     }
   });
 

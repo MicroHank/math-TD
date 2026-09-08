@@ -253,6 +253,51 @@
             </button>
           </div>
         </div>
+
+        <!-- 指揮官數論秘術操作台 (Commander Spells Dock) -->
+        <div id="commander-spells-bar" class="commander-spells-bar">
+          <div class="mana-display-wrap" title="算力能量（每秒自動恢復，擊殺分解怪物額外獲取）">
+            <div class="mana-header">
+              <span class="mana-title">⚡ 算力能量</span>
+              <span id="hud-mana-val" class="mana-val">100 / 100</span>
+            </div>
+            <div class="mana-track">
+              <div id="hud-mana-fill" class="mana-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+
+          <div class="spells-btn-group">
+            <button class="spell-btn" id="btn-spell-gcd" data-spell="gcd" title="【快捷鍵 Q】最大公因數引爆 (消耗 35 能量)">
+              <span class="spell-hotkey">Q</span>
+              <span class="spell-icon">👑</span>
+              <div class="spell-meta">
+                <span class="spell-name">GCD 引爆</span>
+                <span class="spell-cost">35 ⚡</span>
+              </div>
+              <div class="spell-cd-overlay hidden" id="cd-spell-gcd"></div>
+            </button>
+
+            <button class="spell-btn" id="btn-spell-vortex" data-spell="vortex" title="【快捷鍵 W】同餘黑洞 mod 5 (消耗 45 能量)">
+              <span class="spell-hotkey">W</span>
+              <span class="spell-icon">🌀</span>
+              <div class="spell-meta">
+                <span class="spell-name">同餘黑洞</span>
+                <span class="spell-cost">45 ⚡</span>
+              </div>
+              <div class="spell-cd-overlay hidden" id="cd-spell-vortex"></div>
+            </button>
+
+            <button class="spell-btn" id="btn-spell-overdrive" data-spell="overdrive" title="【快捷鍵 E】黃金分割超頻 (消耗 40 能量)">
+              <span class="spell-hotkey">E</span>
+              <span class="spell-icon">⚡</span>
+              <div class="spell-meta">
+                <span class="spell-name">黃金超頻</span>
+                <span class="spell-cost">40 ⚡</span>
+              </div>
+              <div class="spell-cd-overlay hidden" id="cd-spell-overdrive"></div>
+            </button>
+          </div>
+        </div>
       </div>
     </main>
 
