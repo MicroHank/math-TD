@@ -29,6 +29,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnMap = document.getElementById('btn-map');
   const modalStageMap = document.getElementById('modal-stage-map');
   const btnCloseMap = document.getElementById('btn-close-map');
+  const btnUnlockAll = document.getElementById('btn-unlock-all');
   const stagesGrid = document.getElementById('stages-grid');
   const chapterTabs = document.querySelectorAll('.chapter-tabs .tab-btn');
 
@@ -161,29 +162,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnRestart = document.getElementById('btn-restart');
   const btnGameoverMap = document.getElementById('btn-gameover-map');
 
-  // 底部圖鑑工坊分頁
-  const tabShopPrime = document.getElementById('tab-shop-prime');
-  const tabShopSpecial = document.getElementById('tab-shop-special');
-  const shopGroupPrime = document.getElementById('shop-group-prime');
-  const shopGroupSpecial = document.getElementById('shop-group-special');
-
-  function switchShopTab(tabKey) {
-    if (tabKey === 'prime') {
-      if (tabShopPrime) tabShopPrime.classList.add('active');
-      if (tabShopSpecial) tabShopSpecial.classList.remove('active');
-      if (shopGroupPrime) shopGroupPrime.classList.remove('hidden');
-      if (shopGroupSpecial) shopGroupSpecial.classList.add('hidden');
-    } else {
-      if (tabShopPrime) tabShopPrime.classList.remove('active');
-      if (tabShopSpecial) tabShopSpecial.classList.add('active');
-      if (shopGroupPrime) shopGroupPrime.classList.add('hidden');
-      if (shopGroupSpecial) shopGroupSpecial.classList.remove('hidden');
-    }
-  }
-
-  if (tabShopPrime) tabShopPrime.addEventListener('click', () => switchShopTab('prime'));
-  if (tabShopSpecial) tabShopSpecial.addEventListener('click', () => switchShopTab('special'));
-
   let currentGold = 160;
   let currentNextLevelId = null;
   let currentActiveChapter = 'world-1';
@@ -230,12 +208,21 @@ window.addEventListener('DOMContentLoaded', () => {
         </span>
       `;
 
-      if (isUnlocked) {
-        card.addEventListener('click', () => {
-          game.loadLevel(levelId);
-          modalStageMap.classList.add('hidden');
-        });
-      }
+      card.addEventListener('click', () => {
+        if (!isUnlocked) {
+          if (confirm(`關卡【${lvl.name}】尚未依序解鎖，是否直接解鎖並進入遊玩？`)) {
+            if (!progress.data.unlockedLevels.includes(levelId)) {
+              progress.data.unlockedLevels.push(levelId);
+              progress.save();
+            }
+            game.loadLevel(levelId);
+            modalStageMap.classList.add('hidden');
+          }
+          return;
+        }
+        game.loadLevel(levelId);
+        modalStageMap.classList.add('hidden');
+      });
 
       stagesGrid.appendChild(card);
     });
@@ -478,6 +465,13 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  if (btnUnlockAll) {
+    btnUnlockAll.addEventListener('click', () => {
+      progress.unlockAllLevels();
+      renderStageMap(currentActiveChapter);
+    });
+  }
+
   // 單關通關按鈕
   btnNextLevel.addEventListener('click', () => {
     modalLevelVictory.classList.add('hidden');
@@ -552,53 +546,21 @@ window.addEventListener('DOMContentLoaded', () => {
         game.sellSelectedTower();
       }
     } else if (e.key === '1') {
-      if (game.selectedPad) {
-        game.buildTowerOnSelectedPad('PRIME_2');
-      } else {
-        switchShopTab('prime');
-      }
+      if (game.selectedPad) game.buildTowerOnSelectedPad('PRIME_2');
     } else if (e.key === '2') {
-      if (game.selectedPad) {
-        game.buildTowerOnSelectedPad('PRIME_3');
-      } else {
-        switchShopTab('prime');
-      }
+      if (game.selectedPad) game.buildTowerOnSelectedPad('PRIME_3');
     } else if (e.key === '3') {
-      if (game.selectedPad) {
-        game.buildTowerOnSelectedPad('PRIME_5');
-      } else {
-        switchShopTab('prime');
-      }
+      if (game.selectedPad) game.buildTowerOnSelectedPad('PRIME_5');
     } else if (e.key === '4') {
-      if (game.selectedPad) {
-        game.buildTowerOnSelectedPad('PRIME_7');
-      } else {
-        switchShopTab('prime');
-      }
+      if (game.selectedPad) game.buildTowerOnSelectedPad('PRIME_7');
     } else if (e.key === 'q' || e.key === 'Q') {
-      if (game.selectedPad) {
-        game.buildTowerOnSelectedPad('ABSOLUTE');
-      } else {
-        switchShopTab('special');
-      }
+      if (game.selectedPad) game.buildTowerOnSelectedPad('ABSOLUTE');
     } else if (e.key === 'w' || e.key === 'W') {
-      if (game.selectedPad) {
-        game.buildTowerOnSelectedPad('SQRT');
-      } else {
-        switchShopTab('special');
-      }
+      if (game.selectedPad) game.buildTowerOnSelectedPad('SQRT');
     } else if (e.key === 'e' || e.key === 'E') {
-      if (game.selectedPad) {
-        game.buildTowerOnSelectedPad('OPERATOR');
-      } else {
-        switchShopTab('special');
-      }
+      if (game.selectedPad) game.buildTowerOnSelectedPad('OPERATOR');
     } else if (e.key === 'r' || e.key === 'R') {
-      if (game.selectedPad) {
-        game.buildTowerOnSelectedPad('ZERO_FREEZE');
-      } else {
-        switchShopTab('special');
-      }
+      if (game.selectedPad) game.buildTowerOnSelectedPad('ZERO_FREEZE');
     } else if (e.key === 'm' || e.key === 'M') {
       renderStageMap(currentActiveChapter);
       modalStageMap.classList.toggle('hidden');
