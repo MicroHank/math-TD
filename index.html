@@ -153,8 +153,16 @@
 
     <!-- 底部防禦塔建造工作坊 (Tower Shop) -->
     <footer id="tower-shop">
-      <div class="shop-label">建造工坊</div>
-      <div class="tower-cards-grid">
+      <div class="shop-header-row">
+        <div class="shop-label">建造工坊</div>
+        <div class="shop-tabs">
+          <button class="shop-tab-btn active" data-shop-tab="prime" id="tab-shop-prime">🔢 質數重砲 (1~4)</button>
+          <button class="shop-tab-btn" data-shop-tab="special" id="tab-shop-special">⚡ 代數與力場 (Q~R)</button>
+        </div>
+      </div>
+
+      <!-- 質數重砲組 -->
+      <div class="tower-cards-grid active" id="shop-group-prime">
         <!-- 2號質數砲 -->
         <button class="tower-card" data-tower-type="PRIME_2" id="card-prime-2">
           <span class="hotkey">1</span>
@@ -188,9 +196,23 @@
           <div class="card-cost">100 🪙</div>
         </button>
 
+        <!-- 7號七曜天琴 -->
+        <button class="tower-card" data-tower-type="PRIME_7" id="card-prime-7">
+          <span class="hotkey">4</span>
+          <div class="card-icon prime-7">7</div>
+          <div class="card-info">
+            <div class="card-title">7號 七曜天琴</div>
+            <div class="card-desc">除以 7 ｜ 難纏倍數剋星</div>
+          </div>
+          <div class="card-cost">130 🪙</div>
+        </button>
+      </div>
+
+      <!-- 代數與力場組 -->
+      <div class="tower-cards-grid hidden" id="shop-group-special">
         <!-- |x| 絕對值稜鏡 -->
         <button class="tower-card" data-tower-type="ABSOLUTE" id="card-absolute">
-          <span class="hotkey">4</span>
+          <span class="hotkey">Q</span>
           <div class="card-icon absolute-prism">|x|</div>
           <div class="card-info">
             <div class="card-title">絕對值稜鏡</div>
@@ -199,15 +221,37 @@
           <div class="card-cost">120 🪙</div>
         </button>
 
+        <!-- √x 根號方根重力井 -->
+        <button class="tower-card" data-tower-type="SQRT" id="card-sqrt">
+          <span class="hotkey">W</span>
+          <div class="card-icon sqrt-tower">√x</div>
+          <div class="card-info">
+            <div class="card-title">√x 方根重力井</div>
+            <div class="card-desc">暴擊平方怪 ｜ $\sqrt{36} \to 6$</div>
+          </div>
+          <div class="card-cost">150 🪙</div>
+        </button>
+
         <!-- [+/-] 運算子調整塔 -->
         <button class="tower-card" data-tower-type="OPERATOR" id="card-operator">
-          <span class="hotkey">5</span>
+          <span class="hotkey">E</span>
           <div class="card-icon operator">±1</div>
           <div class="card-info">
             <div class="card-title">運算子調整塔</div>
             <div class="card-desc">微調質數 ｜ $7 - 1 = 6$</div>
           </div>
           <div class="card-cost">90 🪙</div>
+        </button>
+
+        <!-- ×0 絕對零度力場塔 -->
+        <button class="tower-card" data-tower-type="ZERO_FREEZE" id="card-zero">
+          <span class="hotkey">R</span>
+          <div class="card-icon zero-freeze">×0</div>
+          <div class="card-info">
+            <div class="card-title">×0 絕對零度塔</div>
+            <div class="card-desc">乘零歸零 ｜ 範圍強效減速</div>
+          </div>
+          <div class="card-cost">110 🪙</div>
         </button>
       </div>
     </footer>

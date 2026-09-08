@@ -45,6 +45,10 @@ export class Monster {
 
     this.operatorCooldown = 0; // 避免運算子塔在短時間內連續刷同隻怪
     this.bossSkillTimer = 6.0; // 魔王技能計時器
+
+    // 減速與冰凍狀態
+    this.slowTimer = 0;
+    this.slowRatio = 1.0;
   }
 
   // 計算每個數字階段分解前所需的耐受度血量 (例如 6 面對 2 號砲 25 傷害，需承受 70 點約 3 發打擊)
@@ -69,6 +73,22 @@ export class Monster {
     return this.value < 0;
   }
 
+  // 判定是否為完全平方數（幾何方塊怪，例如 4, 9, 16, 25, 36, 49, 64, 81, 100）
+  get isSquare() {
+    if (this.isNegative || this.value <= 1) return false;
+    const s = Math.round(Math.sqrt(this.value));
+    return s * s === this.value;
+  }
+
+  // 判定是否為質數（孤傲質數刺客，例如 7, 11, 13, 17, 19, 23...）
+  get isPrime() {
+    if (this.isNegative || this.value <= 1) return false;
+    for (let i = 2; i * i <= this.value; i++) {
+      if (this.value % i === 0) return false;
+    }
+    return true;
+  }
+
   // 取得所包含的質因數標籤（用於視覺輔助小圓點）
   getFactors() {
     if (this.isNegative) return [];
@@ -78,8 +98,15 @@ export class Monster {
       if (absVal % 2 === 0) factors.push(2);
       if (absVal % 3 === 0) factors.push(3);
       if (absVal % 5 === 0) factors.push(5);
+      if (absVal % 7 === 0) factors.push(7);
     }
     return factors;
+  }
+
+  // 套用減速力場
+  applySlow(ratio = 0.5, duration = 1.2) {
+    this.slowRatio = Math.min(this.slowRatio, ratio);
+    this.slowTimer = Math.max(this.slowTimer, duration);
   }
 
   addFloatingText(text, color = '#ffffff') {
@@ -218,6 +245,68 @@ export class Monster {
     return true;
   }
 
+  // 受到 √x 根號方根重力井打擊
+  takeSqrtHit(damage = 50, game) {
+    if (this.isDead) return false;
+
+    // 負數不可開實數根號
+    if (this.isNegative) {
+      sound.playResist();
+      this.addFloatingText('負數無實數根!', '#f43f5e');
+      game.createSparks(this.x, this.y, '#f43f5e', 8);
+      return false;
+    }
+
+    this.hitFlashTimer = 0.22;
+    this.prevStageHp = Math.max(this.prevStageHp, this.stageHp);
+
+    if (this.isSquare) {
+      // 完全平方數：造成 2.5 倍暴擊破甲！
+      sound.playShoot(5);
+      const critDmg = Math.round(damage * 2.5);
+      this.stageHp -= critDmg;
+      game.createSparks(this.x, this.y, '#f59e0b', 12);
+
+      if (this.stageHp <= 0) {
+        sound.playDivide();
+        const oldVal = this.value;
+        const newVal = Math.round(Math.sqrt(oldVal));
+        this.addFloatingText(`√${oldVal} = ${newVal}!`, '#f59e0b');
+        game.createSparks(this.x, this.y, '#fbbf24', 24);
+
+        this.value = newVal;
+        this.hp = Math.max(0, newVal);
+
+        if (this.value <= 1) {
+          this.isDead = true;
+          sound.playEliminate();
+          const baseBounty = Math.max(30, Math.floor(Math.abs(this.originalValue) * 1.8));
+          const reward = this.isBoss ? Math.max(300, baseBounty * 2) : baseBounty;
+          game.addGold(reward, this.x, this.y);
+          game.createExplosion(this.x, this.y, '#f59e0b', this.isBoss ? 50 : 28);
+        } else {
+          this.maxStageHp = this.calcStageMaxHp(newVal, this.isBoss);
+          this.stageHp = this.maxStageHp;
+          this.prevStageHp = this.stageHp;
+        }
+        return true;
+      } else {
+        const remainingHits = Math.ceil(this.stageHp / critDmg);
+        this.addFloatingText(`暴擊! -${critDmg} (剩${remainingHits}下)`, '#f59e0b');
+        return true;
+      }
+    } else {
+      // 非平方數：造成中度重力壓制與減速
+      sound.playResist();
+      const normalDmg = Math.round(damage * 0.45);
+      this.stageHp -= normalDmg;
+      this.applySlow(0.65, 1.4);
+      this.addFloatingText(`重力壓制 -${normalDmg}`, '#94a3b8');
+      game.createSparks(this.x, this.y, '#f59e0b', 6);
+      return true;
+    }
+  }
+
   // 觸發魔王主動技能
   triggerBossSkill(game) {
     if (this.isDead || !this.isBoss) return;
@@ -279,6 +368,18 @@ export class Monster {
 
     if (this.operatorCooldown > 0) {
       this.operatorCooldown -= dt;
+    }
+
+    // 減速力場計時
+    if (this.slowTimer > 0) {
+      this.slowTimer -= dt;
+      this.speed = this.baseSpeed * this.slowRatio;
+      if (this.slowTimer <= 0) {
+        this.slowRatio = 1.0;
+        this.speed = this.baseSpeed;
+      }
+    } else {
+      this.speed = this.baseSpeed;
     }
 
     // 魔王技能計時與發動
@@ -393,6 +494,45 @@ export class Monster {
       ctx.stroke();
     }
 
+    // 幾何方塊怪 (完全平方數)：金色旋轉幾何外框
+    if (this.isSquare && !this.isBoss) {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.pulseAngle * 0.4);
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2.5;
+      const boxSize = this.radius * 1.35;
+      ctx.strokeRect(-boxSize, -boxSize, boxSize * 2, boxSize * 2);
+      ctx.restore();
+    }
+
+    // 孤傲質數刺客 (大於5的質數怪)：霓虹粉尖刺光環
+    if (this.isPrime && this.value > 5 && !this.isBoss) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius + 4.5, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ec4899';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([3, 4]);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 冰凍減速光環
+    if (this.slowTimer > 0) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius + 6, 0, Math.PI * 2);
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([2, 3]);
+      ctx.stroke();
+      ctx.fillStyle = '#06b6d4';
+      ctx.font = '11px sans-serif';
+      ctx.fillText('❄️', this.x + this.radius + 2, this.y - this.radius - 2);
+      ctx.restore();
+    }
+
     // 魔王皇冠符號
     if (this.isBoss) {
       ctx.fillStyle = '#fbbf24';
@@ -423,6 +563,7 @@ export class Monster {
         if (f === 2) ctx.fillStyle = '#38bdf8';
         else if (f === 3) ctx.fillStyle = '#fbbf24';
         else if (f === 5) ctx.fillStyle = '#34d399';
+        else if (f === 7) ctx.fillStyle = '#8b5cf6';
         ctx.fill();
       });
     }

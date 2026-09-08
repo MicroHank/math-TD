@@ -1,14 +1,14 @@
 // Tower Entities for Math Tower Defense
-import { PrimeProjectile, AbsoluteBeam, OperatorProjectile } from './Projectile.js';
+import { PrimeProjectile, AbsoluteBeam, OperatorProjectile, SqrtProjectile, FreezeRingEffect } from './Projectile.js';
 import { sound } from '../engine/Audio.js';
 
 export class Tower {
-  constructor({ id, x, y, type, range, fireRate, cost, color, label, factor = null }) {
+  constructor({ id, x, y, type, range, fireRate, damage, cost, color, label, factor = null }) {
     this.id = id;
     this.x = x;
     this.y = y;
-    this.type = type; // 'prime', 'absolute', 'operator'
-    this.factor = factor; // 2, 3, 5 or null
+    this.type = type; // 'prime', 'absolute', 'operator', 'sqrt', 'zero'
+    this.factor = factor; // 2, 3, 5, 7 or null
     // 基礎與當前屬性
     this.baseRange = range;
     this.range = range;
@@ -37,7 +37,7 @@ export class Tower {
     this.target = null;
 
     // 傷害屬性 (每次命中消耗怪物的階層耐受血量)
-    this.baseDamage = (TOWER_TYPES[type] && TOWER_TYPES[type].damage) || 25;
+    this.baseDamage = damage !== undefined ? damage : ((TOWER_TYPES[type] && TOWER_TYPES[type].damage) || 25);
     this.damage = this.baseDamage;
   }
 
@@ -157,13 +157,13 @@ export class Tower {
     }
 
     if (this.type === 'operator') {
-      // 運算子塔：鎖定射程內「無法被 2, 3, 5 整除」的正數怪物（如質數 7, 11, 13）
+      // 運算子塔：鎖定射程內「無法被 2, 3, 5, 7 整除」的正數怪物（如質數 11, 13, 17, 19, 23）
       let maxDist = -1;
       for (const m of monsters) {
         if (m.isDead || m.isNegative || m.value <= 1 || m.operatorCooldown > 0) continue;
         const dist = Math.hypot(m.x - this.x, m.y - this.y);
         if (dist <= this.range) {
-          const isFactored = (m.value % 2 === 0 || m.value % 3 === 0 || m.value % 5 === 0);
+          const isFactored = (m.value % 2 === 0 || m.value % 3 === 0 || m.value % 5 === 0 || m.value % 7 === 0);
           if (!isFactored && m.progress > maxDist) {
             maxDist = m.progress;
             bestTarget = m;
@@ -171,6 +171,30 @@ export class Tower {
         }
       }
       return bestTarget;
+    }
+
+    if (this.type === 'sqrt') {
+      // 根號方根重力井：強烈優先鎖定「完全平方數」！
+      let bestSquare = null;
+      let maxSqDist = -1;
+      let fallbackFirst = null;
+      let maxAnyDist = -1;
+
+      for (const m of monsters) {
+        if (m.isDead || m.isNegative) continue;
+        const dist = Math.hypot(m.x - this.x, m.y - this.y);
+        if (dist <= this.range) {
+          if (m.isSquare && m.progress > maxSqDist) {
+            maxSqDist = m.progress;
+            bestSquare = m;
+          }
+          if (m.progress > maxAnyDist) {
+            maxAnyDist = m.progress;
+            fallbackFirst = m;
+          }
+        }
+      }
+      return bestSquare || fallbackFirst;
     }
 
     if (this.type === 'prime') {
@@ -206,6 +230,31 @@ export class Tower {
   update(dt, monsters, game) {
     if (this.cooldown > 0) {
       this.cooldown -= dt;
+    }
+
+    // 絕對零度力場塔 (Zero Freeze Field)：持續範圍減速光環
+    if (this.type === 'zero') {
+      // 基礎減速 45%，隨威力等級強化至 65%
+      const slowRatio = Math.max(0.35, 0.55 - (this.damageLevel - 1) * 0.05);
+      for (const m of monsters) {
+        if (m.isDead) continue;
+        const dist = Math.hypot(m.x - this.x, m.y - this.y);
+        if (dist <= this.range) {
+          m.applySlow(slowRatio, 0.4);
+        }
+      }
+
+      if (this.cooldown <= 0) {
+        this.cooldown = 1 / this.fireRate;
+        game.addBeam(new FreezeRingEffect({
+          x: this.x,
+          y: this.y,
+          maxRadius: this.range,
+          duration: 0.45
+        }));
+        sound.playShoot(2);
+      }
+      return;
     }
 
     this.target = this.findTarget(monsters);
@@ -254,6 +303,14 @@ export class Tower {
         y: this.y,
         target: target,
         opValue: opVal
+      }));
+    } else if (this.type === 'sqrt') {
+      sound.playShoot(5);
+      game.addProjectile(new SqrtProjectile({
+        x: this.x,
+        y: this.y,
+        target: target,
+        damage: this.damage
       }));
     }
   }
@@ -322,6 +379,41 @@ export class Tower {
       ctx.arc(14, 0, 4, 0, Math.PI * 2);
       ctx.fillStyle = '#2dd4bf';
       ctx.fill();
+    } else if (this.type === 'sqrt') {
+      // 根號重力井：金色幾何方菱鏡
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(6, -4, 15, 8);
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 13, 0, Math.PI * 2);
+      ctx.fillStyle = '#451a03';
+      ctx.fill();
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.save();
+      ctx.rotate(Math.PI / 4);
+      ctx.strokeStyle = '#fbbf24';
+      ctx.strokeRect(-6, -6, 12, 12);
+      ctx.restore();
+    } else if (this.type === 'zero') {
+      // 絕對零度塔：冰霜十字菱鏡
+      ctx.fillStyle = '#06b6d4';
+      ctx.beginPath();
+      ctx.arc(0, 0, 14, 0, Math.PI * 2);
+      ctx.fillStyle = '#083344';
+      ctx.fill();
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.strokeStyle = '#22d3ee';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-10, 0); ctx.lineTo(10, 0);
+      ctx.moveTo(0, -10); ctx.lineTo(0, 10);
+      ctx.stroke();
     }
     ctx.restore();
 
@@ -423,5 +515,41 @@ export const TOWER_TYPES = {
     damage: 30,
     color: '#14b8a6',
     label: '±1'
+  },
+  PRIME_7: {
+    type: 'prime',
+    factor: 7,
+    name: '7號 七曜天琴',
+    subtitle: '除以 7 ｜ 難纏倍數剋星',
+    cost: 130,
+    range: 175,
+    fireRate: 0.95,
+    damage: 55,
+    color: '#8b5cf6',
+    label: '7'
+  },
+  SQRT: {
+    type: 'sqrt',
+    factor: null,
+    name: '√x 根號方根重力井',
+    subtitle: '暴擊完全平方怪並直接開方！',
+    cost: 150,
+    range: 160,
+    fireRate: 0.85,
+    damage: 50,
+    color: '#f59e0b',
+    label: '√x'
+  },
+  ZERO_FREEZE: {
+    type: 'zero',
+    factor: null,
+    name: '×0 絕對零度力場塔',
+    subtitle: '乘零歸零！範圍強效減速力場',
+    cost: 110,
+    range: 140,
+    fireRate: 1.6,
+    damage: 20,
+    color: '#06b6d4',
+    label: '×0'
   }
 };

@@ -15,7 +15,8 @@ export class PrimeProjectile {
     const colors = {
       2: '#38bdf8', // 蔚藍 (2)
       3: '#fbbf24', // 橙金 (3)
-      5: '#34d399'  // 翠綠 (5)
+      5: '#34d399', // 翠綠 (5)
+      7: '#8b5cf6'  // 紫曜 (7)
     };
     this.color = colors[factor] || '#ffffff';
     this.trail = [];
@@ -272,6 +273,127 @@ export class OperatorProjectile {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(this.opValue > 0 ? '+1' : '-1', this.x, this.y);
+    ctx.restore();
+  }
+}
+
+// 根號方根重力飛彈 (Square Root Gravitational Projectile)
+export class SqrtProjectile {
+  constructor({ x, y, target, damage = 50, speed = 360 }) {
+    this.x = x;
+    this.y = y;
+    this.target = target;
+    this.damage = damage;
+    this.speed = speed;
+    this.radius = 10;
+    this.isDead = false;
+    this.color = '#f59e0b';
+    this.angle = 0;
+    this.trail = [];
+  }
+
+  update(dt, game) {
+    if (this.isDead) return;
+    if (!this.target || this.target.isDead) {
+      this.isDead = true;
+      return;
+    }
+
+    this.angle += dt * 8;
+    this.trail.push({ x: this.x, y: this.y, life: 0.15 });
+    for (let i = this.trail.length - 1; i >= 0; i--) {
+      this.trail[i].life -= dt;
+      if (this.trail[i].life <= 0) this.trail.splice(i, 1);
+    }
+
+    const dx = this.target.x - this.x;
+    const dy = this.target.y - this.y;
+    const dist = Math.hypot(dx, dy);
+    const step = this.speed * dt;
+
+    if (dist <= step || dist < this.radius + this.target.radius) {
+      this.target.takeSqrtHit(this.damage, game);
+      this.isDead = true;
+    } else {
+      this.x += (dx / dist) * step;
+      this.y += (dy / dist) * step;
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    // 尾跡
+    this.trail.forEach(pt => {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, this.radius * 0.5, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = Math.max(0, pt.life / 0.15) * 0.35;
+      ctx.fill();
+    });
+
+    // 旋轉重力環
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.angle);
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 12;
+
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(-8, -8, 16, 16);
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#f59e0b';
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 9px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('√', 0, 0);
+
+    ctx.restore();
+  }
+}
+
+// 零度冰霜減速力場波紋 (Freeze Field Wave)
+export class FreezeRingEffect {
+  constructor({ x, y, maxRadius = 140, duration = 0.4 }) {
+    this.x = x;
+    this.y = y;
+    this.maxRadius = maxRadius;
+    this.radius = 10;
+    this.duration = duration;
+    this.life = duration;
+    this.isDead = false;
+    this.color = '#06b6d4';
+  }
+
+  update(dt) {
+    if (this.isDead) return;
+    this.life -= dt;
+    const progress = 1 - (this.life / this.duration);
+    this.radius = 10 + (this.maxRadius - 10) * progress;
+    if (this.life <= 0) {
+      this.isDead = true;
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    const alpha = Math.max(0, this.life / this.duration);
+    ctx.globalAlpha = alpha * 0.7;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = '#06b6d4';
+    ctx.shadowBlur = 12;
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(6, 182, 212, 0.08)';
+    ctx.fill();
     ctx.restore();
   }
 }

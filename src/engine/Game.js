@@ -185,6 +185,7 @@ export class Game {
       type: config.type,
       range: config.range,
       fireRate: config.fireRate,
+      damage: config.damage,
       cost: config.cost,
       color: config.color,
       label: config.label,

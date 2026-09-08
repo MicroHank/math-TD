@@ -78,8 +78,29 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnRestart = document.getElementById('btn-restart');
   const btnGameoverMap = document.getElementById('btn-gameover-map');
 
-  // 塔購買卡片
+  // 塔購買卡片與工坊分頁
   const towerCards = document.querySelectorAll('.tower-card');
+  const tabShopPrime = document.getElementById('tab-shop-prime');
+  const tabShopSpecial = document.getElementById('tab-shop-special');
+  const shopGroupPrime = document.getElementById('shop-group-prime');
+  const shopGroupSpecial = document.getElementById('shop-group-special');
+
+  function switchShopTab(tabKey) {
+    if (tabKey === 'prime') {
+      tabShopPrime.classList.add('active');
+      tabShopSpecial.classList.remove('active');
+      shopGroupPrime.classList.remove('hidden');
+      shopGroupSpecial.classList.add('hidden');
+    } else {
+      tabShopPrime.classList.remove('active');
+      tabShopSpecial.classList.add('active');
+      shopGroupPrime.classList.add('hidden');
+      shopGroupSpecial.classList.remove('hidden');
+    }
+  }
+
+  if (tabShopPrime) tabShopPrime.addEventListener('click', () => switchShopTab('prime'));
+  if (tabShopSpecial) tabShopSpecial.addEventListener('click', () => switchShopTab('special'));
 
   let currentGold = 160;
   let currentNextLevelId = null;
@@ -242,7 +263,12 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   function updateTowerPanel(tower, goldAmount) {
-    towerName.textContent = `${tower.label} - ${tower.label === '|x|' ? '絕對值稜鏡' : tower.label === '±1' ? '運算子調整塔' : tower.factor + '號質數砲'}`;
+    let labelDesc = `${tower.label}號質數砲`;
+    if (tower.label === '|x|') labelDesc = '絕對值稜鏡';
+    else if (tower.label === '±1') labelDesc = '運算子調整塔';
+    else if (tower.label === '√x') labelDesc = '方根重力井';
+    else if (tower.label === '×0') labelDesc = '絕對零度力場塔';
+    towerName.textContent = `${tower.label} - ${labelDesc}`;
     const totalUpgradePoints = (tower.rangeLevel - 1) + (tower.damageLevel - 1) + (tower.speedLevel - 1);
     towerLevel.textContent = totalUpgradePoints > 0 ? `Lv ${tower.level} (★+${totalUpgradePoints})` : `Lv 1`;
 
@@ -430,14 +456,28 @@ window.addEventListener('DOMContentLoaded', () => {
       game.startNextWave();
     } else if (e.key === '1') {
       game.selectBuildType('PRIME_2');
+      switchShopTab('prime');
     } else if (e.key === '2') {
       game.selectBuildType('PRIME_3');
+      switchShopTab('prime');
     } else if (e.key === '3') {
       game.selectBuildType('PRIME_5');
+      switchShopTab('prime');
     } else if (e.key === '4') {
+      game.selectBuildType('PRIME_7');
+      switchShopTab('prime');
+    } else if (e.key === 'q' || e.key === 'Q' || e.key === '5') {
       game.selectBuildType('ABSOLUTE');
-    } else if (e.key === '5') {
+      switchShopTab('special');
+    } else if (e.key === 'w' || e.key === 'W' || e.key === '6') {
+      game.selectBuildType('SQRT');
+      switchShopTab('special');
+    } else if (e.key === 'e' || e.key === 'E' || e.key === '7') {
       game.selectBuildType('OPERATOR');
+      switchShopTab('special');
+    } else if (e.key === 'r' || e.key === 'R' || e.key === '8') {
+      game.selectBuildType('ZERO_FREEZE');
+      switchShopTab('special');
     } else if (e.key === 'm' || e.key === 'M') {
       renderStageMap(currentActiveChapter);
       modalStageMap.classList.toggle('hidden');
