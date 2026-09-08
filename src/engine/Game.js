@@ -319,7 +319,7 @@ export class Game {
   onWaveCompleted() {
     sound.playWaveComplete();
     const completedWaveNum = this.waveManager.currentWaveIndex;
-    const bonus = 40 + completedWaveNum * 15;
+    const bonus = 50 + completedWaveNum * 20;
     this.addGold(bonus, 480, 280);
     this.syncUI();
   }
@@ -350,6 +350,7 @@ export class Game {
     if (this.ui.onStatsChange) {
       const waveData = this.waveManager.currentWaveData;
       const totalWaves = this.waveManager.totalWaves;
+      const remainingEnemies = (this.waveManager.spawnQueue ? this.waveManager.spawnQueue.length : 0) + this.monsters.length;
 
       this.ui.onStatsChange({
         gold: this.gold,
@@ -358,6 +359,7 @@ export class Game {
         wave: this.waveManager.currentWaveIndex + (this.waveManager.waveInProgress ? 1 : 0),
         displayWaveNumber: this.waveManager.currentWaveIndex + 1,
         totalWaves: totalWaves,
+        remainingEnemies: remainingEnemies,
         waveTitle: waveData ? waveData.title : '關卡挑戰成功！',
         waveTip: waveData ? waveData.tip : '防守核心完好，準備前進下一關！',
         waveInProgress: this.waveManager.waveInProgress,
@@ -388,6 +390,13 @@ export class Game {
     if (this.isPaused || this.isGameOver) return;
 
     this.portalPulse += dt * 2.5;
+
+    // 定期同步 UI (更新剩餘怪量與狀態)
+    this.uiSyncTimer = (this.uiSyncTimer || 0) - dt;
+    if (this.uiSyncTimer <= 0) {
+      this.syncUI();
+      this.uiSyncTimer = 0.25;
+    }
 
     // 波次生成器
     this.waveManager.update(dt, this);

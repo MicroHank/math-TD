@@ -12,6 +12,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const elGold = document.getElementById('hud-gold');
   const elLives = document.getElementById('hud-lives');
   const elWave = document.getElementById('hud-wave');
+  const elEnemies = document.getElementById('hud-enemies');
   const elWaveTitle = document.getElementById('wave-title');
   const elWaveTip = document.getElementById('wave-tip');
   const hudLevelName = document.getElementById('hud-level-name');
@@ -133,6 +134,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
       const currentWaveDisplay = stats.waveInProgress ? stats.displayWaveNumber : `${stats.displayWaveNumber - 1}`;
       elWave.textContent = `${currentWaveDisplay} / ${stats.totalWaves}`;
+      if (elEnemies) {
+        elEnemies.textContent = stats.remainingEnemies !== undefined ? stats.remainingEnemies : 0;
+      }
       elWaveTitle.textContent = stats.waveTitle;
       elWaveTip.textContent = stats.waveTip;
 
@@ -228,6 +232,7 @@ window.addEventListener('DOMContentLoaded', () => {
     towerStats.innerHTML = `
       <span>射程: <strong>${tower.range}px</strong></span>
       <span>射速: <strong>${tower.fireRate}/秒</strong></span>
+      <span>威力: <strong>${tower.damage || 25}</strong></span>
     `;
 
     if (tower.level < tower.maxLevel) {

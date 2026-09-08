@@ -67,7 +67,7 @@ export class WaveManager {
           id: `m_${this.monsterIdCounter++}`,
           value: enemyConfig.val,
           waypoints: waypoints,
-          speed: enemyConfig.speed || (36 + Math.min(12, this.currentWaveIndex * 2)),
+          speed: enemyConfig.speed || (58 + Math.min(20, this.currentWaveIndex * 4)),
           splitOnDivide: !!enemyConfig.splitOnDivide,
           isBoss: !!enemyConfig.isBoss,
           bossName: enemyConfig.bossName || '',
@@ -76,7 +76,7 @@ export class WaveManager {
         game.addMonster(monster);
 
         if (this.spawnQueue.length > 0) {
-          this.spawnTimer = enemyConfig.delay || 2.0;
+          this.spawnTimer = enemyConfig.delay || 0.8;
         } else {
           this.isSpawning = false;
         }
