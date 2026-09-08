@@ -42,8 +42,23 @@ window.addEventListener('DOMContentLoaded', () => {
   const panelTower = document.getElementById('tower-details-panel');
   const towerName = document.getElementById('selected-tower-name');
   const towerLevel = document.getElementById('selected-tower-level');
-  const towerStats = document.getElementById('selected-tower-stats');
-  const btnUpgrade = document.getElementById('btn-upgrade-tower');
+
+  // 三向升級 DOM
+  const statRangeLvl = document.getElementById('stat-range-lvl');
+  const statRangeVal = document.getElementById('stat-range-val');
+  const btnUpgradeRange = document.getElementById('btn-upgrade-range');
+  const costUpgradeRange = document.getElementById('cost-upgrade-range');
+
+  const statDamageLvl = document.getElementById('stat-damage-lvl');
+  const statDamageVal = document.getElementById('stat-damage-val');
+  const btnUpgradeDamage = document.getElementById('btn-upgrade-damage');
+  const costUpgradeDamage = document.getElementById('cost-upgrade-damage');
+
+  const statSpeedLvl = document.getElementById('stat-speed-lvl');
+  const statSpeedVal = document.getElementById('stat-speed-val');
+  const btnUpgradeSpeed = document.getElementById('btn-upgrade-speed');
+  const costUpgradeSpeed = document.getElementById('cost-upgrade-speed');
+
   const btnSell = document.getElementById('btn-sell-tower');
   const btnDeselect = document.getElementById('btn-deselect-tower');
 
@@ -228,21 +243,58 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function updateTowerPanel(tower, goldAmount) {
     towerName.textContent = `${tower.label} - ${tower.label === '|x|' ? '絕對值稜鏡' : tower.label === '±1' ? '運算子調整塔' : tower.factor + '號質數砲'}`;
-    towerLevel.textContent = `等級 ${tower.level} / ${tower.maxLevel}`;
-    towerStats.innerHTML = `
-      <span>射程: <strong>${tower.range}px</strong></span>
-      <span>射速: <strong>${tower.fireRate}/秒</strong></span>
-      <span>威力: <strong>${tower.damage || 25}</strong></span>
-    `;
+    const totalUpgradePoints = (tower.rangeLevel - 1) + (tower.damageLevel - 1) + (tower.speedLevel - 1);
+    towerLevel.textContent = totalUpgradePoints > 0 ? `Lv ${tower.level} (★+${totalUpgradePoints})` : `Lv 1`;
 
-    if (tower.level < tower.maxLevel) {
-      btnUpgrade.disabled = goldAmount < tower.upgradeCost;
-      btnUpgrade.textContent = `🔼 升級 (${tower.upgradeCost}🪙)`;
+    // 1. 射程維度
+    statRangeLvl.textContent = `Lv ${tower.rangeLevel}/${tower.maxRangeLevel}`;
+    if (tower.rangeLevel >= tower.maxRangeLevel) {
+      statRangeLvl.classList.add('max-tag');
+      statRangeVal.textContent = `${tower.range}px (已達上限)`;
+      costUpgradeRange.textContent = 'MAX';
+      btnUpgradeRange.disabled = true;
     } else {
-      btnUpgrade.disabled = true;
-      btnUpgrade.textContent = '⭐ 已達最高等級';
+      statRangeLvl.classList.remove('max-tag');
+      const nextRange = tower.getNextRange();
+      statRangeVal.innerHTML = `${tower.range}px <span class="val-arrow">➔</span> <span class="val-next">${nextRange}px</span>`;
+      const cost = tower.getUpgradeRangeCost();
+      costUpgradeRange.textContent = `${cost}🪙`;
+      btnUpgradeRange.disabled = goldAmount < cost;
     }
 
+    // 2. 威力維度
+    statDamageLvl.textContent = `Lv ${tower.damageLevel}/${tower.maxDamageLevel}`;
+    if (tower.damageLevel >= tower.maxDamageLevel) {
+      statDamageLvl.classList.add('max-tag');
+      statDamageVal.textContent = `${tower.damage} (已達上限)`;
+      costUpgradeDamage.textContent = 'MAX';
+      btnUpgradeDamage.disabled = true;
+    } else {
+      statDamageLvl.classList.remove('max-tag');
+      const nextDamage = tower.getNextDamage();
+      statDamageVal.innerHTML = `${tower.damage} <span class="val-arrow">➔</span> <span class="val-next">${nextDamage}</span>`;
+      const cost = tower.getUpgradeDamageCost();
+      costUpgradeDamage.textContent = `${cost}🪙`;
+      btnUpgradeDamage.disabled = goldAmount < cost;
+    }
+
+    // 3. 攻速維度
+    statSpeedLvl.textContent = `Lv ${tower.speedLevel}/${tower.maxSpeedLevel}`;
+    if (tower.speedLevel >= tower.maxSpeedLevel) {
+      statSpeedLvl.classList.add('max-tag');
+      statSpeedVal.textContent = `${tower.fireRate}/s (已達上限)`;
+      costUpgradeSpeed.textContent = 'MAX';
+      btnUpgradeSpeed.disabled = true;
+    } else {
+      statSpeedLvl.classList.remove('max-tag');
+      const nextSpeed = tower.getNextFireRate();
+      statSpeedVal.innerHTML = `${tower.fireRate}/s <span class="val-arrow">➔</span> <span class="val-next">${nextSpeed}/s</span>`;
+      const cost = tower.getUpgradeSpeedCost();
+      costUpgradeSpeed.textContent = `${cost}🪙`;
+      btnUpgradeSpeed.disabled = goldAmount < cost;
+    }
+
+    // 4. 變賣按鈕
     btnSell.textContent = `💰 變賣 (+${tower.sellValue}🪙)`;
   }
 
@@ -281,9 +333,17 @@ window.addEventListener('DOMContentLoaded', () => {
     btnSound.textContent = sound.muted ? '🔇 靜音' : '🔊 音效';
   });
 
-  // 塔升級與變賣
-  btnUpgrade.addEventListener('click', () => {
-    game.upgradeSelectedTower();
+  // 塔三向獨立升級與變賣
+  btnUpgradeRange.addEventListener('click', () => {
+    game.upgradeSelectedTowerStat('range');
+  });
+
+  btnUpgradeDamage.addEventListener('click', () => {
+    game.upgradeSelectedTowerStat('damage');
+  });
+
+  btnUpgradeSpeed.addEventListener('click', () => {
+    game.upgradeSelectedTowerStat('speed');
   });
 
   btnSell.addEventListener('click', () => {

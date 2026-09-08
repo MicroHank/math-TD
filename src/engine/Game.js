@@ -198,6 +198,45 @@ export class Game {
     this.selectTower(tower);
   }
 
+  upgradeSelectedTowerStat(statType) {
+    if (!this.selectedTower) return false;
+    let cost = 0;
+    let canUpgrade = false;
+
+    if (statType === 'range') {
+      cost = this.selectedTower.getUpgradeRangeCost();
+      canUpgrade = this.selectedTower.rangeLevel < this.selectedTower.maxRangeLevel;
+    } else if (statType === 'damage') {
+      cost = this.selectedTower.getUpgradeDamageCost();
+      canUpgrade = this.selectedTower.damageLevel < this.selectedTower.maxDamageLevel;
+    } else if (statType === 'speed') {
+      cost = this.selectedTower.getUpgradeSpeedCost();
+      canUpgrade = this.selectedTower.speedLevel < this.selectedTower.maxSpeedLevel;
+    }
+
+    if (canUpgrade && cost > 0 && this.gold >= cost) {
+      this.gold -= cost;
+      let sparkColor = '#38bdf8';
+      if (statType === 'range') {
+        this.selectedTower.upgradeRange();
+        sparkColor = '#38bdf8';
+      } else if (statType === 'damage') {
+        this.selectedTower.upgradeDamage();
+        sparkColor = '#f43f5e';
+      } else if (statType === 'speed') {
+        this.selectedTower.upgradeSpeed();
+        sparkColor = '#eab308';
+      }
+      this.createSparks(this.selectedTower.x, this.selectedTower.y, sparkColor, 16);
+      this.syncUI();
+      if (this.ui.onTowerSelect) this.ui.onTowerSelect(this.selectedTower);
+      return true;
+    } else {
+      sound.playResist();
+      return false;
+    }
+  }
+
   upgradeSelectedTower() {
     if (!this.selectedTower) return;
     const cost = this.selectedTower.upgradeCost;
@@ -319,7 +358,10 @@ export class Game {
   onWaveCompleted() {
     sound.playWaveComplete();
     const completedWaveNum = this.waveManager.currentWaveIndex;
-    const bonus = 50 + completedWaveNum * 20;
+    const isChapter2 = this.currentLevelId.startsWith('2-');
+    const isBossStage = this.currentLevelId.endsWith('-4');
+    const multiplier = isChapter2 ? 1.6 : (isBossStage ? 1.3 : 1.0);
+    const bonus = Math.round((70 + completedWaveNum * 30) * multiplier);
     this.addGold(bonus, 480, 280);
     this.syncUI();
   }

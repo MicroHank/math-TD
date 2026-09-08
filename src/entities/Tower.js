@@ -9,14 +9,28 @@ export class Tower {
     this.y = y;
     this.type = type; // 'prime', 'absolute', 'operator'
     this.factor = factor; // 2, 3, 5 or null
+    // 基礎與當前屬性
     this.baseRange = range;
     this.range = range;
+    this.baseFireRate = fireRate;
     this.fireRate = fireRate; // shots per sec
     this.cooldown = 0;
     this.cost = cost;
     this.totalInvested = cost;
-    this.level = 1;
-    this.maxLevel = 3;
+
+    // 三向獨立升級等級 (1 ~ 5)
+    this.rangeLevel = 1;
+    this.maxRangeLevel = 5;
+
+    this.damageLevel = 1;
+    this.maxDamageLevel = 5;
+
+    this.speedLevel = 1;
+    this.maxSpeedLevel = 5;
+
+    this.level = 1; // 綜合等級指示
+    this.maxLevel = 5;
+
     this.color = color;
     this.label = label;
     this.angle = 0;
@@ -27,24 +41,102 @@ export class Tower {
     this.damage = this.baseDamage;
   }
 
-  get upgradeCost() {
-    if (this.level >= this.maxLevel) return 0;
-    return Math.floor(this.cost * 0.8 * this.level);
+  // 預覽與計算下一級數值
+  getNextRange() {
+    if (this.rangeLevel >= this.maxRangeLevel) return this.range;
+    return Math.round(this.baseRange * (1 + this.rangeLevel * 0.18));
   }
 
+  getNextDamage() {
+    if (this.damageLevel >= this.maxDamageLevel) return this.damage;
+    return Math.round(this.baseDamage * (1 + this.damageLevel * 0.50));
+  }
+
+  getNextFireRate() {
+    if (this.speedLevel >= this.maxSpeedLevel) return this.fireRate;
+    return +(this.baseFireRate * (1 + this.speedLevel * 0.25)).toFixed(2);
+  }
+
+  // 各自升級費用
+  getUpgradeRangeCost() {
+    if (this.rangeLevel >= this.maxRangeLevel) return 0;
+    return Math.round(this.cost * 0.45 * this.rangeLevel);
+  }
+
+  getUpgradeDamageCost() {
+    if (this.damageLevel >= this.maxDamageLevel) return 0;
+    return Math.round(this.cost * 0.55 * this.damageLevel);
+  }
+
+  getUpgradeSpeedCost() {
+    if (this.speedLevel >= this.maxSpeedLevel) return 0;
+    return Math.round(this.cost * 0.45 * this.speedLevel);
+  }
+
+  // 綜合升級成本 (保留給舊介面或快捷升級)
+  get upgradeCost() {
+    const costs = [
+      this.getUpgradeRangeCost(),
+      this.getUpgradeDamageCost(),
+      this.getUpgradeSpeedCost()
+    ].filter(c => c > 0);
+    return costs.length > 0 ? Math.min(...costs) : 0;
+  }
+
+  // 變賣返還 70% 總投資成本
   get sellValue() {
     return Math.floor(this.totalInvested * 0.7);
   }
 
-  upgrade() {
-    if (this.level >= this.maxLevel) return false;
-    this.level++;
-    this.totalInvested += this.upgradeCost;
-    this.range = Math.floor(this.baseRange * (1 + (this.level - 1) * 0.2));
-    this.fireRate = +(this.fireRate * 1.2).toFixed(2);
-    this.damage = Math.floor(this.baseDamage * (1 + (this.level - 1) * 0.65));
+  updateCompositeLevel() {
+    const totalUpgrades = (this.rangeLevel - 1) + (this.damageLevel - 1) + (this.speedLevel - 1);
+    this.level = Math.min(5, 1 + Math.floor(totalUpgrades / 2));
+  }
+
+  // 獨立升級方法
+  upgradeRange() {
+    if (this.rangeLevel >= this.maxRangeLevel) return false;
+    const cost = this.getUpgradeRangeCost();
+    this.totalInvested += cost;
+    this.rangeLevel++;
+    this.range = Math.round(this.baseRange * (1 + (this.rangeLevel - 1) * 0.18));
+    this.updateCompositeLevel();
     sound.playBuild();
     return true;
+  }
+
+  upgradeDamage() {
+    if (this.damageLevel >= this.maxDamageLevel) return false;
+    const cost = this.getUpgradeDamageCost();
+    this.totalInvested += cost;
+    this.damageLevel++;
+    this.damage = Math.round(this.baseDamage * (1 + (this.damageLevel - 1) * 0.50));
+    this.updateCompositeLevel();
+    sound.playBuild();
+    return true;
+  }
+
+  upgradeSpeed() {
+    if (this.speedLevel >= this.maxSpeedLevel) return false;
+    const cost = this.getUpgradeSpeedCost();
+    this.totalInvested += cost;
+    this.speedLevel++;
+    this.fireRate = +(this.baseFireRate * (1 + (this.speedLevel - 1) * 0.25)).toFixed(2);
+    this.updateCompositeLevel();
+    sound.playBuild();
+    return true;
+  }
+
+  upgrade() {
+    // 預設綜合升級：依序升級等級最低的項目
+    if (this.damageLevel <= this.speedLevel && this.damageLevel <= this.rangeLevel && this.damageLevel < this.maxDamageLevel) {
+      return this.upgradeDamage();
+    } else if (this.speedLevel <= this.rangeLevel && this.speedLevel < this.maxSpeedLevel) {
+      return this.upgradeSpeed();
+    } else if (this.rangeLevel < this.maxRangeLevel) {
+      return this.upgradeRange();
+    }
+    return false;
   }
 
   findTarget(monsters) {

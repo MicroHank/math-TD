@@ -88,15 +88,63 @@
           <div class="panel-header">
             <div>
               <h3 id="selected-tower-name">2號質數砲</h3>
-              <span id="selected-tower-level" class="level-badge">等級 1</span>
+              <span id="selected-tower-level" class="level-badge">Lv 1</span>
             </div>
             <button id="btn-deselect-tower" class="btn-close" title="取消選取">✕</button>
           </div>
-          <div id="selected-tower-stats" class="stats-row">
-            <!-- 動態插入數據 -->
+
+          <!-- 三向獨立升級清單 -->
+          <div class="tower-upgrades-list">
+            <!-- 距離升級 -->
+            <div class="upgrade-row" id="row-upgrade-range">
+              <div class="stat-meta">
+                <div class="stat-title-wrap">
+                  <span class="stat-badge-icon icon-range">🎯</span>
+                  <span class="stat-name">攻擊距離</span>
+                  <span id="stat-range-lvl" class="stat-level-tag">Lv 1</span>
+                </div>
+                <div class="stat-preview" id="stat-range-val">140px ➔ 165px</div>
+              </div>
+              <button id="btn-upgrade-range" class="btn-stat-upgrade" title="升級射程">
+                <span class="upgrade-arrow">🔼</span>
+                <span id="cost-upgrade-range" class="upgrade-cost">23🪙</span>
+              </button>
+            </div>
+
+            <!-- 威力升級 -->
+            <div class="upgrade-row" id="row-upgrade-damage">
+              <div class="stat-meta">
+                <div class="stat-title-wrap">
+                  <span class="stat-badge-icon icon-damage">💥</span>
+                  <span class="stat-name">攻擊威力</span>
+                  <span id="stat-damage-lvl" class="stat-level-tag">Lv 1</span>
+                </div>
+                <div class="stat-preview" id="stat-damage-val">25 ➔ 38</div>
+              </div>
+              <button id="btn-upgrade-damage" class="btn-stat-upgrade" title="升級威力">
+                <span class="upgrade-arrow">🔼</span>
+                <span id="cost-upgrade-damage" class="upgrade-cost">28🪙</span>
+              </button>
+            </div>
+
+            <!-- 攻速升級 -->
+            <div class="upgrade-row" id="row-upgrade-speed">
+              <div class="stat-meta">
+                <div class="stat-title-wrap">
+                  <span class="stat-badge-icon icon-speed">⚡</span>
+                  <span class="stat-name">攻擊速度</span>
+                  <span id="stat-speed-lvl" class="stat-level-tag">Lv 1</span>
+                </div>
+                <div class="stat-preview" id="stat-speed-val">1.8/s ➔ 2.25/s</div>
+              </div>
+              <button id="btn-upgrade-speed" class="btn-stat-upgrade" title="升級攻速">
+                <span class="upgrade-arrow">🔼</span>
+                <span id="cost-upgrade-speed" class="upgrade-cost">23🪙</span>
+              </button>
+            </div>
           </div>
+
           <div class="panel-actions">
-            <button id="btn-upgrade-tower" class="btn-upgrade">🔼 升級 (40🪙)</button>
             <button id="btn-sell-tower" class="btn-sell">💰 變賣 (+35🪙)</button>
           </div>
         </div>

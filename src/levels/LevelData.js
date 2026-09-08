@@ -23,7 +23,7 @@ export const LEVELS = {
     subtitle: '偶數除法多段打擊入門',
     tip: '💡 全新高曲折迴旋走廊！配備 16 處砲台據點。怪物需承受多次 2 號砲打擊才能除法分解！',
     nextLevelId: '1-2',
-    initialGold: 260,
+    initialGold: 280,
     initialLives: 10,
     lanes: [
       [
@@ -142,7 +142,7 @@ export const LEVELS = {
     subtitle: '3 的倍數與雙重因數陣地戰',
     tip: '💡 17 處火力據點！複合因數怪（6, 12, 18, 24）需交替打擊耐受度後分解！',
     nextLevelId: '1-3',
-    initialGold: 280,
+    initialGold: 340,
     initialLives: 10,
     lanes: [
       [
@@ -270,7 +270,7 @@ export const LEVELS = {
     subtitle: '五的倍數與三重複合怪縱深戰',
     tip: '💡 18 處縱深砲塔據點！5 號五芒衝擊威力強大，能迅速削弱合數耐受度！',
     nextLevelId: '1-4',
-    initialGold: 310,
+    initialGold: 420,
     initialLives: 10,
     lanes: [
       [
@@ -403,7 +403,7 @@ export const LEVELS = {
     subtitle: '第一章魔王要塞決戰',
     tip: '👑 18 處要塞基座！泰坦具備超厚階層耐受度，每打幾發才能分解一次！小心乘倍光環與分裂侍從！',
     nextLevelId: '2-1',
-    initialGold: 350,
+    initialGold: 520,
     initialLives: 10,
     lanes: [
       [
@@ -550,7 +550,7 @@ export const LEVELS = {
     subtitle: '負數幽靈與前線淨化陣地',
     tip: '💡 17 處沼澤基座！紫色負數怪帶有護盾，需以「絕對值稜鏡」擊碎護盾轉正後方可除法！',
     nextLevelId: '2-2',
-    initialGold: 320,
+    initialGold: 480,
     initialLives: 10,
     lanes: [
       [
@@ -686,7 +686,7 @@ export const LEVELS = {
     subtitle: '雙起點分流，立體迂迴交匯中路',
     tip: '⚠️ 20 處全域防守基座！上下兩路對稱蜿蜒，在中路長廊激戰！請均衡配置雙路與中路重砲！',
     nextLevelId: '2-3',
-    initialGold: 380,
+    initialGold: 600,
     initialLives: 10,
     lanes: [
       // 上路 (Lane 0)
@@ -849,7 +849,7 @@ export const LEVELS = {
     subtitle: '運算子調整塔 (+1 / -1) 關鍵戰略',
     tip: '⚡ 18 處基座！質數怪（7, 11, 13, 17, 19...）需由運算子調整塔微調化為合數後分解！',
     nextLevelId: '2-4',
-    initialGold: 350,
+    initialGold: 550,
     initialLives: 10,
     lanes: [
       [
@@ -988,7 +988,7 @@ export const LEVELS = {
     subtitle: '雙路深淵終極大決戰',
     tip: '👑 20 處要塞基座！魔王帶有 -720 負數護盾且極具耐受度！善用多層稜鏡、運算子與 3 級質數重砲集火！',
     nextLevelId: null,
-    initialGold: 420,
+    initialGold: 700,
     initialLives: 10,
     lanes: [
       // 上路 (Lane 0)

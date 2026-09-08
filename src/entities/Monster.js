@@ -6,7 +6,7 @@ export class Monster {
     id,
     value,
     waypoints,
-    speed = 40,
+    speed = 10,
     splitOnDivide = false,
     isBoss = false,
     bossName = '',
@@ -158,7 +158,8 @@ export class Monster {
     if (this.value <= 1) {
       this.isDead = true;
       sound.playEliminate();
-      const reward = Math.max(20, Math.floor(Math.abs(this.originalValue) * 1.5));
+      const baseBounty = Math.max(25, Math.floor(Math.abs(this.originalValue) * 1.6));
+      const reward = this.isBoss ? Math.max(300, baseBounty * 2) : baseBounty;
       game.addGold(reward, this.x, this.y);
       game.createExplosion(this.x, this.y, this.isBoss ? '#f59e0b' : '#22c55e', this.isBoss ? 50 : 24);
     } else {
