@@ -1,5 +1,6 @@
 // Commander Active Math Spells & Energy (Mana) Engine for Math Tower Defense
 import { sound } from './Audio.js';
+import { techTree } from './TechTreeManager.js';
 
 function computeGcd(a, b) {
   a = Math.abs(a);
@@ -51,9 +52,9 @@ export const SPELLS = {
 export class SpellManager {
   constructor(game) {
     this.game = game;
-    this.mana = 100;
-    this.maxMana = 100;
-    this.regenRate = 4.0; // Mana per second
+    this.maxMana = 100 + techTree.getMaxManaBonus();
+    this.mana = this.maxMana;
+    this.regenRate = 4.0 + techTree.getManaRegenBonus(); // Mana per second
 
     this.cooldowns = {
       gcd: 0,
@@ -69,7 +70,9 @@ export class SpellManager {
   }
 
   reset() {
-    this.mana = 100;
+    this.maxMana = 100 + techTree.getMaxManaBonus();
+    this.mana = this.maxMana;
+    this.regenRate = 4.0 + techTree.getManaRegenBonus();
     this.cooldowns = { gcd: 0, vortex: 0, overdrive: 0 };
     this.aimingSpell = null;
     this.activeVortices = [];
@@ -164,10 +167,11 @@ export class SpellManager {
 
   // 執行 GCD 最大公因數引爆
   executeGcdBlast(x, y, radius) {
+    const finalRadius = radius * techTree.getGcdRadiusMultiplier();
     const monsters = this.game.monsters.filter(m => {
       if (m.isDead || m.isNegative) return false;
       const d = Math.hypot(m.x - x, m.y - y);
-      return d <= radius + m.radius;
+      return d <= finalRadius + m.radius;
     });
 
     this.game.createExplosion(x, y, '#fbbf24', 36);
@@ -203,7 +207,7 @@ export class SpellManager {
           this.game.addGold(50, m.x, m.y);
         }
       } else {
-        m.stageHp -= 45;
+        m.stageHp = Math.max(1, m.stageHp - 45);
         m.addFloatingText('因數震波 -45!', '#fde047');
         sound.playShoot(2);
       }
@@ -253,15 +257,13 @@ export class SpellManager {
         }
       }
     } else {
-      // 互質 (GCD = 1)：造成中度震波打擊
+      // 互質 (GCD = 1)：造成中度震波打擊 (享受歐幾里得爆發科技增益)
       sound.playResist();
+      const coprimeDmg = techTree.getGcdCoprimeDamage();
       for (const m of monsters) {
-        m.stageHp -= 40;
-        m.addFloatingText('互質震波 -40!', '#94a3b8');
+        m.stageHp = Math.max(1, m.stageHp - coprimeDmg);
+        m.addFloatingText(`互質震波 -${coprimeDmg}!`, '#94a3b8');
         this.game.createSparks(m.x, m.y, '#94a3b8', 8);
-        if (m.stageHp <= 0 && m.value > 1) {
-          m.stageHp = m.maxStageHp;
-        }
       }
     }
   }
@@ -269,12 +271,13 @@ export class SpellManager {
   // 執行同餘黑洞召喚
   executeVortex(x, y, radius) {
     sound.playVortex();
+    const duration = techTree.getVortexDuration();
     this.activeVortices.push({
       x,
       y,
       radius,
-      duration: 5.5,
-      maxDuration: 5.5,
+      duration: duration,
+      maxDuration: duration,
       affectedIds: new Set()
     });
     this.game.createExplosion(x, y, '#a855f7', 30);

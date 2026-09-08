@@ -2,6 +2,7 @@
 // Manages tower geometric connectivity, laser chords, resonance triangles, and sanctuary fields
 
 import { sound } from './Audio.js';
+import { techTree } from './TechTreeManager.js';
 
 function distToSegment(p, v, w) {
   const l2 = (w.x - v.x) ** 2 + (w.y - v.y) ** 2;
@@ -23,7 +24,7 @@ function pointInTriangle(p, p1, p2, p3) {
 export class GeometricResonanceManager {
   constructor(game) {
     this.game = game;
-    this.maxLinkDistance = 300; // 最大共鳴連線距離 (px)
+    this.maxLinkDistance = techTree.getMaxLinkDistance(); // 最大共鳴連線距離 (px)
     this.links = [];            // 啟動中的共鳴光弦
     this.triangles = [];        // 啟動中的共振三角結界
     this.pulseTime = 0;
@@ -35,6 +36,7 @@ export class GeometricResonanceManager {
 
   // 重新計算場上所有塔的幾何拓撲與共鳴關係
   recalculate() {
+    this.maxLinkDistance = techTree.getMaxLinkDistance();
     const towers = this.game.towers || [];
     const prevLinkLen = this.links.length;
     const prevTriLen = this.triangles.length;
@@ -215,8 +217,9 @@ export class GeometricResonanceManager {
         const inside = pointInTriangle(m, tri.t1, tri.t2, tri.t3);
 
         if (inside) {
-          // 結界重力壓制：減速 25%
-          m.applySlow(0.75, 0.4);
+          // 結界重力壓制：減速 (享受科技樹三角聖域強化)
+          const slowRatio = techTree.getTriangleSlowRatio();
+          m.applySlow(slowRatio, 0.4);
           m.stageHp = Math.max(1, m.stageHp - (tri.isPythagorean ? 28 : 16) * dt);
 
           // 質數三相聖環額外掉落標記
@@ -227,19 +230,21 @@ export class GeometricResonanceManager {
       }
     }
 
-    // 3. 畢氏聖光定期脈衝 (每 1.6 秒發動一次)
-    if (this.pulseIntervalTimer >= 1.6) {
+    // 3. 畢氏聖光定期脈衝 (發動間隔與傷害享受科技樹畢氏光能矩陣增益)
+    const pythInterval = techTree.getPythagoreanInterval();
+    if (this.pulseIntervalTimer >= pythInterval) {
       this.pulseIntervalTimer = 0;
       for (const tri of this.triangles) {
         if (tri.isPythagorean) {
           sound.playResonancePulse();
           this.game.createExplosion(tri.centroid.x, tri.centroid.y, '#fbbf24', 25);
 
+          const pulseDmg = techTree.getPythagoreanPulseDamage();
           for (const m of this.game.monsters) {
             if (m.isDead) continue;
             if (pointInTriangle(m, tri.t1, tri.t2, tri.t3)) {
-              m.stageHp = Math.max(0, m.stageHp - 65);
-              m.addFloatingText('⚡ 畢氏聖光 -65!', '#fbbf24');
+              m.stageHp = Math.max(0, m.stageHp - pulseDmg);
+              m.addFloatingText(`⚡ 畢氏聖光 -${pulseDmg}!`, '#fbbf24');
               this.game.createSparks(m.x, m.y, '#f59e0b', 12);
               if (m.stageHp <= 0 && m.value > 1) {
                 const handled = m.takePrimeHit(3, 40, this.game) || m.takeSqrtHit(60, this.game);

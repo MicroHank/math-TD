@@ -1,6 +1,7 @@
 // Tower Entities for Math Tower Defense
 import { PrimeProjectile, AbsoluteBeam, OperatorProjectile, SqrtProjectile, FreezeRingEffect } from './Projectile.js';
 import { sound } from '../engine/Audio.js';
+import { techTree } from '../engine/TechTreeManager.js';
 
 export class Tower {
   constructor({ id, x, y, type, range, fireRate, damage, cost, color, label, factor = null }) {
@@ -36,8 +37,9 @@ export class Tower {
     this.angle = 0;
     this.target = null;
 
-    // 傷害屬性 (每次命中消耗怪物的階層耐受血量)
-    this.baseDamage = damage !== undefined ? damage : ((TOWER_TYPES[type] && TOWER_TYPES[type].damage) || 25);
+    // 傷害屬性 (每次命中消耗怪物的階層耐受血量，享受科技樹算術基本定理增益)
+    const techDmgMult = techTree.getTowerDamageMultiplier();
+    this.baseDamage = Math.round((damage !== undefined ? damage : ((TOWER_TYPES[type] && TOWER_TYPES[type].damage) || 25)) * techDmgMult);
     this.damage = this.baseDamage;
   }
 
@@ -144,7 +146,8 @@ export class Tower {
   }
 
   get effectiveRange() {
-    return Math.round(this.range * (this.geometricRangeBonus ? (1 + this.geometricRangeBonus) : 1.0));
+    const techPrimeMult = this.type === 'prime' ? techTree.getPrimeRangeMultiplier() : 1.0;
+    return Math.round(this.range * (this.geometricRangeBonus ? (1 + this.geometricRangeBonus) : 1.0) * techPrimeMult);
   }
 
   findTarget(monsters) {
@@ -286,12 +289,18 @@ export class Tower {
       sound.playShoot(this.factor);
       const isDouble = game && game.perkManager ? Math.random() < game.perkManager.getPrimeDoubleChance() : false;
       const speedMult = game && game.perkManager ? game.perkManager.getBulletSpeedMultiplier() : 1.0;
+      const isTechCrit = Math.random() < techTree.getPrimeCritChance();
+      const finalDamage = isTechCrit ? Math.round(this.damage * 2) : this.damage;
+      if (isTechCrit) {
+        target.addFloatingText('🎯 暴擊!', '#fbbf24');
+      }
+
       game.addProjectile(new PrimeProjectile({
         x: this.x,
         y: this.y,
         target: target,
         factor: this.factor,
-        damage: this.damage,
+        damage: finalDamage,
         speed: 340 * speedMult,
         isDouble: isDouble
       }));
@@ -306,6 +315,8 @@ export class Tower {
       if (game && game.perkManager && game.perkManager.getStunDuration() > 0) {
         target.applyStun(game.perkManager.getStunDuration());
       }
+      // 絕對值光通量科技冷卻減免
+      this.cooldown = (1 / this.fireRate) * techTree.getAbsoluteCooldownMultiplier();
     } else if (this.type === 'operator') {
       sound.playShoot(3);
       // 智慧決定 +1 或 -1

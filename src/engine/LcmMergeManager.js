@@ -2,6 +2,7 @@
 // Manages monster Least Common Multiple collisions, colossus fusion, and factor fission shockwaves
 
 import { sound } from './Audio.js';
+import { techTree } from './TechTreeManager.js';
 
 export function computeGcd(a, b) {
   a = Math.abs(a);
@@ -126,9 +127,10 @@ export class LcmMergeManager {
   triggerFissionShockwave(x, y, factor) {
     sound.playFission();
 
-    // 增加指揮官算力
+    // 增加指揮官算力 (享受公倍數鍊金術科技增益)
+    const manaGain = techTree.getLcmManaBonus();
     if (this.game.spellManager) {
-      this.game.spellManager.addMana(20);
+      this.game.spellManager.addMana(manaGain);
     }
 
     // 產生衝擊波

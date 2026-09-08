@@ -24,11 +24,12 @@
 
       <!-- 控制工具組 -->
       <div class="hud-controls">
-        <button id="btn-map" class="btn-tool highlight-gold" title="切換關卡大地圖">🗺️ 關卡地圖</button>
+        <button id="btn-tech-tree" class="btn-tool highlight" title="【快捷鍵 T】開啟數論研究院，使用星級點數研發永久科技">🏛️ 數論研究院 (T)</button>
+        <button id="btn-map" class="btn-tool highlight-gold" title="切換關卡大地圖 (M)">🗺️ 關卡地圖 (M)</button>
         <button id="btn-speed" class="btn-tool" title="切換遊戲速度 (1x/2x)">1x 速度</button>
         <button id="btn-pause" class="btn-tool" title="暫停 / 繼續">⏸ 暫停</button>
         <button id="btn-sound" class="btn-tool" title="音效開關">🔊 音效</button>
-        <button id="btn-guide" class="btn-tool highlight" title="數論作戰教學手冊">📖 數論指南</button>
+        <button id="btn-guide" class="btn-tool" title="數論作戰教學手冊">📖 數論指南</button>
       </div>
     </header>
 
@@ -334,6 +335,31 @@
         </div>
         <div id="stages-grid" class="stages-container">
           <!-- 動態由 main.js 渲染關卡卡片與星級 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 數論研究院科技樹 Modal (Tech Tree Meta-Progression Modal) -->
+    <div id="modal-tech-tree" class="modal-overlay hidden">
+      <div class="modal-content tech-tree-modal-box">
+        <div class="modal-header">
+          <div>
+            <h2>🏛️ 數論研究院（星級科技樹）</h2>
+            <p class="modal-subtitle">通關各關卡累積星級點數，研發 3 大領域 15 項永久數論科技！</p>
+          </div>
+          <div class="tech-header-actions">
+            <div class="tech-stars-counter">
+              <span class="star-icon">⭐</span>
+              <span class="star-label">可用研究點數：</span>
+              <span id="tech-available-stars" class="star-val">0</span>
+              <span class="star-total" id="tech-total-stars">/ 0 獲得</span>
+            </div>
+            <button id="btn-reset-tech" class="btn-reset-tech" title="免費洗點，100% 全額返還所有已消耗星級點數">🔄 重置洗點</button>
+            <button id="btn-close-tech-tree" class="btn-close" title="關閉">✕</button>
+          </div>
+        </div>
+        <div id="tech-branches-container" class="tech-branches-container">
+          <!-- 動態由 main.js 渲染三大分支科技節點 -->
         </div>
       </div>
     </div>

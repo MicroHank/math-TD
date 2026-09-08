@@ -1,9 +1,9 @@
-// Bootstrapping and UI Event Wiring for Math Tower Defense
 import { Game } from './engine/Game.js';
 import { TOWER_TYPES } from './entities/Tower.js';
 import { LEVELS, CHAPTERS } from './levels/LevelData.js';
 import { progress } from './engine/ProgressManager.js';
 import { sound } from './engine/Audio.js';
+import { techTree, TECH_BRANCHES, TECH_NODES } from './engine/TechTreeManager.js';
 
 window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('game-canvas');
@@ -32,6 +32,15 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnUnlockAll = document.getElementById('btn-unlock-all');
   const stagesGrid = document.getElementById('stages-grid');
   const chapterTabs = document.querySelectorAll('.chapter-tabs .tab-btn');
+
+  // 數論研究院科技樹元素
+  const btnTechTree = document.getElementById('btn-tech-tree');
+  const modalTechTree = document.getElementById('modal-tech-tree');
+  const btnCloseTechTree = document.getElementById('btn-close-tech-tree');
+  const btnResetTech = document.getElementById('btn-reset-tech');
+  const techAvailableStars = document.getElementById('tech-available-stars');
+  const techTotalStars = document.getElementById('tech-total-stars');
+  const techBranchesContainer = document.getElementById('tech-branches-container');
 
   // 波次肉鴿天賦元素
   const modalPerkChoice = document.getElementById('modal-perk-choice');
@@ -247,6 +256,101 @@ window.addEventListener('DOMContentLoaded', () => {
       });
 
       stagesGrid.appendChild(card);
+    });
+  }
+
+  // 渲染數論研究院科技樹
+  function renderTechTree() {
+    if (!techBranchesContainer || !techAvailableStars || !techTotalStars) return;
+
+    techAvailableStars.textContent = techTree.getAvailableStars();
+    techTotalStars.textContent = `/ ${techTree.getTotalEarnedStars()} 獲得`;
+    techBranchesContainer.innerHTML = '';
+
+    TECH_BRANCHES.forEach(branch => {
+      const col = document.createElement('div');
+      col.className = 'tech-branch-column';
+
+      col.innerHTML = `
+        <div class="tech-branch-header">
+          <span class="tech-branch-icon">${branch.icon}</span>
+          <div>
+            <div class="tech-branch-title">${branch.name}</div>
+            <div class="tech-branch-desc">${branch.desc}</div>
+          </div>
+        </div>
+        <div class="tech-nodes-list" id="nodes-${branch.id}"></div>
+      `;
+
+      const nodesList = col.querySelector(`#nodes-${branch.id}`);
+      const branchNodes = Object.values(TECH_NODES)
+        .filter(n => n.branch === branch.id)
+        .sort((a, b) => a.tier - b.tier);
+
+      branchNodes.forEach(node => {
+        const isUnlocked = techTree.isUnlocked(node.id);
+        const canUnlock = techTree.canUnlock(node.id);
+
+        const card = document.createElement('div');
+        let stateClass = 'locked';
+        let costLabel = `🔒 需前置/點數 (${node.cost} ⭐)`;
+
+        if (isUnlocked) {
+          stateClass = 'unlocked';
+          costLabel = '✔ 已研發';
+        } else if (canUnlock) {
+          stateClass = 'available';
+          costLabel = `${node.cost} ⭐ 研發`;
+        }
+
+        card.className = `tech-node-card ${stateClass}`;
+        card.innerHTML = `
+          <div class="tech-node-top">
+            <div class="tech-node-identity">
+              <span class="tech-node-icon">${node.icon}</span>
+              <span class="tech-node-name">${node.name}</span>
+            </div>
+            <span class="tech-node-cost">${costLabel}</span>
+          </div>
+          <div class="tech-node-desc">${node.desc}</div>
+          <div class="tech-node-formula">${node.formula}</div>
+        `;
+
+        if (canUnlock && !isUnlocked) {
+          card.addEventListener('click', () => {
+            const ok = techTree.unlock(node.id);
+            if (ok) {
+              renderTechTree();
+              if (game) game.syncUI();
+            }
+          });
+        }
+
+        nodesList.appendChild(card);
+      });
+
+      techBranchesContainer.appendChild(col);
+    });
+  }
+
+  if (btnTechTree) {
+    btnTechTree.addEventListener('click', () => {
+      renderTechTree();
+      modalTechTree.classList.remove('hidden');
+    });
+  }
+
+  if (btnCloseTechTree) {
+    btnCloseTechTree.addEventListener('click', () => {
+      modalTechTree.classList.add('hidden');
+    });
+  }
+
+  if (btnResetTech) {
+    btnResetTech.addEventListener('click', () => {
+      techTree.reset();
+      renderTechTree();
+      if (game) game.syncUI();
     });
   }
 
@@ -773,6 +877,10 @@ window.addEventListener('DOMContentLoaded', () => {
     } else if (e.key === 'm' || e.key === 'M') {
       renderStageMap(currentActiveChapter);
       modalStageMap.classList.toggle('hidden');
+    } else if (e.key === 't' || e.key === 'T') {
+      // 快捷鍵 T 開啟數論研究院
+      renderTechTree();
+      modalTechTree.classList.toggle('hidden');
     } else if (e.key === 'Escape') {
       if (game && game.spellManager && game.spellManager.isAiming) {
         game.spellManager.cancelAiming();
@@ -782,6 +890,7 @@ window.addEventListener('DOMContentLoaded', () => {
       game.selectPad(null);
       modalGuide.classList.add('hidden');
       modalStageMap.classList.add('hidden');
+      modalTechTree.classList.add('hidden');
       game.syncUI();
     }
   });

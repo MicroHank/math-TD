@@ -9,6 +9,7 @@ import { PerkManager } from './PerkManager.js';
 import { SpellManager } from './SpellManager.js';
 import { GeometricResonanceManager } from './GeometricResonanceManager.js';
 import { LcmMergeManager } from './LcmMergeManager.js';
+import { techTree } from './TechTreeManager.js';
 
 export class Game {
   constructor(canvas, uiCallbacks) {
@@ -19,7 +20,7 @@ export class Game {
     // 遊戲參數與經濟
     this.currentLevelId = '1-1';
     this.currentLevel = LEVELS['1-1'];
-    this.gold = this.currentLevel.initialGold;
+    this.gold = this.currentLevel.initialGold + techTree.getInitialGoldBonus();
     this.lives = this.currentLevel.initialLives;
     this.maxLives = this.currentLevel.initialLives;
     this.gameSpeed = 1;
@@ -77,7 +78,7 @@ export class Game {
     const levelData = LEVELS[levelId] || LEVELS['1-1'];
     this.currentLevelId = levelId;
     this.currentLevel = levelData;
-    this.gold = levelData.initialGold;
+    this.gold = levelData.initialGold + techTree.getInitialGoldBonus();
     this.lives = levelData.initialLives;
     this.maxLives = levelData.initialLives;
     this.lanes = levelData.lanes;
@@ -234,7 +235,8 @@ export class Game {
     if (!config) return false;
 
     const discount = this.perkManager ? this.perkManager.getCostDiscount() : 0;
-    const finalCost = Math.round(config.cost * (1 - discount));
+    const techDiscount = (config.type === 'prime' ? techTree.getPrimeUpgradeDiscount() : 0);
+    const finalCost = Math.round(config.cost * (1 - discount - techDiscount));
 
     if (this.gold >= finalCost) {
       const existingTower = pad.tower;
@@ -358,6 +360,10 @@ export class Game {
   startNextWave() {
     if (this.waveManager.startNextWave()) {
       sound.playWaveComplete();
+      // 模組四：量子數論核心 (每波開始時立即全額回滿算力)
+      if (techTree.hasQuantumRefill() && this.spellManager) {
+        this.spellManager.mana = this.spellManager.maxMana;
+      }
       this.syncUI();
     }
   }

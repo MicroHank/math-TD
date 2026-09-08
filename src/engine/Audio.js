@@ -337,6 +337,48 @@ class SoundManager {
       gain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
       osc.connect(gain);
       gain.connect(this.ctx.destination);
+    } catch (e) {}
+  }
+  // 模組四：數論科技解鎖音效 (清脆向上的讚頌和弦音)
+  playTechUnlock() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const t = this.ctx.currentTime;
+      [440, 554.37, 659.25, 880, 1108.73].forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t + idx * 0.06);
+        gain.gain.setValueAtTime(0.15, t + idx * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.06 + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t + idx * 0.06);
+        osc.stop(t + idx * 0.06 + 0.35);
+      });
+    } catch (e) {}
+  }
+
+  // 模組四：重置洗點音效 (晶瑩重力下潛回歸音)
+  playTechReset() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(784, t);
+      osc.frequency.exponentialRampToValueAtTime(196, t + 0.3);
+      gain.gain.setValueAtTime(0.2, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
       osc.start(t);
       osc.stop(t + 0.35);
     } catch (e) {}
