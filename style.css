@@ -374,25 +374,27 @@ body {
   cursor: crosshair;
 }
 
-/* 選中防禦塔浮動操作卡片 */
+/* 選中防禦塔浮動操作卡片 (動態出現在砲塔旁邊) */
 #tower-details-panel {
   position: absolute;
   top: 16px;
-  right: 16px;
+  left: 16px;
   width: 275px;
   background: rgba(15, 23, 42, 0.94);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  border: 1px solid rgba(56, 189, 248, 0.4);
   border-radius: 14px;
   padding: 14px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75), 0 0 20px rgba(56, 189, 248, 0.12);
-  animation: slideIn 0.2s ease-out;
-  z-index: 10;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.18);
+  animation: popIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 30;
+  max-height: 94%;
+  overflow-y: auto;
 }
 
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .panel-header {
@@ -608,7 +610,163 @@ body {
   background: rgba(239, 68, 68, 0.32);
 }
 
-/* ================= 底部建造工作坊 (Tower Shop) ================= */
+/* ================= 點選空基座時的建造選單面板 (動態出現在基座旁邊) ================= */
+#pad-build-panel {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 310px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.85), 0 0 20px rgba(56, 189, 248, 0.2);
+  animation: popIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 30;
+  max-height: 94%;
+  overflow-y: auto;
+}
+
+.pad-badge {
+  font-size: 11px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 1px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.build-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 3px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.build-tab-btn {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.build-tab-btn:hover {
+  color: #ffffff;
+}
+
+.build-tab-btn.active {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+}
+
+.build-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.build-options-list.hidden {
+  display: none !important;
+}
+
+.build-option-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(30, 41, 59, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  color: var(--text-main);
+  font-family: var(--font-sans);
+}
+
+.build-option-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: rgba(51, 65, 85, 0.9);
+  border-color: #38bdf8;
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
+}
+
+.build-option-card:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+}
+
+.hotkey-badge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.5);
+  color: #94a3b8;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.option-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.option-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.option-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.option-desc {
+  font-size: 10px;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+.option-cost {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fde047;
+  white-space: nowrap;
+  margin-right: 18px;
+}
+
+/* ================= 底部防禦塔圖鑑說明 (Tower Shop / Guide) ================= */
 #tower-shop {
   display: flex;
   flex-direction: column;
@@ -678,7 +836,7 @@ body {
   display: none !important;
 }
 
-.tower-card {
+.tower-guide-card {
   position: relative;
   display: flex;
   align-items: center;
@@ -687,43 +845,26 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
   padding: 8px 12px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   text-align: left;
   color: var(--text-main);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.tower-card:hover:not(.disabled) {
-  transform: translateY(-2px);
-  background: rgba(51, 65, 85, 0.8);
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+.tower-guide-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(51, 65, 85, 0.6);
 }
 
-.tower-card.selected {
-  border-color: #38bdf8;
-  background: rgba(56, 189, 248, 0.15);
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
-  transform: translateY(-2px);
-}
-
-.tower-card.disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  filter: grayscale(0.5);
-}
-
-.hotkey {
-  position: absolute;
-  top: 6px;
-  right: 8px;
+.card-price {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
+  color: #fde047;
+  margin-left: 6px;
   background: rgba(0, 0, 0, 0.4);
-  color: #94a3b8;
-  padding: 1px 5px;
+  padding: 1px 6px;
   border-radius: 4px;
+  border: 1px solid rgba(253, 224, 71, 0.2);
 }
 
 .card-icon {
@@ -739,56 +880,56 @@ body {
   flex-shrink: 0;
 }
 
-.card-icon.prime-2 {
+.card-icon.prime-2, .option-icon.prime-2 {
   background: rgba(56, 189, 248, 0.15);
   border: 2px solid var(--color-prime2);
   color: var(--color-prime2);
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
 }
 
-.card-icon.prime-3 {
+.card-icon.prime-3, .option-icon.prime-3 {
   background: rgba(251, 191, 36, 0.15);
   border: 2px solid var(--color-prime3);
   color: var(--color-prime3);
   box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
 }
 
-.card-icon.prime-5 {
+.card-icon.prime-5, .option-icon.prime-5 {
   background: rgba(52, 211, 153, 0.15);
   border: 2px solid var(--color-prime5);
   color: var(--color-prime5);
   box-shadow: 0 0 10px rgba(52, 211, 153, 0.2);
 }
 
-.card-icon.absolute-prism {
-  background: rgba(192, 132, 252, 0.15);
-  border: 2px solid var(--color-abs);
-  color: var(--color-abs);
-  box-shadow: 0 0 10px rgba(192, 132, 252, 0.2);
-}
-
-.card-icon.operator {
-  background: rgba(20, 184, 166, 0.15);
-  border: 2px solid #14b8a6;
-  color: #2dd4bf;
-  box-shadow: 0 0 10px rgba(20, 184, 166, 0.25);
-}
-
-.card-icon.prime-7 {
+.card-icon.prime-7, .option-icon.prime-7 {
   background: rgba(139, 92, 246, 0.15);
   border: 2px solid #8b5cf6;
   color: #a78bfa;
   box-shadow: 0 0 10px rgba(139, 92, 246, 0.25);
 }
 
-.card-icon.sqrt-tower {
+.card-icon.absolute-prism, .option-icon.absolute-prism {
+  background: rgba(192, 132, 252, 0.15);
+  border: 2px solid var(--color-abs);
+  color: var(--color-abs);
+  box-shadow: 0 0 10px rgba(192, 132, 252, 0.2);
+}
+
+.card-icon.sqrt-tower, .option-icon.sqrt-tower {
   background: rgba(245, 158, 11, 0.15);
   border: 2px solid #f59e0b;
   color: #fbbf24;
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
 }
 
-.card-icon.zero-freeze {
+.card-icon.operator, .option-icon.operator {
+  background: rgba(20, 184, 166, 0.15);
+  border: 2px solid #14b8a6;
+  color: #2dd4bf;
+  box-shadow: 0 0 10px rgba(20, 184, 166, 0.25);
+}
+
+.card-icon.zero-freeze, .option-icon.zero-freeze {
   background: rgba(6, 182, 212, 0.15);
   border: 2px solid #06b6d4;
   color: #22d3ee;
@@ -808,14 +949,6 @@ body {
 .card-desc {
   font-size: 11px;
   color: var(--text-muted);
-}
-
-.card-cost {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 700;
-  color: #fde047;
-  white-space: nowrap;
 }
 
 /* ================= 彈窗與遮罩 (Modals) ================= */

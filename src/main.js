@@ -62,6 +62,89 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnSell = document.getElementById('btn-sell-tower');
   const btnDeselect = document.getElementById('btn-deselect-tower');
 
+  // 點選空基座建造面板 DOM
+  const panelPadBuild = document.getElementById('pad-build-panel');
+  const btnCloseBuildPanel = document.getElementById('btn-close-build-panel');
+  const tabBuildPrime = document.getElementById('tab-build-prime');
+  const tabBuildSpecial = document.getElementById('tab-build-special');
+  const buildListPrime = document.getElementById('build-list-prime');
+  const buildListSpecial = document.getElementById('build-list-special');
+  const buildOptionCards = document.querySelectorAll('.build-option-card');
+
+  function switchBuildTab(tabKey) {
+    if (tabKey === 'prime') {
+      if (tabBuildPrime) tabBuildPrime.classList.add('active');
+      if (tabBuildSpecial) tabBuildSpecial.classList.remove('active');
+      if (buildListPrime) buildListPrime.classList.remove('hidden');
+      if (buildListSpecial) buildListSpecial.classList.add('hidden');
+    } else {
+      if (tabBuildPrime) tabBuildPrime.classList.remove('active');
+      if (tabBuildSpecial) tabBuildSpecial.classList.add('active');
+      if (buildListPrime) buildListPrime.classList.add('hidden');
+      if (buildListSpecial) buildListSpecial.classList.remove('hidden');
+    }
+  }
+
+  if (tabBuildPrime) tabBuildPrime.addEventListener('click', () => switchBuildTab('prime'));
+  if (tabBuildSpecial) tabBuildSpecial.addEventListener('click', () => switchBuildTab('special'));
+  if (btnCloseBuildPanel) {
+    btnCloseBuildPanel.addEventListener('click', () => {
+      if (game) game.selectPad(null);
+    });
+  }
+
+  function updateBuildOptions(goldAmount) {
+    buildOptionCards.forEach(card => {
+      const typeKey = card.dataset.towerType;
+      const config = TOWER_TYPES[typeKey];
+      if (config) {
+        card.disabled = (goldAmount < config.cost);
+      }
+    });
+  }
+
+  // 依據目標在 Canvas 上的座標，動態將面板定位在砲塔/基座身旁 (而非固定在右側)
+  function positionPanelNear(panelElement, targetX, targetY) {
+    if (!panelElement || targetX === undefined || targetY === undefined) return;
+    const container = canvas.parentElement;
+    if (!container) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const containerWidth = container.clientWidth || rect.width;
+    const containerHeight = container.clientHeight || rect.height;
+
+    const scaleX = rect.width / canvas.width;
+    const scaleY = rect.height / canvas.height;
+    const targetCssX = targetX * scaleX;
+    const targetCssY = targetY * scaleY;
+
+    const panelWidth = panelElement.offsetWidth || (panelElement.id === 'pad-build-panel' ? 310 : 275);
+    const panelHeight = panelElement.offsetHeight || 290;
+
+    const offsetDist = (26 * scaleX) + 14;
+    let left;
+
+    // 優先放置於目標右側；若右側超出邊界，則放置於左側
+    if (targetCssX + offsetDist + panelWidth <= containerWidth - 10) {
+      left = targetCssX + offsetDist;
+    } else if (targetCssX - offsetDist - panelWidth >= 10) {
+      left = targetCssX - offsetDist - panelWidth;
+    } else {
+      // 兩邊皆緊湊時，在螢幕範圍內取適當位置
+      left = Math.max(10, Math.min(containerWidth - panelWidth - 10, targetCssX - panelWidth / 2));
+    }
+
+    // 垂直方向：以目標中心居中
+    let top = targetCssY - panelHeight / 2;
+    // 限制在容器上下邊界內 (保留 10px 邊距)
+    top = Math.max(10, Math.min(containerHeight - panelHeight - 10, top));
+
+    panelElement.style.left = `${Math.round(left)}px`;
+    panelElement.style.top = `${Math.round(top)}px`;
+    panelElement.style.right = 'auto';
+    panelElement.style.bottom = 'auto';
+  }
+
   // 單關通關結算彈窗
   const modalLevelVictory = document.getElementById('modal-level-victory');
   const victoryLevelTitle = document.getElementById('victory-level-title');
@@ -78,8 +161,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnRestart = document.getElementById('btn-restart');
   const btnGameoverMap = document.getElementById('btn-gameover-map');
 
-  // 塔購買卡片與工坊分頁
-  const towerCards = document.querySelectorAll('.tower-card');
+  // 底部圖鑑工坊分頁
   const tabShopPrime = document.getElementById('tab-shop-prime');
   const tabShopSpecial = document.getElementById('tab-shop-special');
   const shopGroupPrime = document.getElementById('shop-group-prime');
@@ -87,15 +169,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function switchShopTab(tabKey) {
     if (tabKey === 'prime') {
-      tabShopPrime.classList.add('active');
-      tabShopSpecial.classList.remove('active');
-      shopGroupPrime.classList.remove('hidden');
-      shopGroupSpecial.classList.add('hidden');
+      if (tabShopPrime) tabShopPrime.classList.add('active');
+      if (tabShopSpecial) tabShopSpecial.classList.remove('active');
+      if (shopGroupPrime) shopGroupPrime.classList.remove('hidden');
+      if (shopGroupSpecial) shopGroupSpecial.classList.add('hidden');
     } else {
-      tabShopPrime.classList.remove('active');
-      tabShopSpecial.classList.add('active');
-      shopGroupPrime.classList.add('hidden');
-      shopGroupSpecial.classList.remove('hidden');
+      if (tabShopPrime) tabShopPrime.classList.remove('active');
+      if (tabShopSpecial) tabShopSpecial.classList.add('active');
+      if (shopGroupPrime) shopGroupPrime.classList.add('hidden');
+      if (shopGroupSpecial) shopGroupSpecial.classList.remove('hidden');
     }
   }
 
@@ -208,24 +290,8 @@ window.addEventListener('DOMContentLoaded', () => {
         modalGameOver.classList.remove('hidden');
       }
 
-      // 更新建造卡片的金幣負擔狀態
-      towerCards.forEach(card => {
-        const typeKey = card.dataset.towerType;
-        const config = TOWER_TYPES[typeKey];
-        if (config) {
-          if (stats.gold < config.cost) {
-            card.classList.add('disabled');
-          } else {
-            card.classList.remove('disabled');
-          }
-
-          if (stats.selectedBuildType === typeKey) {
-            card.classList.add('selected');
-          } else {
-            card.classList.remove('selected');
-          }
-        }
-      });
+      // 更新建造按鈕金幣可負擔狀態
+      updateBuildOptions(stats.gold);
 
       // 更新選取塔按鈕狀態
       if (stats.selectedTower) {
@@ -236,9 +302,28 @@ window.addEventListener('DOMContentLoaded', () => {
     onTowerSelect: (tower) => {
       if (tower) {
         panelTower.classList.remove('hidden');
+        if (panelPadBuild) panelPadBuild.classList.add('hidden');
         updateTowerPanel(tower, currentGold);
+        positionPanelNear(panelTower, tower.x, tower.y);
+        requestAnimationFrame(() => {
+          positionPanelNear(panelTower, tower.x, tower.y);
+        });
       } else {
         panelTower.classList.add('hidden');
+      }
+    },
+
+    onPadSelect: (pad) => {
+      if (pad) {
+        if (panelPadBuild) panelPadBuild.classList.remove('hidden');
+        panelTower.classList.add('hidden');
+        updateBuildOptions(currentGold);
+        positionPanelNear(panelPadBuild, pad.x, pad.y);
+        requestAnimationFrame(() => {
+          positionPanelNear(panelPadBuild, pad.x, pad.y);
+        });
+      } else {
+        if (panelPadBuild) panelPadBuild.classList.add('hidden');
       }
     },
 
@@ -320,24 +405,15 @@ window.addEventListener('DOMContentLoaded', () => {
       btnUpgradeSpeed.disabled = goldAmount < cost;
     }
 
-    // 4. 變賣按鈕
-    btnSell.textContent = `💰 變賣 (+${tower.sellValue}🪙)`;
+    // 4. 變賣按鈕 (含快捷鍵提示 [S])
+    btnSell.textContent = `💰 變賣 (+${tower.sellValue}🪙) [S]`;
   }
 
-  // 綁定塔購買點擊
-  towerCards.forEach(card => {
+  // 綁定上方空基座建造面板中的塔選項點擊
+  buildOptionCards.forEach(card => {
     card.addEventListener('click', () => {
       const typeKey = card.dataset.towerType;
-      const config = TOWER_TYPES[typeKey];
-      if (game.gold >= config.cost) {
-        if (game.selectedBuildType === typeKey) {
-          game.selectBuildType(null);
-        } else {
-          game.selectBuildType(typeKey);
-        }
-      } else {
-        sound.playResist();
-      }
+      game.buildTowerOnSelectedPad(typeKey);
     });
   });
 
@@ -449,43 +525,98 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // 點擊外部空白處關閉選單 (需求2: 點到旁邊空白時，就將選單關閉)
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#game-canvas') &&
+        !e.target.closest('#tower-details-panel') &&
+        !e.target.closest('#pad-build-panel') &&
+        !e.target.closest('.modal-content') &&
+        !e.target.closest('.control-btn') &&
+        !e.target.closest('#btn-start-wave')) {
+      if (game) {
+        game.selectTower(null);
+        game.selectPad(null);
+      }
+    }
+  });
+
   // 鍵盤快捷鍵支援
   window.addEventListener('keydown', (e) => {
     if (e.code === 'Space') {
       e.preventDefault();
       game.startNextWave();
+    } else if (e.key === 's' || e.key === 'S') {
+      // 需求4: 快速鍵：s 賣掉砲塔
+      if (game.selectedTower) {
+        e.preventDefault();
+        game.sellSelectedTower();
+      }
     } else if (e.key === '1') {
-      game.selectBuildType('PRIME_2');
-      switchShopTab('prime');
+      if (game.selectedPad) {
+        game.buildTowerOnSelectedPad('PRIME_2');
+      } else {
+        switchShopTab('prime');
+      }
     } else if (e.key === '2') {
-      game.selectBuildType('PRIME_3');
-      switchShopTab('prime');
+      if (game.selectedPad) {
+        game.buildTowerOnSelectedPad('PRIME_3');
+      } else {
+        switchShopTab('prime');
+      }
     } else if (e.key === '3') {
-      game.selectBuildType('PRIME_5');
-      switchShopTab('prime');
+      if (game.selectedPad) {
+        game.buildTowerOnSelectedPad('PRIME_5');
+      } else {
+        switchShopTab('prime');
+      }
     } else if (e.key === '4') {
-      game.selectBuildType('PRIME_7');
-      switchShopTab('prime');
-    } else if (e.key === 'q' || e.key === 'Q' || e.key === '5') {
-      game.selectBuildType('ABSOLUTE');
-      switchShopTab('special');
-    } else if (e.key === 'w' || e.key === 'W' || e.key === '6') {
-      game.selectBuildType('SQRT');
-      switchShopTab('special');
-    } else if (e.key === 'e' || e.key === 'E' || e.key === '7') {
-      game.selectBuildType('OPERATOR');
-      switchShopTab('special');
-    } else if (e.key === 'r' || e.key === 'R' || e.key === '8') {
-      game.selectBuildType('ZERO_FREEZE');
-      switchShopTab('special');
+      if (game.selectedPad) {
+        game.buildTowerOnSelectedPad('PRIME_7');
+      } else {
+        switchShopTab('prime');
+      }
+    } else if (e.key === 'q' || e.key === 'Q') {
+      if (game.selectedPad) {
+        game.buildTowerOnSelectedPad('ABSOLUTE');
+      } else {
+        switchShopTab('special');
+      }
+    } else if (e.key === 'w' || e.key === 'W') {
+      if (game.selectedPad) {
+        game.buildTowerOnSelectedPad('SQRT');
+      } else {
+        switchShopTab('special');
+      }
+    } else if (e.key === 'e' || e.key === 'E') {
+      if (game.selectedPad) {
+        game.buildTowerOnSelectedPad('OPERATOR');
+      } else {
+        switchShopTab('special');
+      }
+    } else if (e.key === 'r' || e.key === 'R') {
+      if (game.selectedPad) {
+        game.buildTowerOnSelectedPad('ZERO_FREEZE');
+      } else {
+        switchShopTab('special');
+      }
     } else if (e.key === 'm' || e.key === 'M') {
       renderStageMap(currentActiveChapter);
       modalStageMap.classList.toggle('hidden');
     } else if (e.key === 'Escape') {
       game.selectBuildType(null);
       game.selectTower(null);
+      game.selectPad(null);
       modalGuide.classList.add('hidden');
       modalStageMap.classList.add('hidden');
+    }
+  });
+
+  // 視窗縮放時重新調整浮動面板座標
+  window.addEventListener('resize', () => {
+    if (game && game.selectedPad) {
+      positionPanelNear(panelPadBuild, game.selectedPad.x, game.selectedPad.y);
+    } else if (game && game.selectedTower) {
+      positionPanelNear(panelTower, game.selectedTower.x, game.selectedTower.y);
     }
   });
 });

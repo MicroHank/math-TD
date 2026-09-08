@@ -145,114 +145,192 @@
           </div>
 
           <div class="panel-actions">
-            <button id="btn-sell-tower" class="btn-sell">💰 變賣 (+35🪙)</button>
+            <button id="btn-sell-tower" class="btn-sell">💰 變賣 (+35🪙) [S]</button>
+          </div>
+        </div>
+
+        <!-- 點選空基座時的建造選單面板 (上方顯示可建置的砲塔) -->
+        <div id="pad-build-panel" class="hidden">
+          <div class="panel-header">
+            <div>
+              <h3>🛠️ 建造防禦塔</h3>
+              <span class="pad-badge">點選型號直接於基座建置</span>
+            </div>
+            <button id="btn-close-build-panel" class="btn-close" title="取消選取">✕</button>
+          </div>
+
+          <div class="build-tabs">
+            <button class="build-tab-btn active" data-build-tab="prime" id="tab-build-prime">🔢 質數重砲 (1~4)</button>
+            <button class="build-tab-btn" data-build-tab="special" id="tab-build-special">⚡ 代數與力場 (Q~R)</button>
+          </div>
+
+          <!-- 質數組 -->
+          <div class="build-options-list active" id="build-list-prime">
+            <button class="build-option-card" data-tower-type="PRIME_2">
+              <span class="hotkey-badge">1</span>
+              <div class="option-icon prime-2">2</div>
+              <div class="option-info">
+                <div class="option-title">2號 雙子砲</div>
+                <div class="option-desc">除以 2 ｜ 偶數剋星</div>
+              </div>
+              <div class="option-cost">50 🪙</div>
+            </button>
+
+            <button class="build-option-card" data-tower-type="PRIME_3">
+              <span class="hotkey-badge">2</span>
+              <div class="option-icon prime-3">3</div>
+              <div class="option-info">
+                <div class="option-title">3號 三元激光</div>
+                <div class="option-desc">除以 3 ｜ 數字和是3倍數</div>
+              </div>
+              <div class="option-cost">75 🪙</div>
+            </button>
+
+            <button class="build-option-card" data-tower-type="PRIME_5">
+              <span class="hotkey-badge">3</span>
+              <div class="option-icon prime-5">5</div>
+              <div class="option-info">
+                <div class="option-title">5號 五芒衝擊</div>
+                <div class="option-desc">除以 5 ｜ 尾數是0或5</div>
+              </div>
+              <div class="option-cost">100 🪙</div>
+            </button>
+
+            <button class="build-option-card" data-tower-type="PRIME_7">
+              <span class="hotkey-badge">4</span>
+              <div class="option-icon prime-7">7</div>
+              <div class="option-info">
+                <div class="option-title">7號 七曜天琴</div>
+                <div class="option-desc">除以 7 ｜ 難纏倍數剋星</div>
+              </div>
+              <div class="option-cost">130 🪙</div>
+            </button>
+          </div>
+
+          <!-- 代數與力場組 -->
+          <div class="build-options-list hidden" id="build-list-special">
+            <button class="build-option-card" data-tower-type="ABSOLUTE">
+              <span class="hotkey-badge">Q</span>
+              <div class="option-icon absolute-prism">|x|</div>
+              <div class="option-info">
+                <div class="option-title">絕對值稜鏡</div>
+                <div class="option-desc">淨化負數怪 $|-n| \to n$</div>
+              </div>
+              <div class="option-cost">120 🪙</div>
+            </button>
+
+            <button class="build-option-card" data-tower-type="SQRT">
+              <span class="hotkey-badge">W</span>
+              <div class="option-icon sqrt-tower">√x</div>
+              <div class="option-info">
+                <div class="option-title">√x 方根重力井</div>
+                <div class="option-desc">暴擊平方怪 $\sqrt{36} \to 6$</div>
+              </div>
+              <div class="option-cost">150 🪙</div>
+            </button>
+
+            <button class="build-option-card" data-tower-type="OPERATOR">
+              <span class="hotkey-badge">E</span>
+              <div class="option-icon operator">±1</div>
+              <div class="option-info">
+                <div class="option-title">運算子調整塔</div>
+                <div class="option-desc">微調質數 $7 - 1 = 6$</div>
+              </div>
+              <div class="option-cost">90 🪙</div>
+            </button>
+
+            <button class="build-option-card" data-tower-type="ZERO_FREEZE">
+              <span class="hotkey-badge">R</span>
+              <div class="option-icon zero-freeze">×0</div>
+              <div class="option-info">
+                <div class="option-title">×0 絕對零度塔</div>
+                <div class="option-desc">乘零歸零 ｜ 範圍強效減速</div>
+              </div>
+              <div class="option-cost">110 🪙</div>
+            </button>
           </div>
         </div>
       </div>
     </main>
 
-    <!-- 底部防禦塔建造工作坊 (Tower Shop) -->
+    <!-- 底部防禦塔圖鑑說明書 (純說明與參考) -->
     <footer id="tower-shop">
       <div class="shop-header-row">
-        <div class="shop-label">建造工坊</div>
+        <div class="shop-label">📚 數論防禦塔圖鑑說明（點擊場上 ＋ 基座即可建造）</div>
         <div class="shop-tabs">
-          <button class="shop-tab-btn active" data-shop-tab="prime" id="tab-shop-prime">🔢 質數重砲 (1~4)</button>
-          <button class="shop-tab-btn" data-shop-tab="special" id="tab-shop-special">⚡ 代數與力場 (Q~R)</button>
+          <button class="shop-tab-btn active" data-shop-tab="prime" id="tab-shop-prime">🔢 質數重砲系列</button>
+          <button class="shop-tab-btn" data-shop-tab="special" id="tab-shop-special">⚡ 代數與力場系列</button>
         </div>
       </div>
 
-      <!-- 質數重砲組 -->
+      <!-- 質數重砲圖鑑組 -->
       <div class="tower-cards-grid active" id="shop-group-prime">
-        <!-- 2號質數砲 -->
-        <button class="tower-card" data-tower-type="PRIME_2" id="card-prime-2">
-          <span class="hotkey">1</span>
+        <div class="tower-guide-card">
           <div class="card-icon prime-2">2</div>
           <div class="card-info">
-            <div class="card-title">2號 雙子砲</div>
-            <div class="card-desc">除以 2 ｜ 偶數剋星</div>
+            <div class="card-title">2號 雙子砲 <span class="card-price">50 🪙</span></div>
+            <div class="card-desc">除以 2 ｜ 偶數剋星 ｜ 射速 1.8/s ｜ 威力 25</div>
           </div>
-          <div class="card-cost">50 🪙</div>
-        </button>
+        </div>
 
-        <!-- 3號三元激光 -->
-        <button class="tower-card" data-tower-type="PRIME_3" id="card-prime-3">
-          <span class="hotkey">2</span>
+        <div class="tower-guide-card">
           <div class="card-icon prime-3">3</div>
           <div class="card-info">
-            <div class="card-title">3號 三元激光</div>
-            <div class="card-desc">除以 3 ｜ 數字和是3倍數</div>
+            <div class="card-title">3號 三元激光 <span class="card-price">75 🪙</span></div>
+            <div class="card-desc">除以 3 ｜ 各數位和是3倍數 ｜ 射程 165px ｜ 威力 32</div>
           </div>
-          <div class="card-cost">75 🪙</div>
-        </button>
+        </div>
 
-        <!-- 5號五芒衝擊 -->
-        <button class="tower-card" data-tower-type="PRIME_5" id="card-prime-5">
-          <span class="hotkey">3</span>
+        <div class="tower-guide-card">
           <div class="card-icon prime-5">5</div>
           <div class="card-info">
-            <div class="card-title">5號 五芒衝擊</div>
-            <div class="card-desc">除以 5 ｜ 尾數是0或5</div>
+            <div class="card-title">5號 五芒衝擊 <span class="card-price">100 🪙</span></div>
+            <div class="card-desc">除以 5 ｜ 尾數是0或5 ｜ 範圍衝擊 ｜ 威力 45</div>
           </div>
-          <div class="card-cost">100 🪙</div>
-        </button>
+        </div>
 
-        <!-- 7號七曜天琴 -->
-        <button class="tower-card" data-tower-type="PRIME_7" id="card-prime-7">
-          <span class="hotkey">4</span>
+        <div class="tower-guide-card">
           <div class="card-icon prime-7">7</div>
           <div class="card-info">
-            <div class="card-title">7號 七曜天琴</div>
-            <div class="card-desc">除以 7 ｜ 難纏倍數剋星</div>
+            <div class="card-title">7號 七曜天琴 <span class="card-price">130 🪙</span></div>
+            <div class="card-desc">除以 7 ｜ 難纏倍數剋星 (14, 21, 49) ｜ 威力 55</div>
           </div>
-          <div class="card-cost">130 🪙</div>
-        </button>
+        </div>
       </div>
 
-      <!-- 代數與力場組 -->
+      <!-- 代數與力場圖鑑組 -->
       <div class="tower-cards-grid hidden" id="shop-group-special">
-        <!-- |x| 絕對值稜鏡 -->
-        <button class="tower-card" data-tower-type="ABSOLUTE" id="card-absolute">
-          <span class="hotkey">Q</span>
+        <div class="tower-guide-card">
           <div class="card-icon absolute-prism">|x|</div>
           <div class="card-info">
-            <div class="card-title">絕對值稜鏡</div>
-            <div class="card-desc">淨化負數怪 $|-n| \to n$</div>
+            <div class="card-title">絕對值稜鏡 <span class="card-price">120 🪙</span></div>
+            <div class="card-desc">淨化負數怪 $|-n| \to n$，破除負數免疫護盾</div>
           </div>
-          <div class="card-cost">120 🪙</div>
-        </button>
+        </div>
 
-        <!-- √x 根號方根重力井 -->
-        <button class="tower-card" data-tower-type="SQRT" id="card-sqrt">
-          <span class="hotkey">W</span>
+        <div class="tower-guide-card">
           <div class="card-icon sqrt-tower">√x</div>
           <div class="card-info">
-            <div class="card-title">√x 方根重力井</div>
-            <div class="card-desc">暴擊平方怪 ｜ $\sqrt{36} \to 6$</div>
+            <div class="card-title">√x 方根重力井 <span class="card-price">150 🪙</span></div>
+            <div class="card-desc">2.5倍暴擊完全平方怪並直接開方 ($\sqrt{36} \to 6$)</div>
           </div>
-          <div class="card-cost">150 🪙</div>
-        </button>
+        </div>
 
-        <!-- [+/-] 運算子調整塔 -->
-        <button class="tower-card" data-tower-type="OPERATOR" id="card-operator">
-          <span class="hotkey">E</span>
+        <div class="tower-guide-card">
           <div class="card-icon operator">±1</div>
           <div class="card-info">
-            <div class="card-title">運算子調整塔</div>
-            <div class="card-desc">微調質數 ｜ $7 - 1 = 6$</div>
+            <div class="card-title">運算子調整塔 <span class="card-price">90 🪙</span></div>
+            <div class="card-desc">加減微調，化難纏質數為合數 ($7 - 1 = 6$)</div>
           </div>
-          <div class="card-cost">90 🪙</div>
-        </button>
+        </div>
 
-        <!-- ×0 絕對零度力場塔 -->
-        <button class="tower-card" data-tower-type="ZERO_FREEZE" id="card-zero">
-          <span class="hotkey">R</span>
+        <div class="tower-guide-card">
           <div class="card-icon zero-freeze">×0</div>
           <div class="card-info">
-            <div class="card-title">×0 絕對零度塔</div>
-            <div class="card-desc">乘零歸零 ｜ 範圍強效減速</div>
+            <div class="card-title">×0 絕對零度塔 <span class="card-price">110 🪙</span></div>
+            <div class="card-desc">乘零歸零！範圍持續強效減速 45% ~ 65%</div>
           </div>
-          <div class="card-cost">110 🪙</div>
-        </button>
+        </div>
       </div>
     </footer>
 

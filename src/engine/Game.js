@@ -41,6 +41,7 @@ export class Game {
     // 互動狀態
     this.selectedBuildType = null;
     this.selectedTower = null;
+    this.selectedPad = null;
     this.mousePos = { x: -100, y: -100 };
     this.hoveredPad = null;
 
@@ -74,6 +75,7 @@ export class Game {
     this.coinFloats = [];
     this.activeBoss = null;
     this.selectedTower = null;
+    this.selectedPad = null;
     this.selectedBuildType = null;
     this.isGameOver = false;
     this.isGameOverReported = false;
@@ -133,46 +135,75 @@ export class Game {
   handleClick() {
     if (this.isGameOver) return;
 
-    // 1. 如果點擊了已有防禦塔的基座
+    // 1. 點擊了已有防禦塔的基座 -> 顯示可以升級的項目
     const clickedPadWithTower = this.buildPads.find(
       p => p.tower && Math.hypot(p.x - this.mousePos.x, p.y - this.mousePos.y) <= 26
     );
 
     if (clickedPadWithTower) {
+      this.selectPad(null);
       this.selectTower(clickedPadWithTower.tower);
       this.selectedBuildType = null;
       this.syncUI();
       return;
     }
 
-    // 2. 如果當前有選中的建造類型，且點擊在空基座上
-    if (this.selectedBuildType && this.hoveredPad && !this.hoveredPad.tower) {
-      const towerConfig = TOWER_TYPES[this.selectedBuildType];
-      if (this.gold >= towerConfig.cost) {
-        this.buildTower(this.hoveredPad, towerConfig);
-        this.selectedBuildType = null;
-        this.syncUI();
-        return;
-      } else {
-        sound.playResist();
-      }
+    // 2. 點擊了尚未建置的基座 -> 上方顯示可以建置的砲塔
+    const clickedEmptyPad = this.buildPads.find(
+      p => !p.tower && Math.hypot(p.x - this.mousePos.x, p.y - this.mousePos.y) <= 26
+    );
+
+    if (clickedEmptyPad) {
+      this.selectTower(null);
+      this.selectPad(clickedEmptyPad);
+      this.selectedBuildType = null;
+      this.syncUI();
+      return;
     }
 
-    // 3. 點擊空白處，取消選取
+    // 3. 點到旁邊空白時 -> 將選單全部關閉
     this.selectTower(null);
+    this.selectPad(null);
+    this.selectedBuildType = null;
     this.syncUI();
   }
 
   selectBuildType(typeKey) {
     this.selectedBuildType = typeKey;
-    this.selectedTower = null;
     this.syncUI();
+  }
+
+  selectPad(pad) {
+    this.selectedPad = pad;
+    if (this.ui.onPadSelect) {
+      this.ui.onPadSelect(pad);
+    }
   }
 
   selectTower(tower) {
     this.selectedTower = tower;
     if (this.ui.onTowerSelect) {
       this.ui.onTowerSelect(tower);
+    }
+  }
+
+  buildTowerOnSelectedPad(typeKey) {
+    if (!this.selectedPad || this.selectedPad.tower) return false;
+    const config = TOWER_TYPES[typeKey];
+    if (!config) return false;
+
+    if (this.gold >= config.cost) {
+      const pad = this.selectedPad;
+      this.selectedPad = null;
+      if (this.ui.onPadSelect) {
+        this.ui.onPadSelect(null);
+      }
+      this.buildTower(pad, config);
+      this.syncUI();
+      return true;
+    } else {
+      sound.playResist();
+      return false;
     }
   }
 
@@ -196,7 +227,8 @@ export class Game {
     this.towers.push(tower);
     sound.playBuild();
     this.createSparks(pad.x, pad.y, config.color, 14);
-    this.selectTower(tower);
+    // 建立好砲塔時，先不直接出現升級選單，等待玩家點擊砲塔再出現升級選單
+    this.selectTower(null);
   }
 
   upgradeSelectedTowerStat(statType) {
@@ -411,6 +443,7 @@ export class Game {
         isPaused: this.isPaused,
         selectedBuildType: this.selectedBuildType,
         selectedTower: this.selectedTower,
+        selectedPad: this.selectedPad,
         isGameOver: this.isGameOver,
         currentLevelId: this.currentLevelId,
         currentLevelName: this.currentLevel.name,
@@ -575,20 +608,24 @@ export class Game {
       if (pad.tower) continue;
 
       const isHovered = this.hoveredPad === pad;
+      const isSelected = this.selectedPad === pad;
       ctx.save();
       ctx.beginPath();
-      ctx.arc(pad.x, pad.y, 20, 0, Math.PI * 2);
-      ctx.fillStyle = isHovered ? 'rgba(56, 189, 248, 0.15)' : 'rgba(30, 41, 59, 0.6)';
+      ctx.arc(pad.x, pad.y, isSelected ? 23 : 20, 0, Math.PI * 2);
+      ctx.fillStyle = isSelected ? 'rgba(245, 158, 11, 0.25)' : (isHovered ? 'rgba(56, 189, 248, 0.15)' : 'rgba(30, 41, 59, 0.6)');
       ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = isHovered ? '#38bdf8' : '#334155';
-      if (isHovered) {
+      ctx.lineWidth = isSelected ? 3 : 2;
+      ctx.strokeStyle = isSelected ? '#fbbf24' : (isHovered ? '#38bdf8' : '#334155');
+      if (isSelected) {
+        ctx.shadowColor = '#fbbf24';
+        ctx.shadowBlur = 14;
+      } else if (isHovered) {
         ctx.shadowColor = '#38bdf8';
         ctx.shadowBlur = 8;
       }
       ctx.stroke();
 
-      ctx.fillStyle = isHovered ? '#38bdf8' : '#64748b';
+      ctx.fillStyle = isSelected ? '#fbbf24' : (isHovered ? '#38bdf8' : '#64748b');
       ctx.font = 'bold 16px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
