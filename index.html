@@ -292,8 +292,8 @@
 
           <div class="build-tabs">
             <button class="build-tab-btn active" data-build-tab="prime" id="tab-build-prime">🔢 質數重砲</button>
-            <button class="build-tab-btn" data-build-tab="special" id="tab-build-special">⚡ 代數與力場 (0/4)</button>
-            <button class="build-tab-btn" data-build-tab="fusion" id="tab-build-fusion">⚛️ 複合神塔 (0/4)</button>
+            <button class="build-tab-btn" data-build-tab="special" id="tab-build-special">⚡ 代數與力場 (0/6)</button>
+            <button class="build-tab-btn" data-build-tab="fusion" id="tab-build-fusion">⚛️ 複合神塔 (0/6)</button>
           </div>
 
           <!-- 質數組 -->
@@ -335,7 +335,7 @@
             </button>
           </div>
 
-          <!-- 代數與力場組 -->
+          <!-- 代數與力場組 (全場限建 1 座) -->
           <div class="build-options-list hidden" id="build-list-special">
             <button class="build-option-card" data-tower-type="ABSOLUTE">
               <div class="option-icon absolute-prism">|x|</div>
@@ -372,9 +372,27 @@
               </div>
               <div class="option-cost">110 🪙</div>
             </button>
+
+            <button class="build-option-card" data-tower-type="LOG">
+              <div class="option-icon log-compressor">log</div>
+              <div class="option-info">
+                <div class="option-title">log₂(x) 對數壓縮井</div>
+                <div class="option-desc">對數光束 ｜ 壓縮數值至 log₂(v)</div>
+              </div>
+              <div class="option-cost">160 🪙</div>
+            </button>
+
+            <button class="build-option-card" data-tower-type="TRIG">
+              <div class="option-icon fourier-tower">sin</div>
+              <div class="option-info">
+                <div class="option-title">傅立葉諧波共振塔</div>
+                <div class="option-desc">波峰減速55% ｜ 波谷諧波衝擊</div>
+              </div>
+              <div class="option-cost">170 🪙</div>
+            </button>
           </div>
 
-          <!-- 方案一：複合神塔組 -->
+          <!-- 方案一：複合神塔組 (全場限建 1 座) -->
           <div class="build-options-list hidden" id="build-list-fusion">
             <button class="build-option-card fusion-card" data-tower-type="FUSION_6">
               <div class="option-icon fusion-6">2×3</div>
@@ -403,11 +421,29 @@
               <div class="option-cost">260 🪙</div>
             </button>
 
+            <button class="build-option-card fusion-card" data-tower-type="FUSION_DERIVATIVE">
+              <div class="option-icon fusion-derivative">d/dx</div>
+              <div class="option-info">
+                <div class="option-title">d/dx 費馬導數天琴</div>
+                <div class="option-desc">7號＋運算子 ｜ 切線斜率連環刀</div>
+              </div>
+              <div class="option-cost">250 🪙</div>
+            </button>
+
+            <button class="build-option-card fusion-card" data-tower-type="FUSION_MONTE_CARLO">
+              <div class="option-icon fusion-monte-carlo">🎲</div>
+              <div class="option-info">
+                <div class="option-title">🎲 蒙地卡羅投擲機</div>
+                <div class="option-desc">3號＋根號 ｜ 擲骰質數300%暴擊</div>
+              </div>
+              <div class="option-cost">230 🪙</div>
+            </button>
+
             <button class="build-option-card fusion-card" data-tower-type="FUSION_FACTORIAL">
               <div class="option-icon fusion-factorial">n!</div>
               <div class="option-info">
                 <div class="option-title">n! 階乘坍縮衝擊波</div>
-                <div class="option-desc">每關限建 2 座·不可升級 ｜ 貫穿衰減因數</div>
+                <div class="option-desc">每關限建 1 座·不可升級 ｜ 貫穿衰減因數</div>
               </div>
               <div class="option-cost">240 🪙</div>
             </button>
@@ -713,12 +749,49 @@
                 <div class="codex-desc">高速怪極限控場！不需單體瞄準，常駐範圍乘零力場使所有高速衝鋒怪急遽減速。</div>
               </div>
 
+              <div class="codex-item" style="border-left-color: #eab308;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(234,179,8,0.2); color: #facc15;">log</span> log₂(x) 對數壓縮重力井 (LOG)</div>
+                <div class="codex-desc">高數值巨獸剋星！發射金色對數光束，將巨型怪物數值急速降維壓縮至 ⌊log₂(v)⌋！</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #06b6d4;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(6,182,212,0.2); color: #38bdf8;">sin</span> sin/cos 傅立葉諧波塔 (TRIG)</div>
+                <div class="codex-desc">密集怪物潮壓制！射出正餘弦振盪干涉波，波峰強效減速 55%，波谷爆發高頻諧波傷害。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #f43f5e;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(244,63,94,0.2); color: #fb7185;">d/dx</span> d/dx 費馬導數天琴 (FUSION_DERIVATIVE)</div>
+                <div class="codex-desc">7號＋運算子融合神塔！高速連續發射微積分音刃，依據速度斜率附加額外割線破甲重擊。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #a855f7;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(168,85,247,0.2); color: #c084fc;">🎲</span> 🎲 蒙地卡羅投擲機 (FUSION_MONTE_CARLO)</div>
+                <div class="codex-desc">3號＋根號融合神塔！投擲數論多面體骰子（質數點觸發 300% 暴擊，平方點開方衝擊，大數掉落金幣雨）。</div>
+              </div>
+
               <div class="codex-item" style="border-left-color: #ec4899; grid-column: 1 / -1;">
                 <div class="codex-title"><span class="codex-badge" style="background: rgba(236,72,153,0.2); color: #ec4899;">⚛️</span> 複合神塔融合系列（各型號全場限建 1 座）</div>
-                <div class="codex-formula">包含：2×3 六芒雙曜 (雙除)、3×5 聚財加農 (產金)、|√x| 虛數引力 (負數直開根號)、n! 階乘坍縮波 (各型號限建 1 座·不可重複)</div>
+                <div class="codex-formula">包含：2×3 六芒雙曜、3×5 聚財加農、|√x| 虛數引力、d/dx 導數天琴、🎲 蒙地卡羅投擲機、n! 階乘坍縮波</div>
                 <div class="codex-desc">當防禦塔等級提升後可點選執行「數論融合」，兼具多重質數打擊與強大附帶異能！【戰略平衡】：全場「代數與力場塔」與「複合神塔」所有型號最多各只能買一座，不可重複建造同型號。</div>
               </div>
             </div>
+          </div>
+
+          <div class="guide-card">
+            <h3>👾 特殊數論怪獸生態圖鑑</h3>
+            <ul>
+              <li><strong>🌀 莫比烏斯拓撲幽靈</strong>：頭頂帶有 <code>μ</code> 標記。當其數值含有平方因數（如 18、50）遭受攻擊時，會引發拓撲逆流，沿路徑倒退 1.2 秒！</li>
+              <li><strong>🪆 質數冪·俄羅斯套娃怪 ($p^k$)</strong>：純質數冪（如 16, 27, 32, 64, 81）。每完成一次除法分解便剝落一層外殼，體積縮小 15% 且速度狂增 +20%！</li>
+              <li><strong>🌌 虛數單位 $i$ 四象限循環幽靈</strong>：每隔 3.5 秒在複數平面四象限循環相移：
+                <ul>
+                  <li><code>+i</code>：50% 機率虛數迴避！</li>
+                  <li><code>-1</code>：轉化為負數實相，免疫常規質數砲，需由 |x| 絕對值稜鏡相移！</li>
+                  <li><code>-i</code>：完全免疫減速效果！</li>
+                  <li><code>+1</code>：實數破裂易傷，承受 2.5 倍巨額暴擊！</li>
+                </ul>
+              </li>
+              <li><strong>🔢 行列式方陣共鳴組 ($2 \times 2$)</strong>：四隻一組行進，分別帶有 <code>[a]</code>、<code>[b]</code>、<code>[c]</code>、<code>[d]</code> 標籤。當其行列式數值 $\det = ad - bc = 0$ 時，全組立即觸發奇異矩陣連鎖爆炸並掉落 3 倍金幣！</li>
+            </ul>
           </div>
 
           <div class="guide-card">

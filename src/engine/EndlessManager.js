@@ -18,7 +18,7 @@ export class EndlessManager {
       description: '面對無窮無盡的數論洪流！每通關 5 波獲得 +5 顆科研星級！',
       lanes: baseLevel.lanes,
       buildPads: baseLevel.buildPads,
-      unlockedTowers: ['PRIME_2', 'PRIME_3', 'PRIME_5', 'PRIME_7', 'ABSOLUTE', 'OPERATOR', 'SQRT', 'ZERO_FREEZE', 'FUSION_6', 'FUSION_15', 'FUSION_ABS_SQRT', 'FUSION_FACTORIAL'],
+      unlockedTowers: ['PRIME_2', 'PRIME_3', 'PRIME_5', 'PRIME_7', 'ABSOLUTE', 'OPERATOR', 'SQRT', 'ZERO_FREEZE', 'LOG', 'TRIG', 'FUSION_6', 'FUSION_15', 'FUSION_ABS_SQRT', 'FUSION_DERIVATIVE', 'FUSION_MONTE_CARLO', 'FUSION_FACTORIAL'],
       waves: [this.generateEndlessWave(waveNumber)]
     };
   }
@@ -92,7 +92,7 @@ export class EndlessManager {
       const roll = Math.random();
 
       // 完全數 (6, 28, 496, 8128)
-      if (waveNumber >= 4 && roll < 0.12) {
+      if (waveNumber >= 4 && roll < 0.08) {
         const perfVal = waveNumber >= 20 && Math.random() < 0.25 ? 8128 : (waveNumber >= 12 && Math.random() < 0.4 ? 496 : (waveNumber >= 6 ? 28 : 6));
         enemies.push({
           val: perfVal,
@@ -104,7 +104,7 @@ export class EndlessManager {
       }
 
       // 循環小數幽靈 (0.3̇, 0.6̇, 0.142857, 0.9̇)
-      if (waveNumber >= 3 && roll < 0.20) {
+      if (waveNumber >= 3 && roll < 0.16) {
         const phantomPool = ['0.3', '0.6', '0.142857', '0.9'];
         const rType = phantomPool[Math.floor(Math.random() * (waveNumber >= 6 ? phantomPool.length : 2))];
         enemies.push({
@@ -118,8 +118,49 @@ export class EndlessManager {
         continue;
       }
 
+      // 莫比烏斯拓撲幽靈 (帶平方因數，激發拓撲逆流)
+      if (waveNumber >= 3 && roll < 0.25) {
+        const mobiusPool = [18, 20, 45, 50, 72, 75, 98, 108, 150];
+        const mVal = mobiusPool[Math.floor(Math.random() * mobiusPool.length)];
+        enemies.push({
+          val: mVal,
+          isMobius: true,
+          delay: +(0.85 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.90),
+          hpMultiplier: hpMultiplier
+        });
+        continue;
+      }
+
+      // 質數冪·俄羅斯套娃怪 (p^k 純質數冪，層層剝殼加速)
+      if (waveNumber >= 2 && roll < 0.34) {
+        const matryoshkaPool = [16, 27, 32, 64, 81, 125, 243, 256];
+        const matVal = matryoshkaPool[Math.floor(Math.random() * matryoshkaPool.length)];
+        enemies.push({
+          val: matVal,
+          isMatryoshka: true,
+          delay: +(0.80 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.85),
+          hpMultiplier: hpMultiplier
+        });
+        continue;
+      }
+
+      // 虛數單位 i 四象限循環幽靈 (+i -> -1 -> -i -> +1)
+      if (waveNumber >= 4 && roll < 0.43) {
+        const gVal = 18 + Math.floor(Math.random() * (waveNumber * 6));
+        enemies.push({
+          val: gVal,
+          isGaussianCycler: true,
+          delay: +(0.85 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.95),
+          hpMultiplier: hpMultiplier
+        });
+        continue;
+      }
+
       // 孿生質數雙子 (成對生成)
-      if (waveNumber >= 3 && roll < 0.36 && i < enemyCount - 1) {
+      if (waveNumber >= 3 && roll < 0.53 && i < enemyCount - 1) {
         const pairIdx = Math.min(twinPairs.length - 1, Math.floor(Math.random() * (1 + Math.floor(waveNumber / 3))));
         const pair = twinPairs[pairIdx];
         enemies.push({
@@ -138,8 +179,33 @@ export class EndlessManager {
         continue;
       }
 
+      // 行列式方陣共鳴組 (2x2 矩陣 4 隻聯動，det=ad-bc=0 奇異坍縮)
+      if (waveNumber >= 4 && roll < 0.63 && i <= enemyCount - 4) {
+        const quadId = `quad_${waveNumber}_${i}`;
+        const matrixSets = [
+          [6, 4, 9, 6],
+          [8, 6, 12, 9],
+          [12, 8, 15, 10],
+          [15, 10, 18, 12],
+          [20, 15, 24, 18]
+        ];
+        const mSet = matrixSets[Math.floor(Math.random() * matrixSets.length)];
+        for (let idx = 0; idx < 4; idx++) {
+          enemies.push({
+            val: mSet[idx],
+            determinantQuadId: quadId,
+            detIndex: idx,
+            delay: +(0.35 * delayScale).toFixed(2),
+            speed: baseSpeed,
+            hpMultiplier: hpMultiplier
+          });
+        }
+        i += 3; // 消耗 4 個怪位
+        continue;
+      }
+
       // 費波那契極速衝鋒隊
-      if (waveNumber >= 2 && roll < 0.50) {
+      if (waveNumber >= 2 && roll < 0.72) {
         const fibVal = fibs[Math.min(fibs.length - 1, Math.floor(Math.random() * (2 + Math.floor(waveNumber / 3))))];
         enemies.push({
           val: fibVal,
@@ -151,7 +217,7 @@ export class EndlessManager {
       }
 
       // 負數護盾怪
-      if (waveNumber >= 3 && roll < 0.66) {
+      if (waveNumber >= 3 && roll < 0.81) {
         const negVal = -(Math.floor(Math.random() * (waveNumber * 12)) + 12);
         enemies.push({
           val: negVal,
@@ -163,7 +229,7 @@ export class EndlessManager {
       }
 
       // 完全平方數
-      if (waveNumber >= 2 && roll < 0.80) {
+      if (waveNumber >= 2 && roll < 0.90) {
         const sqVal = squares[Math.min(squares.length - 1, Math.floor(Math.random() * (3 + Math.floor(waveNumber / 3))))];
         enemies.push({
           val: sqVal,

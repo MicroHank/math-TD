@@ -8,6 +8,10 @@ import {
   DualPrimeProjectile,
   ImaginaryPrismBeam,
   FactorialDecayWave,
+  LogCompressionBeam,
+  FourierTrigWave,
+  DerivativeBladeProjectile,
+  MonteCarloDiceProjectile,
   CoinFloat
 } from './Projectile.js';
 import { sound } from '../engine/Audio.js';
@@ -18,7 +22,7 @@ export class Tower {
     this.id = id;
     this.x = x;
     this.y = y;
-    this.type = type; // 'prime', 'absolute', 'operator', 'sqrt', 'zero'
+    this.type = type; // 'prime', 'absolute', 'operator', 'sqrt', 'zero', 'log', 'trig'
     this.factor = factor; // 2, 3, 5, 7 or null
     this.category = category || (TOWER_TYPES[type] && TOWER_TYPES[type].category) || this.deriveCategory(type);
     // 基礎與當前屬性
@@ -55,17 +59,17 @@ export class Tower {
   }
 
   deriveCategory(type) {
-    if (['absolute', 'sqrt', 'operator', 'zero'].includes(type)) return 'special';
-    if (['fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial'].includes(type)) return 'fusion';
+    if (['absolute', 'sqrt', 'operator', 'zero', 'log', 'trig'].includes(type)) return 'special';
+    if (['fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial', 'fusion_derivative', 'fusion_monte_carlo'].includes(type)) return 'fusion';
     return 'prime';
   }
 
   isSpecialTower() {
-    return this.category === 'special' || ['absolute', 'sqrt', 'operator', 'zero'].includes(this.type);
+    return this.category === 'special' || ['absolute', 'sqrt', 'operator', 'zero', 'log', 'trig'].includes(this.type);
   }
 
   isFusionTower() {
-    return this.category === 'fusion' || ['fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial'].includes(this.type);
+    return this.category === 'fusion' || ['fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial', 'fusion_derivative', 'fusion_monte_carlo'].includes(this.type);
   }
 
   isPrimeTower() {
@@ -374,6 +378,78 @@ export class Tower {
       return bestHighVal;
     }
 
+    if (this.type === 'log') {
+      // 對數壓縮重力井：鎖定數值最大的怪（特別是 >= 8 的高危怪物），或進度最前者
+      let bestHighVal = null;
+      let maxVal = -1;
+      let fallbackFirst = null;
+      let maxAnyDist = -1;
+      for (const m of monsters) {
+        if (m.isDead) continue;
+        const dist = Math.hypot(m.x - this.x, m.y - this.y);
+        if (dist <= currentRange) {
+          const val = Math.abs(typeof m.value === 'number' ? m.value : 1);
+          if (val > maxVal) {
+            maxVal = val;
+            bestHighVal = m;
+          }
+          if (m.progress > maxAnyDist) {
+            maxAnyDist = m.progress;
+            fallbackFirst = m;
+          }
+        }
+      }
+      return (maxVal >= 8 ? bestHighVal : fallbackFirst) || bestHighVal;
+    }
+
+    if (this.type === 'trig') {
+      // 傅立葉諧波共振塔：鎖定最前線怪物發射橫向震盪波
+      let bestTarget = null;
+      let maxDist = -1;
+      for (const m of monsters) {
+        if (m.isDead) continue;
+        const dist = Math.hypot(m.x - this.x, m.y - this.y);
+        if (dist <= currentRange && m.progress > maxDist) {
+          maxDist = m.progress;
+          bestTarget = m;
+        }
+      }
+      return bestTarget;
+    }
+
+    if (this.type === 'fusion_derivative') {
+      // 費馬導數天琴：鎖定速度最高或數值極大的怪物
+      let bestTarget = null;
+      let maxScore = -1;
+      for (const m of monsters) {
+        if (m.isDead) continue;
+        const dist = Math.hypot(m.x - this.x, m.y - this.y);
+        if (dist <= currentRange) {
+          const score = (m.speed || 10) * 3 + Math.abs(typeof m.value === 'number' ? m.value : 1);
+          if (score > maxScore) {
+            maxScore = score;
+            bestTarget = m;
+          }
+        }
+      }
+      return bestTarget;
+    }
+
+    if (this.type === 'fusion_monte_carlo') {
+      // 蒙地卡羅機率投擲機：鎖定射程內最前線怪物
+      let bestTarget = null;
+      let maxDist = -1;
+      for (const m of monsters) {
+        if (m.isDead) continue;
+        const dist = Math.hypot(m.x - this.x, m.y - this.y);
+        if (dist <= currentRange && m.progress > maxDist) {
+          maxDist = m.progress;
+          bestTarget = m;
+        }
+      }
+      return bestTarget;
+    }
+
     return null;
   }
 
@@ -410,6 +486,18 @@ export class Tower {
           cost: Math.max(80, TOWER_TYPES.FUSION_FACTORIAL.cost - this.totalInvested)
         });
       }
+      fusions.push({
+        key: 'FUSION_DERIVATIVE',
+        targetType: TOWER_TYPES.FUSION_DERIVATIVE,
+        cost: Math.max(75, TOWER_TYPES.FUSION_DERIVATIVE.cost - this.totalInvested)
+      });
+    }
+    if ((this.type === 'prime' && this.factor === 3) || this.type === 'sqrt') {
+      fusions.push({
+        key: 'FUSION_MONTE_CARLO',
+        targetType: TOWER_TYPES.FUSION_MONTE_CARLO,
+        cost: Math.max(70, TOWER_TYPES.FUSION_MONTE_CARLO.cost - this.totalInvested)
+      });
     }
     return fusions;
   }
@@ -540,6 +628,42 @@ export class Tower {
         y: this.y,
         target: target,
         damage: this.damage
+      }));
+    } else if (this.type === 'log') {
+      sound.playShoot(3);
+      game.addBeam(new LogCompressionBeam({
+        sourceX: this.x,
+        sourceY: this.y,
+        target: target,
+        damage: this.damage
+      }));
+    } else if (this.type === 'trig') {
+      sound.playShoot(2);
+      const waveAngle = Math.atan2(target.y - this.y, target.x - this.x);
+      game.addBeam(new FourierTrigWave({
+        x: this.x,
+        y: this.y,
+        angle: waveAngle,
+        range: this.range,
+        damage: this.damage
+      }));
+    } else if (this.type === 'fusion_derivative') {
+      sound.playShoot(7);
+      game.addProjectile(new DerivativeBladeProjectile({
+        x: this.x,
+        y: this.y,
+        target: target,
+        damage: this.damage,
+        speed: 400
+      }));
+    } else if (this.type === 'fusion_monte_carlo') {
+      sound.playShoot(5);
+      game.addProjectile(new MonteCarloDiceProjectile({
+        x: this.x,
+        y: this.y,
+        target: target,
+        damage: this.damage,
+        speed: 350
       }));
     } else if (this.type === 'fusion_6') {
       // 2x3 六芒雙曜：雙質數連除
@@ -775,6 +899,71 @@ export class Tower {
       ctx.moveTo(-7, -7); ctx.lineTo(7, 7);
       ctx.moveTo(-7, 7); ctx.lineTo(7, -7);
       ctx.stroke();
+    } else if (this.type === 'log') {
+      // 對數螺旋金色透鏡
+      ctx.fillStyle = '#eab308';
+      ctx.fillRect(6, -4, 16, 8);
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 14, 0, Math.PI * 2);
+      ctx.fillStyle = '#422006';
+      ctx.fill();
+      ctx.strokeStyle = '#facc15';
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(16, 0, 5, 0, Math.PI * 2);
+      ctx.strokeStyle = '#fef08a';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    } else if (this.type === 'trig') {
+      // 雙波振盪器
+      ctx.fillStyle = '#06b6d4';
+      ctx.fillRect(8, -5, 14, 10);
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 14, 0, Math.PI * 2);
+      ctx.fillStyle = '#083344';
+      ctx.fill();
+      ctx.strokeStyle = '#22d3ee';
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 8, -Math.PI / 2, Math.PI / 2);
+      ctx.strokeStyle = '#a855f7';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    } else if (this.type === 'fusion_derivative') {
+      // 導數天琴雙刃管
+      ctx.fillStyle = '#f43f5e';
+      ctx.fillRect(6, -6, 18, 4);
+      ctx.fillRect(6, 2, 18, 4);
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 15, 0, Math.PI * 2);
+      ctx.fillStyle = '#4c0519';
+      ctx.fill();
+      ctx.strokeStyle = '#fb7185';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+    } else if (this.type === 'fusion_monte_carlo') {
+      // 蒙地卡羅骰子六角晶室
+      ctx.fillStyle = '#a855f7';
+      ctx.fillRect(6, -5, 16, 10);
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 15, 0, Math.PI * 2);
+      ctx.fillStyle = '#1e1b4b';
+      ctx.fill();
+      ctx.strokeStyle = '#c084fc';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(-5, -5, 10, 10);
     }
     ctx.restore();
 
@@ -921,6 +1110,32 @@ export const TOWER_TYPES = {
     color: '#06b6d4',
     label: '×0'
   },
+  LOG: {
+    type: 'log',
+    factor: null,
+    category: 'special',
+    name: 'log₂(x) 對數壓縮重力井',
+    subtitle: '全場限建 1 座 ｜ 對數光束壓縮巨大數值至 log₂(v)',
+    cost: 160,
+    range: 165,
+    fireRate: 0.8,
+    damage: 40,
+    color: '#eab308',
+    label: 'log'
+  },
+  TRIG: {
+    type: 'trig',
+    factor: null,
+    category: 'special',
+    name: 'sin/cos 傅立葉諧波共振塔',
+    subtitle: '全場限建 1 座 ｜ 波峰減速55%＋波谷諧波衝擊',
+    cost: 170,
+    range: 170,
+    fireRate: 1.1,
+    damage: 48,
+    color: '#06b6d4',
+    label: 'sin'
+  },
 
   // 方案一：複合神塔 (Dual-Tower Fusion)
   FUSION_6: {
@@ -961,6 +1176,32 @@ export const TOWER_TYPES = {
     damage: 60,
     color: '#ec4899',
     label: '|√x|'
+  },
+  FUSION_DERIVATIVE: {
+    type: 'fusion_derivative',
+    factor: null,
+    category: 'fusion',
+    name: 'd/dx 費馬導數天琴',
+    subtitle: '全場限建 1 座 ｜ 7號＋運算子融合·切線斜率連環刀',
+    cost: 250,
+    range: 190,
+    fireRate: 1.3,
+    damage: 65,
+    color: '#f43f5e',
+    label: 'd/dx'
+  },
+  FUSION_MONTE_CARLO: {
+    type: 'fusion_monte_carlo',
+    factor: null,
+    category: 'fusion',
+    name: '🎲 蒙地卡羅機率投擲機',
+    subtitle: '全場限建 1 座 ｜ 3號＋根號融合·擲骰質數300%暴擊',
+    cost: 230,
+    range: 180,
+    fireRate: 1.0,
+    damage: 55,
+    color: '#a855f7',
+    label: '🎲'
   },
   FUSION_FACTORIAL: {
     type: 'fusion_factorial',

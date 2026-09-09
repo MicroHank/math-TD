@@ -13,7 +13,12 @@ export class Monster {
     bossSkills = [],
     isRecurring = false,
     recurringType = null,
-    hpMultiplier = 1.0
+    hpMultiplier = 1.0,
+    isMobius = false,
+    isMatryoshka = false,
+    isGaussianCycler = false,
+    determinantQuadId = null,
+    detIndex = 0
   }) {
     this.id = id;
     this.value = value;
@@ -23,6 +28,26 @@ export class Monster {
     this.isBoss = isBoss;
     this.bossName = bossName;
     this.bossSkills = bossSkills;
+
+    // 莫比烏斯拓撲幽靈 (Möbius Strip Shifter)
+    this.isMobius = !!isMobius;
+    this.mobiusReverseTimer = 0;
+
+    // 質數冪·俄羅斯套娃怪 (Prime Power Matryoshka - p^k)
+    const matryoshkaInfo = Monster.checkMatryoshka(value);
+    this.isMatryoshka = !!isMatryoshka || !!matryoshkaInfo;
+    this.matryoshkaBase = matryoshkaInfo ? matryoshkaInfo.base : 2;
+    this.matryoshkaPower = matryoshkaInfo ? matryoshkaInfo.power : 2;
+
+    // 虛數單位 i 四象限循環幽靈 (Gaussian Cycler)
+    this.isGaussianCycler = !!isGaussianCycler;
+    this.gaussianPhase = 0; // 0: +i (50%迴避), 1: -1 (負數形式), 2: -i (減速免疫), 3: +1 (易傷 2.5x)
+    this.gaussianPhaseTimer = 3.5;
+
+    // 行列式方陣共鳴組 (2x2 Determinant Phantom Matrix)
+    this.determinantQuadId = determinantQuadId;
+    this.detIndex = detIndex; // 0: a, 1: b, 2: c, 3: d
+    this.detLabel = ['a', 'b', 'c', 'd'][detIndex] || 'a';
 
     // 循環小數幽靈屬性 (Recurring Decimal Phantom)
     this.isRecurring = !!isRecurring;
@@ -124,6 +149,31 @@ export class Monster {
     return fibs.has(v);
   }
 
+  // 莫比烏斯平方因子判定：檢查是否含有平方數因數 (如 4, 9, 25, 49)
+  hasSquareFactor(val) {
+    const v = Math.abs(val);
+    for (const p of [2, 3, 5, 7]) {
+      if (v % (p * p) === 0) return true;
+    }
+    return false;
+  }
+
+  // 質數套娃怪判定：純質數冪 p^k (例如 4=2^2, 8=2^3, 9=3^2, 27=3^3, 25=5^2)
+  static checkMatryoshka(val) {
+    if (typeof val !== 'number') return null;
+    let v = Math.abs(val);
+    for (const p of [2, 3, 5]) {
+      let cur = v;
+      let k = 0;
+      while (cur > 1 && cur % p === 0) {
+        cur /= p;
+        k++;
+      }
+      if (cur === 1 && k >= 2) return { base: p, power: k };
+    }
+    return null;
+  }
+
   get isPerfectNumber() {
     const v = Math.abs(this.value);
     return v === 6 || v === 28 || v === 496;
@@ -163,6 +213,8 @@ export class Monster {
   }
 
   get isNegative() {
+    // 虛數循環幽靈第二象限 (-1) 具備負數實相護盾
+    if (this.isGaussianCycler && this.gaussianPhase === 1) return true;
     return typeof this.value === 'number' && this.value < 0;
   }
 
@@ -201,6 +253,10 @@ export class Monster {
 
   // 套用減速力場
   applySlow(ratio = 0.5, duration = 1.2) {
+    if (this.isGaussianCycler && this.gaussianPhase === 2) {
+      this.addFloatingText('🛡️ -i 減速免疫!', '#38bdf8');
+      return;
+    }
     this.slowRatio = Math.min(this.slowRatio, ratio);
     this.slowTimer = Math.max(this.slowTimer, duration);
   }
@@ -220,12 +276,29 @@ export class Monster {
   takePrimeHit(primeFactor, damage = 25, game, fromResonance = false) {
     if (this.isDead) return false;
 
-    // 負數怪物對常規質數砲免疫！
+    // 負數怪物對常規質數砲免疫！（含虛數幽靈 -1 相位）
     if (this.isNegative) {
       sound.playResist();
       this.addFloatingText('負數護盾免疫!', '#f43f5e');
       if (game && game.createSparks) game.createSparks(this.x, this.y, '#f43f5e', 6);
       return false;
+    }
+
+    // 虛數循環幽靈：+i 象限 50% 機率虛數迴避！
+    if (this.isGaussianCycler && this.gaussianPhase === 0) {
+      if (Math.random() < 0.5) {
+        sound.playResist();
+        this.addFloatingText('🌌 +i 虛數迴避!', '#c084fc');
+        if (game && game.createSparks) game.createSparks(this.x, this.y, '#c084fc', 8);
+        return false;
+      }
+    }
+
+    // 莫比烏斯拓撲幽靈：若含有平方因數 (Square Factor)，觸發拓撲逆流倒退！
+    if (this.isMobius && this.hasSquareFactor(this.value)) {
+      this.mobiusReverseTimer = 1.2;
+      this.addFloatingText('🌀 拓撲逆流 1.2s!', '#06b6d4');
+      if (game && game.createSparks) game.createSparks(this.x, this.y, '#06b6d4', 12);
     }
 
     // 循環小數幽靈專屬判定：需對應分母共振打擊！
@@ -290,6 +363,12 @@ export class Monster {
       this.addFloatingText('完全數護盾 -70%!', '#fde047');
     }
 
+    // 虛數循環幽靈：+1 象限實數破裂易傷 (x2.5)
+    if (this.isGaussianCycler && this.gaussianPhase === 3) {
+      effectiveDamage = Math.round(effectiveDamage * 2.5);
+      this.addFloatingText('💥 +1 實數破裂 2.5x!', '#22c55e');
+    }
+
     // 方案三：孿生質數雙子量子共振分攤傷害 (25%)，帶防重入鎖
     if (!fromResonance && !this.isProcessingResonance && this.twinPartner && !this.twinPartner.isDead && !this.twinPartner.isProcessingResonance) {
       this.isProcessingResonance = true;
@@ -326,6 +405,19 @@ export class Monster {
     // 更新數值
     this.value = newVal;
     this.hp = Math.max(0, Math.abs(newVal));
+
+    // 質數套娃怪機制：每剝離一層，體積 -15%，速度 +20%
+    if (this.isMatryoshka && newVal > 1) {
+      this.radius = Math.max(14, this.radius * 0.85);
+      this.speed = this.speed * 1.20;
+      this.baseSpeed = this.baseSpeed * 1.20;
+      this.addFloatingText('🪆 套娃破殼 (速度+20%)!', '#f472b6');
+    }
+
+    // 行列式方陣共鳴檢查
+    if (this.determinantQuadId && game && game.checkDeterminantQuads) {
+      game.checkDeterminantQuads();
+    }
 
     // 魔王分裂護衛侍從機制
     if (this.isBoss && this.bossSkills.includes('split_adds') && newVal > 10) {
@@ -432,6 +524,17 @@ export class Monster {
   takeAbsolutePurify(game) {
     if (this.isDead) return false;
 
+    // 虛數循環幽靈 -1 相位淨化移相
+    if (this.isGaussianCycler && this.gaussianPhase === 1) {
+      sound.playPurify();
+      this.gaussianPhase = 2; // 相移至 -i
+      this.gaussianPhaseTimer = 3.5;
+      this.hitFlashTimer = 0.22;
+      this.addFloatingText('|-1| ➔ +1 虛數相移!', '#a855f7');
+      if (game && game.createSparks) game.createSparks(this.x, this.y, '#c084fc', 18);
+      return true;
+    }
+
     if (this.isNegative) {
       sound.playPurify();
       const oldVal = this.value;
@@ -512,6 +615,11 @@ export class Monster {
     const opStr = opValue > 0 ? `+ ${opValue}` : `- ${Math.abs(opValue)}`;
     this.addFloatingText(`${oldVal} ${opStr} = ${this.value}!`, '#2dd4bf');
     game.createSparks(this.x, this.y, '#14b8a6', 15);
+
+    // 行列式方陣共鳴檢查
+    if (this.determinantQuadId && game && game.checkDeterminantQuads) {
+      game.checkDeterminantQuads();
+    }
 
     // 若運算後數值歸一 (<= 1) 且非負數，直接達成因數歸一消滅
     if (this.value <= 1 && !this.isNegative) {
@@ -686,9 +794,44 @@ export class Monster {
       return;
     }
 
+    // 虛數單位 i 幽靈：四象限循環切換 (+i -> -1 -> -i -> +1)
+    if (this.isGaussianCycler && !this.isDead) {
+      this.gaussianPhaseTimer -= dt;
+      if (this.gaussianPhaseTimer <= 0) {
+        this.gaussianPhase = (this.gaussianPhase + 1) % 4;
+        this.gaussianPhaseTimer = 3.5;
+        const phaseNames = ['+i 虛數迴避', '-1 負數實相', '-i 減速免疫', '+1 實數易傷'];
+        const phaseColors = ['#c084fc', '#f43f5e', '#38bdf8', '#22c55e'];
+        this.addFloatingText(phaseNames[this.gaussianPhase], phaseColors[this.gaussianPhase]);
+      }
+    }
+
     // 定身狀態檢查
     if (this.stunTimer > 0) {
       this.stunTimer -= dt;
+      return;
+    }
+
+    // 莫比烏斯拓撲幽靈：拓撲逆流倒退
+    if (this.mobiusReverseTimer > 0) {
+      this.mobiusReverseTimer -= dt;
+      if (this.currentWaypointIndex > 0) {
+        const prevTarget = this.waypoints[this.currentWaypointIndex];
+        const dx = prevTarget.x - this.x;
+        const dy = prevTarget.y - this.y;
+        const dist = Math.hypot(dx, dy);
+        const step = this.speed * dt * 1.35;
+        if (dist <= step) {
+          this.x = prevTarget.x;
+          this.y = prevTarget.y;
+          this.currentWaypointIndex--;
+          this.progress = Math.max(0, this.progress - dist);
+        } else {
+          this.x += (dx / dist) * step;
+          this.y += (dy / dist) * step;
+          this.progress = Math.max(0, this.progress - step);
+        }
+      }
       return;
     }
 
@@ -947,6 +1090,105 @@ export class Monster {
       ctx.shadowColor = '#38bdf8';
       ctx.shadowBlur = 8;
       ctx.stroke();
+      ctx.restore();
+    }
+
+    // 莫比烏斯拓撲幽靈：扭曲莫比烏斯雙環光環
+    if (this.isMobius && !this.isBoss) {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.pulseAngle * 0.8);
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2.2;
+      ctx.shadowColor = '#06b6d4';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      const a = this.radius * 1.35;
+      for (let t = 0; t <= Math.PI * 2; t += 0.15) {
+        const denom = 1 + Math.sin(t) * Math.sin(t);
+        const rx = (a * Math.cos(t)) / denom;
+        const ry = (a * Math.sin(t) * Math.cos(t)) / denom;
+        if (t === 0) ctx.moveTo(rx, ry);
+        else ctx.lineTo(rx, ry);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fillStyle = '#22d3ee';
+      ctx.font = 'bold 10px "Outfit", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('μ', a + 2, -4);
+      ctx.restore();
+    }
+
+    // 質數冪·俄羅斯套娃怪：同心套娃晶環
+    if (this.isMatryoshka && !this.isBoss) {
+      ctx.save();
+      ctx.strokeStyle = '#f472b6';
+      ctx.lineWidth = 1.6;
+      ctx.shadowColor = '#ec4899';
+      ctx.shadowBlur = 8;
+      for (let r = this.radius * 0.55; r <= this.radius * 1.25; r += 7) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#f472b6';
+      ctx.font = 'bold 9px "Outfit", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('p^k', this.x, this.y - this.radius - 8);
+      ctx.restore();
+    }
+
+    // 虛數循環幽靈：複數平面坐標軸與相量旋轉軌道
+    if (this.isGaussianCycler && !this.isDead) {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.strokeStyle = 'rgba(192, 132, 252, 0.4)';
+      ctx.lineWidth = 1;
+      const axisLen = this.radius * 1.45;
+      ctx.beginPath();
+      ctx.moveTo(-axisLen, 0); ctx.lineTo(axisLen, 0);
+      ctx.moveTo(0, -axisLen); ctx.lineTo(0, axisLen);
+      ctx.stroke();
+
+      const phaseAngle = (this.gaussianPhase * Math.PI) / 2 - Math.PI / 2;
+      const phasorDist = this.radius * 1.35;
+      const px = Math.cos(phaseAngle) * phasorDist;
+      const py = Math.sin(phaseAngle) * phasorDist;
+      ctx.beginPath();
+      ctx.arc(px, py, 4, 0, Math.PI * 2);
+      const phaseCols = ['#c084fc', '#f43f5e', '#38bdf8', '#22c55e'];
+      ctx.fillStyle = phaseCols[this.gaussianPhase] || '#ffffff';
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.shadowBlur = 8;
+      ctx.fill();
+
+      const labels = ['+i', '-1', '-i', '+1'];
+      ctx.font = 'bold 10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(labels[this.gaussianPhase], 0, -axisLen - 4);
+      ctx.restore();
+    }
+
+    // 行列式方陣共鳴組：方陣邊角括號與 det 元素索引標記
+    if (this.determinantQuadId && !this.isDead) {
+      ctx.save();
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#d97706';
+      ctx.shadowBlur = 8;
+      const s = this.radius * 1.18;
+      ctx.beginPath();
+      ctx.moveTo(this.x - s + 6, this.y - s); ctx.lineTo(this.x - s, this.y - s); ctx.lineTo(this.x - s, this.y - s + 6);
+      ctx.moveTo(this.x + s - 6, this.y - s); ctx.lineTo(this.x + s, this.y - s); ctx.lineTo(this.x + s, this.y - s + 6);
+      ctx.moveTo(this.x - s + 6, this.y + s); ctx.lineTo(this.x - s, this.y + s); ctx.lineTo(this.x - s, this.y + s - 6);
+      ctx.moveTo(this.x + s - 6, this.y + s); ctx.lineTo(this.x + s, this.y + s); ctx.lineTo(this.x + s, this.y + s - 6);
+      ctx.stroke();
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 11px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`[${this.detLabel}]`, this.x, this.y - this.radius - 8);
       ctx.restore();
     }
 

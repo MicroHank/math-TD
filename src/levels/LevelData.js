@@ -2412,33 +2412,33 @@ export const LEVELS = {
     ],
     waves: [
       {
-        title: '第一波：莫比烏斯交錯突刺',
-        tip: '雙路在中央劇烈交叉，集中中央陣地！',
+        title: '第一波：莫比烏斯拓撲突刺',
+        tip: '雙路在中央劇烈交叉，莫比烏斯幽靈受擊將觸發拓撲逆流，質數套娃怪剝落外殼！',
         enemies: [
-          { val: 36, lane: 0, speed: 78, delay: 0.5 },
-          { val: 36, lane: 1, speed: 78, delay: 0.5 },
+          { val: 36, lane: 0, speed: 78, delay: 0.5, isMobius: true },
+          { val: 32, lane: 1, speed: 78, delay: 0.5, isMatryoshka: true },
           { val: 48, lane: 0, speed: 76, delay: 0.5 },
           { val: 48, lane: 1, speed: 76, delay: 0.5 },
-          { val: 60, lane: 0, speed: 74, delay: 0.6 },
-          { val: 60, lane: 1, speed: 74, delay: 0.6 },
-          { val: 72, lane: 0, speed: 72, delay: 0.7 },
-          { val: 72, lane: 1, speed: 72, delay: 0.7 }
+          { val: 64, lane: 0, speed: 74, delay: 0.6, isMatryoshka: true },
+          { val: 50, lane: 1, speed: 74, delay: 0.6, isMobius: true },
+          { val: 72, lane: 0, speed: 72, delay: 0.7, isMobius: true },
+          { val: 81, lane: 1, speed: 72, delay: 0.7, isMatryoshka: true }
         ]
       },
       {
-        title: '第二波：無限極性風暴',
-        tip: '正負雙路混合大軍狂飆！',
+        title: '第二波：無限四象限極性風暴',
+        tip: '虛數單位 i 幽靈切換四象限迴避與實數易傷弱點！',
         enemies: [
           { val: -60, lane: 0, speed: 82, delay: 0.4 },
-          { val: 60, lane: 1, speed: 82, delay: 0.4 },
+          { val: 60, lane: 1, speed: 82, delay: 0.4, isGaussianCycler: true },
           { val: -72, lane: 0, speed: 80, delay: 0.5 },
-          { val: 72, lane: 1, speed: 80, delay: 0.5 },
-          { val: -90, lane: 0, speed: 76, delay: 0.5 },
-          { val: 90, lane: 1, speed: 76, delay: 0.5 },
+          { val: 72, lane: 1, speed: 80, delay: 0.5, isMobius: true },
+          { val: 81, lane: 0, speed: 76, delay: 0.5, isMatryoshka: true },
+          { val: 90, lane: 1, speed: 76, delay: 0.5, isGaussianCycler: true },
           { val: -120, lane: 0, speed: 74, delay: 0.6 },
-          { val: 120, lane: 1, speed: 74, delay: 0.6 },
+          { val: 120, lane: 1, speed: 74, delay: 0.6, isMobius: true },
           { val: -144, lane: 0, speed: 70, delay: 0.7 },
-          { val: 144, lane: 1, speed: 70, delay: 0.7 }
+          { val: 144, lane: 1, speed: 70, delay: 0.7, isGaussianCycler: true }
         ]
       },
       {
@@ -2519,18 +2519,18 @@ export const LEVELS = {
     ],
     waves: [
       {
-        title: '第一波：微積分密集陣',
-        tip: '連續高密度雙路湧出，強化範圍火力！',
+        title: '第一波：行列式方陣與連續體密集陣',
+        tip: '連續高密度雙路湧出，行列式方陣怪物連線共鳴，若 det=ad-bc=0 觸發連鎖坍縮！',
         enemies: [
-          { val: 64, lane: 0, speed: 82, delay: 0.4 },
-          { val: 64, lane: 1, speed: 82, delay: 0.4 },
-          { val: 81, lane: 0, speed: 80, delay: 0.4 },
-          { val: 81, lane: 1, speed: 80, delay: 0.4 },
+          { val: 12, lane: 0, speed: 76, delay: 0.4, determinantQuadId: 'quad_5_3', detIndex: 0 },
+          { val: 8, lane: 1, speed: 76, delay: 0.4, determinantQuadId: 'quad_5_3', detIndex: 1 },
+          { val: 15, lane: 0, speed: 76, delay: 0.4, determinantQuadId: 'quad_5_3', detIndex: 2 },
+          { val: 10, lane: 1, speed: 76, delay: 0.4, determinantQuadId: 'quad_5_3', detIndex: 3 },
+          { val: 64, lane: 0, speed: 82, delay: 0.4, isMatryoshka: true },
+          { val: 81, lane: 1, speed: 80, delay: 0.4, isMatryoshka: true },
           { val: 100, lane: 0, speed: 78, delay: 0.5 },
           { val: 100, lane: 1, speed: 78, delay: 0.5 },
           { val: 128, lane: 0, speed: 76, delay: 0.5 },
-          { val: 128, lane: 1, speed: 76, delay: 0.5 },
-          { val: 144, lane: 0, speed: 74, delay: 0.6 },
           { val: 144, lane: 1, speed: 74, delay: 0.6 }
         ]
       },

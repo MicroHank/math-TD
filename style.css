@@ -1288,6 +1288,62 @@ body {
   box-shadow: 0 0 10px rgba(6, 182, 212, 0.25);
 }
 
+.option-icon.log-compressor {
+  background: rgba(234, 179, 8, 0.15);
+  border: 2px solid #eab308;
+  color: #facc15;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.25);
+}
+
+.option-icon.fourier-tower {
+  background: rgba(6, 182, 212, 0.15);
+  border: 2px solid #06b6d4;
+  color: #38bdf8;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.25);
+}
+
+.option-icon.fusion-6 {
+  background: rgba(6, 182, 212, 0.18);
+  border: 2px solid #06b6d4;
+  color: #38bdf8;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.25);
+}
+
+.option-icon.fusion-15 {
+  background: rgba(245, 158, 11, 0.18);
+  border: 2px solid #f59e0b;
+  color: #fbbf24;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+}
+
+.option-icon.fusion-abs-sqrt {
+  background: rgba(236, 72, 153, 0.18);
+  border: 2px solid #ec4899;
+  color: #f472b6;
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.25);
+}
+
+.option-icon.fusion-derivative {
+  background: rgba(244, 63, 94, 0.18);
+  border: 2px solid #f43f5e;
+  color: #fb7185;
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.25);
+}
+
+.option-icon.fusion-monte-carlo {
+  background: rgba(168, 85, 247, 0.18);
+  border: 2px solid #a855f7;
+  color: #c084fc;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.25);
+}
+
+.option-icon.fusion-factorial {
+  background: rgba(236, 72, 153, 0.18);
+  border: 2px solid #ec4899;
+  color: #f472b6;
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.25);
+}
+
 /* ================= 彈窗與遮罩 (Modals) ================= */
 .modal-overlay {
   position: fixed;

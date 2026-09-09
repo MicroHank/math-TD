@@ -192,12 +192,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const fusionCount = game ? game.getFusionTowerCount() : 0;
 
     if (tabBuildSpecial) {
-      tabBuildSpecial.innerHTML = `⚡ 代數與力場 <span class="tab-count">(${specialCount}/4)</span>`;
-      tabBuildSpecial.classList.toggle('tab-capped', specialCount >= 4);
+      tabBuildSpecial.innerHTML = `⚡ 代數與力場 <span class="tab-count">(${specialCount}/6)</span>`;
+      tabBuildSpecial.classList.toggle('tab-capped', specialCount >= 6);
     }
     if (tabBuildFusion) {
-      tabBuildFusion.innerHTML = `⚛️ 複合神塔 <span class="tab-count">(${fusionCount}/4)</span>`;
-      tabBuildFusion.classList.toggle('tab-capped', fusionCount >= 4);
+      tabBuildFusion.innerHTML = `⚛️ 複合神塔 <span class="tab-count">(${fusionCount}/6)</span>`;
+      tabBuildFusion.classList.toggle('tab-capped', fusionCount >= 6);
     }
 
     buildOptionCards.forEach(card => {
@@ -206,7 +206,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if (config) {
         const costEl = card.querySelector('.option-cost');
         const isLimited = config.category === 'special' || config.category === 'fusion' ||
-          ['ABSOLUTE', 'SQRT', 'OPERATOR', 'ZERO_FREEZE', 'FUSION_6', 'FUSION_15', 'FUSION_ABS_SQRT', 'FUSION_FACTORIAL'].includes(typeKey);
+          ['ABSOLUTE', 'SQRT', 'OPERATOR', 'ZERO_FREEZE', 'LOG', 'TRIG', 'FUSION_6', 'FUSION_15', 'FUSION_ABS_SQRT', 'FUSION_FACTORIAL', 'FUSION_DERIVATIVE', 'FUSION_MONTE_CARLO'].includes(typeKey);
 
         if (isLimited) {
           const isCapped = game ? !game.canBuildTowerType(typeKey, game.selectedPad) : false;

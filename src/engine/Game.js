@@ -268,7 +268,7 @@ export class Game {
 
     // 質數重砲不受限制；代數與力場以及複合神塔，所有型號全場最多各只能建造 1 座
     const isLimited = category === 'special' || category === 'fusion' ||
-      ['absolute', 'sqrt', 'operator', 'zero', 'fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial'].includes(targetType);
+      ['absolute', 'sqrt', 'operator', 'zero', 'log', 'trig', 'fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial', 'fusion_derivative', 'fusion_monte_carlo'].includes(targetType);
 
     if (!isLimited) return true;
 
@@ -280,11 +280,11 @@ export class Game {
   }
 
   getSpecialTowerCount() {
-    return this.towers.filter(t => (t.isSpecialTower ? t.isSpecialTower() : ['absolute', 'sqrt', 'operator', 'zero'].includes(t.type))).length;
+    return this.towers.filter(t => (t.isSpecialTower ? t.isSpecialTower() : ['absolute', 'sqrt', 'operator', 'zero', 'log', 'trig'].includes(t.type))).length;
   }
 
   getFusionTowerCount() {
-    return this.towers.filter(t => (t.isFusionTower ? t.isFusionTower() : ['fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial'].includes(t.type))).length;
+    return this.towers.filter(t => (t.isFusionTower ? t.isFusionTower() : ['fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial', 'fusion_derivative', 'fusion_monte_carlo'].includes(t.type))).length;
   }
 
   getFactorialTowerCount() {
@@ -772,6 +772,46 @@ export class Game {
       const cf = this.coinFloats[i];
       cf.update(dt);
       if (cf.isDead) this.coinFloats.splice(i, 1);
+    }
+
+    // 檢查行列式方陣奇異矩陣坍縮
+    this.checkDeterminantQuads();
+  }
+
+  // 行列式方陣共鳴檢查 (det = ad - bc = 0)
+  checkDeterminantQuads() {
+    if (!this.monsters || this.monsters.length < 2) return;
+    const quads = new Map();
+    for (const m of this.monsters) {
+      if (m.isDead || !m.determinantQuadId) continue;
+      if (!quads.has(m.determinantQuadId)) quads.set(m.determinantQuadId, []);
+      quads.get(m.determinantQuadId).push(m);
+    }
+
+    for (const [quadId, members] of quads.entries()) {
+      if (members.length < 2) continue;
+      const a = members.find(m => m.detIndex === 0);
+      const b = members.find(m => m.detIndex === 1);
+      const c = members.find(m => m.detIndex === 2);
+      const d = members.find(m => m.detIndex === 3);
+
+      if (a && b && c && d) {
+        const valA = typeof a.value === 'number' ? a.value : 0;
+        const valB = typeof b.value === 'number' ? b.value : 0;
+        const valC = typeof c.value === 'number' ? c.value : 0;
+        const valD = typeof d.value === 'number' ? d.value : 0;
+        const det = valA * valD - valB * valC;
+
+        if (det === 0) {
+          sound.playEliminate();
+          for (const m of members) {
+            m.addFloatingText('💥 det=0 奇異矩陣坍縮 (3倍金幣)!', '#f59e0b');
+            this.addGold(Math.max(35, Math.floor(Math.abs(m.originalValue || m.value) * 1.5)), m.x, m.y);
+            this.createExplosion(m.x, m.y, '#f59e0b', 35);
+            m.isDead = true;
+          }
+        }
+      }
     }
   }
 
