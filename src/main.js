@@ -311,7 +311,7 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="lesson-card-desc">${lesson.description}</div>
         <div class="lesson-card-footer">
           <span class="lesson-waves">波次: ${lesson.wavesCount} 波</span>
-          <span class="${isCleared ? 'lesson-cleared-tag' : 'lesson-reward'}">${isCleared ? '✔ 已掌握 (+1⭐)' : lesson.reward}</span>
+          <span class="${isCleared ? 'lesson-cleared-tag' : 'lesson-reward'}">${isCleared ? '✔ 已掌握' : lesson.reward}</span>
         </div>
       `;
 
@@ -427,7 +427,7 @@ window.addEventListener('DOMContentLoaded', () => {
         card.innerHTML = `
           <div class="stage-header-row">
             <span class="stage-name">${lvl.name}</span>
-            <span class="stage-stars">${isCleared ? '⭐⭐⭐' : '☆☆☆'}</span>
+            <span class="stage-stars" style="color: ${isCleared ? '#4ade80' : '#94a3b8'}; font-size: 13px;">${isCleared ? '✔ 結業認證' : '📚 專項特訓'}</span>
           </div>
           <div class="stage-desc">${lvl.subtitle}</div>
           <span class="stage-badge badge-normal">
@@ -589,7 +589,6 @@ window.addEventListener('DOMContentLoaded', () => {
             <span class="tech-node-cost">${costLabel}</span>
           </div>
           <div class="tech-node-desc">${node.desc}</div>
-          <div class="tech-node-formula">${node.formula}</div>
         `;
 
         if (canUnlock && !isUnlocked) {
@@ -1262,10 +1261,10 @@ window.addEventListener('DOMContentLoaded', () => {
       if (isTutorial) {
         const isMaster = levelId === 'tutorial_master';
         victoryLevelTitle.textContent = isMaster ? `🎓 數論作戰學院特訓畢業！` : `🎓 課堂特訓守衛成功！`;
-        victoryStars.textContent = '⭐⭐⭐';
+        victoryStars.textContent = '🎓🎓🎓';
         victoryLevelDesc.textContent = isMaster
-          ? `恭喜你！已完全掌握所有 8 大基礎防禦塔與 4 大複合神塔功用！(榮譽獲得 +5 研究點數 ⭐)`
-          : `成功通關【${levelName}】！已掌握該塔之數論克制技巧！(獲得 +1 研究點數 ⭐)`;
+          ? `恭喜你！已完全掌握所有 8 大基礎防禦塔、4 大複合神塔與指揮官秘術功用！`
+          : `成功通關【${levelName}】！已掌握該項目之數論克制與戰術技巧！`;
       } else if (isBossRush) {
         victoryLevelTitle.textContent = `👑 魔王 Stage ${bossRushStage} 討伐成功！`;
         let starsDisplay = '⭐⭐⭐';
@@ -1370,7 +1369,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if (fusions.length > 0) {
         const fusion = fusions[0];
         btnFuseTower.classList.remove('hidden');
-        btnFuseTower.textContent = `⚛️ 融合為 ${fusion.targetType.label} (${fusion.cost}🪙)`;
+        btnFuseTower.textContent = `⚛️ 升級為 ${fusion.targetType.label} (${fusion.cost}🪙)`;
         btnFuseTower.disabled = goldAmount < fusion.cost;
         btnFuseTower.onclick = () => {
           if (game.gold >= fusion.cost) {
@@ -1705,45 +1704,24 @@ window.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         btnFuseTower.click();
       }
-    } else if (e.key === '1') {
-      if (game.selectedPad) game.buildTowerOnSelectedPad('PRIME_2');
-    } else if (e.key === '2') {
-      if (game.selectedPad) game.buildTowerOnSelectedPad('PRIME_3');
-    } else if (e.key === '3') {
-      if (game.selectedPad) game.buildTowerOnSelectedPad('PRIME_5');
-    } else if (e.key === '4') {
-      if (game.selectedPad) game.buildTowerOnSelectedPad('PRIME_7');
-    } else if (e.key === '5') {
-      if (game.selectedPad) game.buildTowerOnSelectedPad('FUSION_6');
-    } else if (e.key === '6') {
-      if (game.selectedPad) game.buildTowerOnSelectedPad('FUSION_15');
-    } else if (e.key === '7') {
-      if (game.selectedPad) game.buildTowerOnSelectedPad('FUSION_ABS_SQRT');
-    } else if (e.key === '8') {
-      if (game.selectedPad) game.buildTowerOnSelectedPad('FUSION_FACTORIAL');
     } else if (e.key === 'q' || e.key === 'Q') {
-      if (game.selectedPad) {
-        game.buildTowerOnSelectedPad('ABSOLUTE');
-      } else if (game.spellManager) {
+      // 指揮官主動秘術 Q: GCD 引爆
+      if (game && game.spellManager) {
         game.spellManager.startAiming('gcd');
         game.syncUI();
       }
     } else if (e.key === 'w' || e.key === 'W') {
-      if (game.selectedPad) {
-        game.buildTowerOnSelectedPad('SQRT');
-      } else if (game.spellManager) {
+      // 指揮官主動秘術 W: 同餘黑洞 mod 5
+      if (game && game.spellManager) {
         game.spellManager.startAiming('vortex');
         game.syncUI();
       }
     } else if (e.key === 'e' || e.key === 'E') {
-      if (game.selectedPad) {
-        game.buildTowerOnSelectedPad('OPERATOR');
-      } else if (game.spellManager) {
+      // 指揮官主動秘術 E: 黃金分割超頻
+      if (game && game.spellManager) {
         game.spellManager.castInstant('overdrive');
         game.syncUI();
       }
-    } else if (e.key === 'r' || e.key === 'R') {
-      if (game.selectedPad) game.buildTowerOnSelectedPad('ZERO_FREEZE');
     } else if (e.key === 'm' || e.key === 'M') {
       renderStageMap(currentActiveChapter);
       modalStageMap.classList.toggle('hidden');

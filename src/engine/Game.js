@@ -494,37 +494,14 @@ export class Game {
     const bonus = Math.round((70 + completedWaveNum * 30) * multiplier);
     this.addGold(bonus, 480, 280);
 
-    // 每波完成獲得 +1 點數論研究院科技研究點數
-    progress.addTechPoints(1);
-    this.coinFloats.push(new CoinFloat({ x: 480, y: 230, text: '✨ 研究點數 +1 ⭐', color: '#38bdf8' }));
-
-    // 結算複利增長利息
-    if (this.perkManager) {
-      const interest = this.perkManager.calculateInterest(this.gold);
-      if (interest > 0) {
-        this.addGold(interest, 480, 320);
-      }
+    // 每波完成獲得 +1 點數論研究院科技研究點數 (教學關卡不給予科研獎勵)
+    const isTutorialLevel = this.gameMode === 'tutorial' || (this.currentLevelId && this.currentLevelId.startsWith('tutorial'));
+    if (!isTutorialLevel) {
+      progress.addTechPoints(1);
+      this.coinFloats.push(new CoinFloat({ x: 480, y: 230, text: '✨ 研究點數 +1 ⭐', color: '#38bdf8' }));
     }
 
     this.syncUI();
-
-    // 若還有下一波次，觸發波次肉鴿三選一視窗
-    if (this.waveManager.currentWaveIndex < this.waveManager.totalWaves) {
-      if (this.ui.onShowPerkChoice && this.perkManager) {
-        const choices = this.perkManager.drawThreePerks();
-        if (choices && choices.length > 0) {
-          this.ui.onShowPerkChoice(choices, (selectedPerkId) => {
-            if (selectedPerkId === 'SKIP_GOLD') {
-              this.addGold(60, 480, 280);
-            } else if (selectedPerkId) {
-              this.perkManager.activatePerk(selectedPerkId);
-              sound.playUpgrade();
-            }
-            this.syncUI();
-          });
-        }
-      }
-    }
   }
 
   triggerEulerSieveExplosion(x, y, factor = 2) {
@@ -548,13 +525,13 @@ export class Game {
       stars = 2;
     }
 
-    // 教學學院模式勝利結算
-    if (this.gameMode === 'tutorial') {
+    // 教學學院模式勝利結算 (無科研獎勵)
+    if (this.gameMode === 'tutorial' || (this.currentLevelId && this.currentLevelId.startsWith('tutorial'))) {
       const isMaster = this.currentLevelId === 'tutorial_master';
       if (this.tutorialManager) {
         this.tutorialManager.onTutorialCompleted(this.currentLevelId);
       }
-      const rewardText = isMaster ? '🎓 學院畢業！研究點數 +5 ⭐' : '🎓 課堂特訓通關！研究點數 +1 ⭐';
+      const rewardText = isMaster ? '🎓 學院畢業！已掌握全塔功用！' : '🎓 課堂特訓通關！已掌握該塔克制技巧！';
       this.coinFloats.push(new CoinFloat({ x: 480, y: 230, text: rewardText, color: '#38bdf8' }));
       if (this.ui.onLevelVictory) {
         this.ui.onLevelVictory({

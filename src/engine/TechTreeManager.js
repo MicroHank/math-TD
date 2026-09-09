@@ -39,7 +39,6 @@ export const TECH_NODES = {
     icon: '🎯',
     name: '埃氏篩法射程',
     desc: '質數砲塔基礎攻擊距離提升 +15%',
-    formula: 'R_{prime} \\times 1.15'
   },
   pa_2: {
     id: 'pa_2',
@@ -49,8 +48,7 @@ export const TECH_NODES = {
     reqId: 'pa_1',
     icon: '💥',
     name: '質數共鳴暴擊',
-    desc: '質因數除法有 25% 機率造成雙倍耐受度暴擊打擊',
-    formula: 'P_{crit} = 25\\%, Dmg \\times 2'
+    desc: '質因數除法有 25% 機率造成雙倍耐受度暴擊打擊'
   },
   pa_3: {
     id: 'pa_3',
@@ -60,8 +58,7 @@ export const TECH_NODES = {
     reqId: 'pa_2',
     icon: '🔮',
     name: '絕對值光通量',
-    desc: '絕對值稜鏡冷卻時間縮短 30%，淨化時產生微型減速光斑',
-    formula: 'CD_{abs} \\times 0.70'
+    desc: '絕對值稜鏡冷卻時間縮短 30%，淨化時產生微型減速光斑'
   },
   pa_4: {
     id: 'pa_4',
@@ -72,7 +69,6 @@ export const TECH_NODES = {
     icon: '🌀',
     name: '泰勒展開重力',
     desc: '方根重力井對非平方數的重力壓制減速提升至 50%',
-    formula: 'Slow_{\\sqrt{x}} = 50\\%'
   },
   pa_5: {
     id: 'pa_5',
@@ -83,7 +79,6 @@ export const TECH_NODES = {
     icon: '👑',
     name: '算術基本定理',
     desc: '所有質數砲塔升級成本 -20%，全體防禦塔威力 +25%',
-    formula: 'Cost -20\\%, Dmg +25\\%'
   },
 
   // 2. 算力與秘術系
@@ -96,7 +91,6 @@ export const TECH_NODES = {
     icon: '⚡',
     name: '算力超頻核心',
     desc: '初始算力上限提升至 125，每秒自然恢復速度 +0.8',
-    formula: 'Mana_{max} = 125, +0.8/s'
   },
   cm_2: {
     id: 'cm_2',
@@ -107,7 +101,6 @@ export const TECH_NODES = {
     icon: '📐',
     name: '歐幾里得爆發',
     desc: 'GCD 引爆範圍 +20%，對互質怪造成的震波傷害提升至 60',
-    formula: 'Radius +20\\%, Dmg = 60'
   },
   cm_3: {
     id: 'cm_3',
@@ -118,7 +111,6 @@ export const TECH_NODES = {
     icon: '🌌',
     name: '同餘奇異點',
     desc: '同餘黑洞持續時間延長至 8.0s，吸引減速提升至 50%',
-    formula: 'Dur = 8.0s, Slow = 50\\%'
   },
   cm_4: {
     id: 'cm_4',
@@ -129,7 +121,6 @@ export const TECH_NODES = {
     icon: '⚡',
     name: '斐波那契極速',
     desc: '黃金超頻期間，所有防禦塔攻速倍率提升至 2.0x',
-    formula: 'Speed_{\\phi} = 2.0\\times'
   },
   cm_5: {
     id: 'cm_5',
@@ -140,7 +131,6 @@ export const TECH_NODES = {
     icon: '✨',
     name: '量子數論核心',
     desc: '每波開始時立即全額回滿算力能量',
-    formula: 'WaveStart: Mana = 100\\%'
   },
 
   // 3. 幾何與經濟系
@@ -153,7 +143,6 @@ export const TECH_NODES = {
     icon: '🪙',
     name: '國庫儲備算力',
     desc: '每關開局初始金幣額外獲得 +80',
-    formula: 'Gold_{init} + 80'
   },
   ge_2: {
     id: 'ge_2',
@@ -164,7 +153,6 @@ export const TECH_NODES = {
     icon: '🔗',
     name: '幾何光弦擴展',
     desc: '幾何共鳴光弦最大連線距離擴大至 360px',
-    formula: 'L_{max} = 360px'
   },
   ge_3: {
     id: 'ge_3',
@@ -175,7 +163,6 @@ export const TECH_NODES = {
     icon: '🔺',
     name: '三角聖域強化',
     desc: '共鳴三角結界攻速加成升至 +18%，怪物減速升至 22%',
-    formula: 'Buff +18\\%, Slow 22\\%'
   },
   ge_4: {
     id: 'ge_4',
@@ -186,7 +173,6 @@ export const TECH_NODES = {
     icon: '✨',
     name: '畢氏光能矩陣',
     desc: '畢氏聖光打擊傷害提升至 50 且發動間隔縮短至 2.0s',
-    formula: 'Dmg = 50, Int = 2.0s'
   },
   ge_5: {
     id: 'ge_5',
@@ -197,7 +183,6 @@ export const TECH_NODES = {
     icon: '🔮',
     name: '公倍數鍊金術',
     desc: '擊破公倍數合體巨獸額外獲得 +50% 金幣賞金與 +30 算力',
-    formula: 'LCM Bounty +50\\%, +30⚡'
   }
 };
 

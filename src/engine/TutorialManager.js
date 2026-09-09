@@ -9,7 +9,7 @@ export const TUTORIAL_LESSONS = [
     title: '🎓 數論作戰學院：全塔與秘術通關特訓課',
     subtitle: '12 波次完整掌握 8 大基礎塔、升級變賣、QWE 秘術與 4 大複合神塔',
     badge: '👑 完整大主線',
-    reward: '⭐ +5 點科研研究點數',
+    reward: '🎓 大師結業認證',
     wavesCount: 12,
     icon: '🏛️',
     description: '從 2、3、5、7 質數砲，到絕對值、運算子、開方、零度減速、砲塔升級變賣、QWE 主動秘術及複合神塔全面特訓！'
@@ -21,11 +21,11 @@ export const TUTORIAL_LESSONS = [
     title: '第一課：2號 雙子砲（偶數除法）',
     subtitle: '掌握偶數除法 $N \\div 2$，怪物數值變 1 即消滅',
     badge: '基礎質數',
-    reward: '⭐ +1 點研究點數',
+    reward: '✔ 掌握技巧',
     wavesCount: 2,
     icon: '2',
     color: '#38bdf8',
-    description: '偶數怪物（尾數 0, 2, 4, 6, 8）是戰場最常見敵軍。2 號砲發射 factor 2 子彈，持續進行 $N \\div 2$ 直到為 1 擊破！'
+    description: '偶數怪物（尾數 0, 2, 4, 6, 8）是戰場最常見敵軍。'
   },
   {
     id: 'tutorial_p3',
@@ -34,20 +34,20 @@ export const TUTORIAL_LESSONS = [
     title: '第二課：3號 三元激光（數字和判別）',
     subtitle: '數字各位數相加為 3 的倍數，發動 $N \\div 3$',
     badge: '基礎質數',
-    reward: '⭐ +1 點研究點數',
+    reward: '✔ 掌握技巧',
     wavesCount: 2,
     icon: '3',
     color: '#fbbf24',
-    description: '判別 3 的倍數密技：若一個數的所有數位之和能被 3 整除（如 $27 \\implies 2+7=9$），則該數必可被 3 號砲除法分解！'
+    description: '判別 3 的倍數密技：若一個數的所有數位之和能被 3 整除，則該數必可被 3 號砲除法分解！'
   },
   {
     id: 'tutorial_p5',
     lessonNum: 3,
     towerType: 'PRIME_5',
     title: '第三課：5號 五芒衝擊（尾數 0 或 5）',
-    subtitle: '個位數為 0 或 5 的剋星，強效 $N \\div 5$',
+    subtitle: '個位數為 0 或 5 的剋星',
     badge: '基礎質數',
-    reward: '⭐ +1 點研究點數',
+    reward: '✔ 掌握技巧',
     wavesCount: 2,
     icon: '5',
     color: '#34d399',
@@ -59,21 +59,21 @@ export const TUTORIAL_LESSONS = [
     towerType: 'PRIME_7',
     title: '第四課：7號 七曜天琴（難纏倍數）',
     subtitle: '高階質數重砲，粉碎 7 的倍數強敵',
-    badge: '高階質數',
-    reward: '⭐ +1 點研究點數',
+    badge: '基礎質數',
+    reward: '✔ 掌握技巧',
     wavesCount: 2,
     icon: '7',
     color: '#8b5cf6',
-    description: '7 號砲具備極遠射程與超高破壞力，專門對付 14, 21, 28, 35, 49 等無法被 2, 3, 5 輕易除盡的 7 之倍數！'
+    description: '7 號砲具備極遠射程與超高破壞力，專門對付 14, 21, 28, 35, 49 等 7 之倍數！'
   },
   {
     id: 'tutorial_abs',
     lessonNum: 5,
     towerType: 'ABSOLUTE',
     title: '第五課：|x| 絕對值稜鏡（負數淨化）',
-    subtitle: '破除負數幽靈免疫護盾 $|-n| \\to +n$',
+    subtitle: '破除負數幽靈免疫護盾 |-n| -> +n',
     badge: '代數功能',
-    reward: '⭐ +1 點研究點數',
+    reward: '✔ 掌握技巧',
     wavesCount: 2,
     icon: '|x|',
     color: '#c084fc',
@@ -84,26 +84,26 @@ export const TUTORIAL_LESSONS = [
     lessonNum: 6,
     towerType: 'OPERATOR',
     title: '第六課：[+/-] 運算子調整塔（化質為合）',
-    subtitle: '量子微調 $\\pm 1$，化解孤傲質數刺客',
+    subtitle: '量子微調 ±1，化解孤傲質數刺客',
     badge: '代數功能',
-    reward: '⭐ +1 點研究點數',
+    reward: '✔ 掌握技巧',
     wavesCount: 2,
     icon: '±1',
     color: '#14b8a6',
-    description: '遇到 11, 13, 17, 19, 23 等質數怪時，質數砲無法整除！運算子塔發射 $\\pm 1$ 脈衝（如 $11-1=10, 13-1=12$），使其成為可除合數！'
+    description: '遇到 11, 13, 17, 19, 23 等質數怪時，質數砲無法整除！運算子塔發射 1 脈衝（如 11-1=10, 13-1=12），使其成為可除合數！'
   },
   {
     id: 'tutorial_sqrt',
     lessonNum: 7,
     towerType: 'SQRT',
     title: '第七課：√x 根號方根重力井（完全平方）',
-    subtitle: '完全平方怪重壓剋星，直接開方 $\\sqrt{x}$',
-    badge: '高階代數',
-    reward: '⭐ +1 點研究點數',
+    subtitle: '完全平方怪重壓剋星，直接開方 √x',
+    badge: '代數功能',
+    reward: '✔ 掌握技巧',
     wavesCount: 2,
     icon: '√x',
     color: '#f59e0b',
-    description: '針對 4, 9, 16, 25, 36, 49, 64, 81, 100 等完全平方幾何方塊怪，根號塔可暴擊並直接執行開方（$\\sqrt{36} \\to 6$）！'
+    description: '針對 4, 9, 16, 25, 36, 49, 64, 81, 100 等完全平方幾何方塊怪，根號塔可暴擊並直接執行開方！'
   },
   {
     id: 'tutorial_zero',
@@ -111,8 +111,8 @@ export const TUTORIAL_LESSONS = [
     towerType: 'ZERO_FREEZE',
     title: '第八課：×0 絕對零度力場塔（極限減速）',
     subtitle: '乘零歸零光環，大範圍牽制高速怪物',
-    badge: '控場力場',
-    reward: '⭐ +1 點研究點數',
+    badge: '控制力場',
+    reward: '✔ 掌握技巧',
     wavesCount: 2,
     icon: '×0',
     color: '#06b6d4',
@@ -125,7 +125,7 @@ export const TUTORIAL_LESSONS = [
     title: '第九課：🔧 砲塔三向升級與變賣操作',
     subtitle: '獨立提升 射程/威力/攻速，或變賣回收 70% 軍費',
     badge: '戰術操作',
-    reward: '⭐ +1 點研究點數',
+    reward: '✔ 掌握技巧',
     wavesCount: 2,
     icon: '🔼',
     color: '#f59e0b',
@@ -138,7 +138,7 @@ export const TUTORIAL_LESSONS = [
     title: '第十課：⚡ 指揮官主動秘術 (Q / W / E)',
     subtitle: '施放 GCD 引爆、同餘黑洞 mod 5 與黃金超頻',
     badge: '指揮官秘術',
-    reward: '⭐ +1 點研究點數',
+    reward: '✔ 掌握技巧',
     wavesCount: 3,
     icon: '⚡',
     color: '#fbbf24',
@@ -151,7 +151,7 @@ export const TUTORIAL_LESSONS = [
     title: '第十一課：⚛️ 複合神塔融合與幾何共鳴',
     subtitle: '進化 2×3, 3×5, |√x|, n! 與 3 塔三角結界',
     badge: '終極神塔',
-    reward: '⭐ +1 點研究點數',
+    reward: '✔ 掌握技巧',
     wavesCount: 2,
     icon: '⚛️',
     color: '#ec4899',
@@ -374,7 +374,7 @@ export const TUTORIAL_MASTER_STEPS = {
     title: '🎓 第十二課：學院畢業總驗收（大聯防實戰）',
     instructor: '🤖 數論教官：最後考驗！所有數論怪獸混合進攻，展現你的全方位防禦體系！',
     formula: '絕對值淨化 + 運算子微調 + 根號重壓 + 質數重砲 + 指揮官秘術',
-    keyPoint: '🏆 綜合運用前線絕對值、運算子微調、開方重力、後方質數重砲與 QWE 秘術，通關頒發 ⭐ +5 點科研研究點數！',
+    keyPoint: '🏆 綜合運用前線絕對值、運算子微調、開方重力、後方質數重砲與 QWE 秘術，守住最後波次完成大師結業！',
     recommendedTower: null,
     targetEnemies: '全種類混合大軍 [-36, 17, 49, 60, 23, 81, 120]',
     actionPrompt: '調動全部防線資源，守住防守核心，順利自數論學院畢業！',
@@ -385,7 +385,7 @@ export const TUTORIAL_MASTER_STEPS = {
       icon: '🏆',
       color: '#38bdf8',
       formula: '全塔佈陣 × 幾何共鳴 × QWE 秘術',
-      desc: '檢驗你在數論學院所學到的一切！綜合運用除法、淨化、開方、微調、減速、升級變賣與指揮官秘術，完成防守獲取 5 點研究點數！',
+      desc: '檢驗你在數論學院所學到的一切！綜合運用除法、淨化、開方、微調、減速、升級變賣與指揮官秘術，守住防守核心完成大師結業！',
       targets: '全類型數論軍團混合壓境'
     }
   }
@@ -445,13 +445,10 @@ export class TutorialManager {
   }
 
   onTutorialCompleted(lessonId) {
+    if (sound && sound.playWaveComplete) sound.playWaveComplete();
     if (lessonId === 'tutorial_master') {
-      progress.addTechPoints(5);
-      if (sound && sound.playWaveComplete) sound.playWaveComplete();
       progress.completeLevel('tutorial_master', 3);
     } else {
-      progress.addTechPoints(1);
-      if (sound && sound.playWaveComplete) sound.playWaveComplete();
       progress.completeLevel(lessonId, 3);
     }
   }
