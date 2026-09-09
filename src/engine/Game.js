@@ -5,7 +5,6 @@ import { WaveManager } from '../levels/WaveManager.js';
 import { LEVELS } from '../levels/LevelData.js';
 import { progress } from './ProgressManager.js';
 import { sound } from './Audio.js';
-import { PerkManager } from './PerkManager.js';
 import { SpellManager } from './SpellManager.js';
 import { GeometricResonanceManager } from './GeometricResonanceManager.js';
 import { LcmMergeManager } from './LcmMergeManager.js';
@@ -35,9 +34,6 @@ export class Game {
 
     // 教學學院管理器
     this.tutorialManager = new TutorialManager(this);
-
-    // 波次肉鴿天賦管理器
-    this.perkManager = new PerkManager(this);
 
     // 指揮官主動秘術與算力管理器
     this.spellManager = new SpellManager(this);
@@ -130,9 +126,6 @@ export class Game {
     this.isGameOver = false;
     this.isGameOverReported = false;
 
-    if (this.perkManager) {
-      this.perkManager.reset();
-    }
     if (this.spellManager) {
       this.spellManager.reset();
     }
@@ -267,9 +260,8 @@ export class Game {
     const config = TOWER_TYPES[towerType];
     if (!config) return false;
 
-    const discount = this.perkManager ? this.perkManager.getCostDiscount() : 0;
     const techDiscount = (config.type === 'prime' ? techTree.getPrimeUpgradeDiscount() : 0);
-    const finalCost = Math.round(config.cost * (1 - discount - techDiscount));
+    const finalCost = Math.round(config.cost * (1 - techDiscount));
 
     if (this.gold >= finalCost) {
       const existingTower = pad.tower;
@@ -290,17 +282,15 @@ export class Game {
   }
 
   buildTower(pad, config) {
-    const discount = this.perkManager ? this.perkManager.getCostDiscount() : 0;
-    const finalCost = Math.round(config.cost * (1 - discount));
+    const finalCost = config.cost;
     this.gold -= finalCost;
 
-    const rangeMult = this.perkManager ? this.perkManager.getRangeMultiplier() : 1.0;
     const tower = new Tower({
       id: `t_${Date.now()}_${Math.random()}`,
       x: pad.x,
       y: pad.y,
       type: config.type,
-      range: Math.round(config.range * rangeMult),
+      range: config.range,
       fireRate: config.fireRate,
       damage: config.damage,
       cost: finalCost,
@@ -376,7 +366,7 @@ export class Game {
   sellSelectedTower() {
     if (!this.selectedTower) return;
     const pad = this.buildPads.find(p => p.tower === this.selectedTower);
-    const refundRatio = this.perkManager ? this.perkManager.getRefundRatio() : 0.7;
+    const refundRatio = 0.7;
     const refund = Math.floor(this.selectedTower.totalInvested * refundRatio);
     this.addGold(refund, this.selectedTower.x, this.selectedTower.y);
 
@@ -504,18 +494,6 @@ export class Game {
     this.syncUI();
   }
 
-  triggerEulerSieveExplosion(x, y, factor = 2) {
-    this.createExplosion(x, y, '#38bdf8', 28);
-    for (const m of this.monsters) {
-      if (m.isDead) continue;
-      const d = Math.hypot(m.x - x, m.y - y);
-      if (d <= 130) {
-        m.takePrimeHit(factor, 30, this);
-        m.addFloatingText('🌀 歐拉篩震波!', '#38bdf8');
-      }
-    }
-  }
-
   onLevelCompleted() {
     sound.playWaveComplete();
     let stars = 1;
@@ -614,7 +592,6 @@ export class Game {
         isGameOver: this.isGameOver,
         currentLevelId: this.currentLevelId,
         currentLevelName: this.currentLevel.name,
-        activePerks: this.perkManager ? this.perkManager.activePerks : [],
         mana: this.spellManager ? Math.round(this.spellManager.mana) : 100,
         maxMana: this.spellManager ? this.spellManager.maxMana : 100,
         spellCooldowns: this.spellManager ? this.spellManager.cooldowns : {},

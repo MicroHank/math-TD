@@ -319,6 +319,25 @@ export class SpellManager {
           // 每個黑洞每隻怪只結算一次 mod 5
           if (!v.affectedIds.has(m.id)) {
             v.affectedIds.add(m.id);
+
+            // 循環小數幽靈：黑洞強大引力撕裂小數點，強制化為整數！
+            if (m.isRecurring) {
+              m.isRecurring = false;
+              const convertedVal = m.recurringNumerator || 1;
+              m.value = convertedVal;
+              m.hp = convertedVal;
+              m.addFloatingText(`實數截斷 ➔ ${convertedVal}!`, '#c084fc');
+              this.game.createSparks(m.x, m.y, '#a855f7', 16);
+              if (convertedVal <= 1) {
+                m.onEliminated(null, this.game);
+              } else {
+                m.maxStageHp = m.calcStageMaxHp(convertedVal, m.isBoss);
+                m.stageHp = m.maxStageHp;
+                m.prevStageHp = m.stageHp;
+              }
+              continue;
+            }
+
             const oldVal = m.value;
             const absVal = Math.abs(oldVal);
             const remainder = absVal % 5;

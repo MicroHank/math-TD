@@ -178,12 +178,16 @@ export class Tower {
     }
 
     if (this.type === 'operator') {
-      // 運算子塔：鎖定射程內「無法被 2, 3, 5, 7 整除」的正數怪物（如質數 11, 13, 17, 19, 23）
+      // 運算子塔：鎖定射程內「無法被 2, 3, 5, 7 整除」的正數怪物（如質數 11, 13, 17, 19, 23），或 0.9̇ 極限偽裝怪
       let maxDist = -1;
       for (const m of monsters) {
-        if (m.isDead || m.isNegative || m.value <= 1 || m.operatorCooldown > 0) continue;
+        if (m.isDead || m.isNegative || m.operatorCooldown > 0) continue;
         const dist = Math.hypot(m.x - this.x, m.y - this.y);
         if (dist <= currentRange) {
+          if (m.isRecurring && m.recurringType === '0.9') {
+            return m; // 優先鎖定 0.9̇ 進行極限證明坍縮！
+          }
+          if (m.value <= 1 && !m.isRecurring) continue;
           const isFactored = (m.value % 2 === 0 || m.value % 3 === 0 || m.value % 5 === 0 || m.value % 7 === 0);
           if (!isFactored && m.progress > maxDist) {
             maxDist = m.progress;
@@ -219,7 +223,7 @@ export class Tower {
     }
 
     if (this.type === 'prime') {
-      // 質數塔：優先鎖定射程內「可被自身質數整除」的正數怪物
+      // 質數塔：優先鎖定射程內「可被自身質數整除」的正數怪物，或對應分母的循環小數幽靈
       let bestDivisible = null;
       let maxDivDist = -1;
       let fallbackFirst = null;
@@ -229,7 +233,9 @@ export class Tower {
         if (m.isDead) continue;
         const dist = Math.hypot(m.x - this.x, m.y - this.y);
         if (dist <= currentRange) {
-          if (!m.isNegative && m.value % this.factor === 0) {
+          const isRecurringMatch = m.isRecurring && m.recurringDenominator === this.factor;
+          const isNormalDivisible = !m.isNegative && !m.isRecurring && typeof m.value === 'number' && m.value % this.factor === 0;
+          if (isRecurringMatch || isNormalDivisible) {
             if (m.progress > maxDivDist) {
               maxDivDist = m.progress;
               bestDivisible = m;
@@ -246,7 +252,7 @@ export class Tower {
     }
 
     if (this.type === 'fusion_6') {
-      // 2x3 六芒雙曜：優先鎖定可被 2 或 3 整除的怪
+      // 2x3 六芒雙曜：優先鎖定可被 2 或 3 整除的怪，或分母為 2, 3 的循環怪
       let bestDivisible = null;
       let maxDivDist = -1;
       let fallbackFirst = null;
@@ -255,8 +261,9 @@ export class Tower {
         if (m.isDead || m.isNegative) continue;
         const dist = Math.hypot(m.x - this.x, m.y - this.y);
         if (dist <= currentRange) {
-          const isDiv = (m.value % 2 === 0 || m.value % 3 === 0);
-          if (isDiv && m.progress > maxDivDist) {
+          const isRecurringMatch = m.isRecurring && (m.recurringDenominator === 2 || m.recurringDenominator === 3);
+          const isDiv = !m.isRecurring && (m.value % 2 === 0 || m.value % 3 === 0);
+          if ((isRecurringMatch || isDiv) && m.progress > maxDivDist) {
             maxDivDist = m.progress;
             bestDivisible = m;
           }
@@ -270,7 +277,7 @@ export class Tower {
     }
 
     if (this.type === 'fusion_15') {
-      // 3x5 星軌聚財：優先鎖定可被 3 或 5 整除的怪
+      // 3x5 星軌聚財：優先鎖定可被 3 或 5 整除的怪，或分母為 3, 5 的循環怪
       let bestDivisible = null;
       let maxDivDist = -1;
       let fallbackFirst = null;
@@ -279,8 +286,9 @@ export class Tower {
         if (m.isDead || m.isNegative) continue;
         const dist = Math.hypot(m.x - this.x, m.y - this.y);
         if (dist <= currentRange) {
-          const isDiv = (m.value % 3 === 0 || m.value % 5 === 0);
-          if (isDiv && m.progress > maxDivDist) {
+          const isRecurringMatch = m.isRecurring && (m.recurringDenominator === 3 || m.recurringDenominator === 5);
+          const isDiv = !m.isRecurring && (m.value % 3 === 0 || m.value % 5 === 0);
+          if ((isRecurringMatch || isDiv) && m.progress > maxDivDist) {
             maxDivDist = m.progress;
             bestDivisible = m;
           }
@@ -401,10 +409,9 @@ export class Tower {
 
   update(dt, monsters, game) {
     if (this.cooldown > 0) {
-      const perkSpeedMult = game && game.perkManager ? game.perkManager.getTwinPrimeAttackSpeedMultiplier(this.factor === 2 ? 'PRIME_2' : (this.factor === 3 ? 'PRIME_3' : this.type)) : 1.0;
       const overdriveMult = game && game.spellManager && game.spellManager.isOverdriveActive ? 1.618 : 1.0;
       const matrixSpeedMult = this.geometricSpeedBonus ? (1 + this.geometricSpeedBonus) : 1.0;
-      this.cooldown -= dt * perkSpeedMult * overdriveMult * matrixSpeedMult;
+      this.cooldown -= dt * overdriveMult * matrixSpeedMult;
     }
 
     // 絕對零度力場塔 (Zero Freeze Field)：持續範圍減速光環
@@ -446,8 +453,6 @@ export class Tower {
   fire(target, game) {
     if (this.type === 'prime') {
       sound.playShoot(this.factor);
-      const isDouble = game && game.perkManager ? Math.random() < game.perkManager.getPrimeDoubleChance() : false;
-      const speedMult = game && game.perkManager ? game.perkManager.getBulletSpeedMultiplier() : 1.0;
       const isTechCrit = Math.random() < techTree.getPrimeCritChance();
       const finalDamage = isTechCrit ? Math.round(this.damage * 2) : this.damage;
       if (isTechCrit) {
@@ -460,8 +465,8 @@ export class Tower {
         target: target,
         factor: this.factor,
         damage: finalDamage,
-        speed: 340 * speedMult,
-        isDouble: isDouble
+        speed: 340,
+        isDouble: false
       }));
     } else if (this.type === 'absolute') {
       sound.playShoot('abs');
@@ -471,9 +476,6 @@ export class Tower {
         target: target
       }));
       target.takeAbsolutePurify(game);
-      if (game && game.perkManager && game.perkManager.getStunDuration() > 0) {
-        target.applyStun(game.perkManager.getStunDuration());
-      }
       this.cooldown = (1 / this.fireRate) * techTree.getAbsoluteCooldownMultiplier();
     } else if (this.type === 'operator') {
       sound.playShoot(3);

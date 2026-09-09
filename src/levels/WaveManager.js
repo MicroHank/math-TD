@@ -141,7 +141,9 @@ export class WaveManager {
           splitOnDivide: !!enemyConfig.splitOnDivide,
           isBoss: !!enemyConfig.isBoss,
           bossName: enemyConfig.bossName || '',
-          bossSkills: enemyConfig.bossSkills || []
+          bossSkills: enemyConfig.bossSkills || [],
+          isRecurring: !!enemyConfig.isRecurring,
+          recurringType: enemyConfig.recurringType || null
         });
 
         // 孿生質數雙子自動配對機制

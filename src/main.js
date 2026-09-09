@@ -109,12 +109,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const techTotalStars = document.getElementById('tech-total-stars');
   const techBranchesContainer = document.getElementById('tech-branches-container');
 
-  // 波次肉鴿天賦元素
-  const modalPerkChoice = document.getElementById('modal-perk-choice');
-  const perkCardsGrid = document.getElementById('perk-cards-grid');
-  const btnSkipPerk = document.getElementById('btn-skip-perk');
-  const hudActivePerks = document.getElementById('hud-active-perks');
-
   // 指揮官秘術元素
   const hudManaVal = document.getElementById('hud-mana-val');
   const hudManaFill = document.getElementById('hud-mana-fill');
@@ -629,65 +623,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 波次天賦選擇回呼與渲染
-  let currentPerkCallback = null;
-  function showPerkChoiceModal(perks, onSelect) {
-    currentPerkCallback = onSelect;
-    if (!modalPerkChoice || !perkCardsGrid) return;
-    perkCardsGrid.innerHTML = '';
-
-    const rarityNames = { common: '普通', rare: '稀有', epic: '史詩' };
-
-    perks.forEach(perk => {
-      const card = document.createElement('div');
-      card.className = `perk-card rarity-${perk.rarity}`;
-      card.innerHTML = `
-        <span class="perk-rarity-tag">${rarityNames[perk.rarity] || '定理'}</span>
-        <div class="perk-card-icon">${perk.icon}</div>
-        <div class="perk-card-name">${perk.name}</div>
-        <div class="perk-card-subtitle">${perk.subtitle}</div>
-        <div class="perk-card-desc">${perk.desc}</div>
-        <div class="perk-card-formula">${perk.formula}</div>
-      `;
-
-      card.addEventListener('click', () => {
-        modalPerkChoice.classList.add('hidden');
-        if (currentPerkCallback) {
-          const cb = currentPerkCallback;
-          currentPerkCallback = null;
-          cb(perk.id);
-        }
-      });
-
-      perkCardsGrid.appendChild(card);
-    });
-
-    modalPerkChoice.classList.remove('hidden');
-  }
-
-  if (btnSkipPerk) {
-    btnSkipPerk.addEventListener('click', () => {
-      modalPerkChoice.classList.add('hidden');
-      if (currentPerkCallback) {
-        const cb = currentPerkCallback;
-        currentPerkCallback = null;
-        cb('SKIP_GOLD');
-      }
-    });
-  }
-
-  function renderActivePerks(perks = []) {
-    if (!hudActivePerks) return;
-    hudActivePerks.innerHTML = '';
-    perks.forEach(p => {
-      const chip = document.createElement('div');
-      chip.className = `perk-chip rarity-${p.rarity}`;
-      chip.textContent = p.icon;
-      chip.setAttribute('data-tooltip', `${p.name} · ${p.formula}`);
-      hudActivePerks.appendChild(chip);
-    });
-  }
-
   function updateSpellButtons(stats) {
     if (!hudManaVal || !hudManaFill) return;
     hudManaVal.textContent = `${stats.mana} / ${stats.maxMana}`;
@@ -1106,7 +1041,6 @@ window.addEventListener('DOMContentLoaded', () => {
   let currentNextLevelId = null;
 
   game = new Game(canvas, {
-    onShowPerkChoice: showPerkChoiceModal,
     onStatsChange: (stats, gameInstance) => {
       currentGold = stats.gold;
       elGold.textContent = stats.gold;
@@ -1203,11 +1137,6 @@ window.addEventListener('DOMContentLoaded', () => {
         gameoverTitle.textContent = '💀 核心受損，防線崩潰！';
         gameoverDesc.textContent = `你在【${stats.currentLevelName}】奮戰至最後。複習質因數、絕對值與運算子技巧，再來挑戰一次吧！`;
         modalGameOver.classList.remove('hidden');
-      }
-
-      // 更新已啟動的數論天賦圖章
-      if (stats.activePerks) {
-        renderActivePerks(stats.activePerks);
       }
 
       // 更新指揮官秘術面板

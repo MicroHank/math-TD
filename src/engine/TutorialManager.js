@@ -155,7 +155,7 @@ export const TUTORIAL_LESSONS = [
     wavesCount: 2,
     icon: '⚛️',
     color: '#ec4899',
-    description: '當防禦塔等級提升，可花費金幣融合蛻變為「複合神塔」；且相距 $\\le 300\\text{px}$ 的 3 座塔將自動構成「幾何三角結界」提升 25% 攻速！'
+    description: '當防禦塔等級提升，可花費金幣融合蛻變為「複合神塔」；且相距小於 300 px 的 3 座塔將自動構成「幾何三角結界」提升 25% 攻速！'
   }
 ];
 

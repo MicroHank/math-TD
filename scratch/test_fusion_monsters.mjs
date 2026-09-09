@@ -46,7 +46,6 @@ const mockGame = {
   createSparks: () => {},
   createExplosion: () => {},
   addGold: () => {},
-  perkManager: null,
   monsters: [perfectMon]
 };
 perfectMon.takePrimeHit(2, 50, mockGame);

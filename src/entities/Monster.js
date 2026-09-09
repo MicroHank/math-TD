@@ -10,7 +10,9 @@ export class Monster {
     splitOnDivide = false,
     isBoss = false,
     bossName = '',
-    bossSkills = []
+    bossSkills = [],
+    isRecurring = false,
+    recurringType = null
   }) {
     this.id = id;
     this.value = value;
@@ -21,6 +23,53 @@ export class Monster {
     this.bossName = bossName;
     this.bossSkills = bossSkills;
 
+    // 循環小數幽靈屬性 (Recurring Decimal Phantom)
+    this.isRecurring = !!isRecurring;
+    this.recurringType = recurringType; // '0.3', '0.6', '0.142857', '0.9'
+
+    if (!this.isRecurring) {
+      if (typeof value === 'number' && value > 0 && value < 1) {
+        this.isRecurring = true;
+        if (Math.abs(value - 0.33) < 0.05 || Math.abs(value - 1/3) < 0.05) this.recurringType = '0.3';
+        else if (Math.abs(value - 0.66) < 0.05 || Math.abs(value - 2/3) < 0.05) this.recurringType = '0.6';
+        else if (Math.abs(value - 0.14) < 0.05 || Math.abs(value - 1/7) < 0.05) this.recurringType = '0.142857';
+        else if (Math.abs(value - 0.99) < 0.05) this.recurringType = '0.9';
+      } else if (typeof value === 'string' && (value.startsWith('0.') || value.includes('.'))) {
+        this.isRecurring = true;
+        if (value.includes('3')) this.recurringType = '0.3';
+        else if (value.includes('6')) this.recurringType = '0.6';
+        else if (value.includes('14') || value.includes('7')) this.recurringType = '0.142857';
+        else if (value.includes('9')) this.recurringType = '0.9';
+      }
+    }
+
+    if (this.isRecurring) {
+      if (!this.recurringType) this.recurringType = '0.3';
+      if (this.recurringType === '0.3') {
+        this.recurringDenominator = 3;
+        this.recurringNumerator = 1;
+        this.recurringDisplay = '0.3̇';
+        this.recurringTrailDigit = '3';
+      } else if (this.recurringType === '0.6') {
+        this.recurringDenominator = 3;
+        this.recurringNumerator = 2;
+        this.recurringDisplay = '0.6̇';
+        this.recurringTrailDigit = '6';
+      } else if (this.recurringType === '0.142857') {
+        this.recurringDenominator = 7;
+        this.recurringNumerator = 1;
+        this.recurringDisplay = '0.142857';
+        this.recurringTrailDigit = '7';
+      } else if (this.recurringType === '0.9') {
+        this.recurringDenominator = 1;
+        this.recurringNumerator = 1;
+        this.recurringDisplay = '0.9̇';
+        this.recurringTrailDigit = '9';
+      }
+      this.trailHistory = [];
+      this.trailTimer = 0;
+    }
+
     this.currentWaypointIndex = 0;
     this.x = waypoints[0].x;
     this.y = waypoints[0].y;
@@ -28,7 +77,7 @@ export class Monster {
 
     // 方案三：費波那契衝鋒隊加速
     this.isFibonacci = this.checkFibonacci(value);
-    const speedBonus = this.isFibonacci ? 1.38 : 1.0;
+    const speedBonus = this.isFibonacci ? 1.38 : (this.isRecurring ? 1.15 : 1.0);
     this.baseSpeed = speed * speedBonus;
     this.speed = this.baseSpeed;
 
@@ -37,8 +86,8 @@ export class Monster {
     this.radius = isBoss ? 36 : 24;
 
     // 總體數值生命與多段階層耐受度系統 (Multi-Hit Division Durability)
-    this.maxHp = Math.max(1, Math.abs(value));
-    this.hp = Math.max(0, Math.abs(value));
+    this.maxHp = Math.max(1, Math.abs(typeof value === 'number' ? value : 1));
+    this.hp = Math.max(0, Math.abs(typeof value === 'number' ? value : 1));
     this.maxStageHp = this.calcStageMaxHp(value, isBoss);
     this.stageHp = this.maxStageHp;
     this.prevStageHp = this.stageHp; // 用於受擊緩衝條 (White/Red buffer decay)
@@ -84,7 +133,16 @@ export class Monster {
 
   // 計算每個數字階段分解前所需的耐受度血量 (例如 6 面對 2 號砲 25 傷害，需承受 70 點約 3 發打擊)
   calcStageMaxHp(val, isBoss = false) {
-    const absVal = Math.abs(val);
+    if (this.isRecurring) {
+      let recBase = 65;
+      if (this.recurringType === '0.6') recBase = 75;
+      else if (this.recurringType === '0.142857') recBase = 85;
+      else recBase = 60;
+      if (isBoss) recBase = Math.round(recBase * 2.8);
+      return recBase;
+    }
+
+    const absVal = Math.abs(typeof val === 'number' ? val : 1);
     let base = 65;
     if (absVal <= 2) base = 40;        // ~2 發 Lv1 砲 (25 傷害)
     else if (absVal <= 4) base = 50;   // ~2 發 Lv1 砲
@@ -123,6 +181,9 @@ export class Monster {
   // 取得所包含的質因數標籤（用於視覺輔助小圓點）
   getFactors() {
     if (this.isNegative) return [];
+    if (this.isRecurring) {
+      return this.recurringDenominator > 1 ? [this.recurringDenominator] : [];
+    }
     const absVal = Math.abs(this.value);
     const factors = [];
     if (absVal > 1) {
@@ -159,24 +220,62 @@ export class Monster {
     if (this.isNegative) {
       sound.playResist();
       this.addFloatingText('負數護盾免疫!', '#f43f5e');
-      game.createSparks(this.x, this.y, '#f43f5e', 6);
+      if (game && game.createSparks) game.createSparks(this.x, this.y, '#f43f5e', 6);
       return false;
+    }
+
+    // 循環小數幽靈專屬判定：需對應分母共振打擊！
+    if (this.isRecurring) {
+      if (primeFactor !== this.recurringDenominator) {
+        sound.playResist();
+        this.addFloatingText('循環除不盡!', '#c084fc');
+        if (game && game.createSparks) game.createSparks(this.x, this.y, '#c084fc', 6);
+        return false;
+      }
+
+      // 分母匹配！扣除當前耐受度
+      this.hitFlashTimer = 0.22;
+      this.prevStageHp = Math.max(this.prevStageHp, this.stageHp);
+      this.stageHp -= damage;
+
+      if (this.stageHp > 0) {
+        sound.playShoot(primeFactor);
+        const remainingHits = Math.ceil(this.stageHp / damage);
+        this.addFloatingText(`-${damage} (剩${remainingHits}下)`, '#38bdf8');
+        if (game && game.createSparks) game.createSparks(this.x, this.y, '#38bdf8', 6);
+        return true;
+      }
+
+      // 耐受值耗盡：發動循環小數分數化！
+      sound.playDivide();
+      if (game && game.createSparks) game.createSparks(this.x, this.y, '#38bdf8', 20);
+
+      if (this.recurringNumerator === 1) {
+        // 分子為 1 (如 0.3̇ 或 0.142857)：乘以分母直接等於 1，完全湮滅！
+        this.addFloatingText(`${this.recurringDisplay} × ${primeFactor} = 1 (有理數消滅!)`, '#fde047');
+        this.isRecurring = false;
+        this.value = 1;
+        this.onEliminated(primeFactor, game);
+        return true;
+      } else {
+        // 分子大於 1 (如 0.6̇ 分子為 2)：乘以 3 化為整數 2！
+        const newInt = this.recurringNumerator;
+        this.addFloatingText(`${this.recurringDisplay} × ${primeFactor} = ${newInt} (化為整數!)`, '#fde047');
+        this.isRecurring = false;
+        this.value = newInt;
+        this.hp = newInt;
+        this.maxStageHp = this.calcStageMaxHp(newInt, this.isBoss);
+        this.stageHp = this.maxStageHp;
+        this.prevStageHp = this.stageHp;
+        return true;
+      }
     }
 
     // 無法整除判定
     if (this.value % primeFactor !== 0) {
       sound.playResist();
-      if (game && game.perkManager && game.perkManager.getCoprimePierceBonus() > 0) {
-        const pierceDmg = Math.round(damage * game.perkManager.getCoprimePierceBonus());
-        this.hitFlashTimer = 0.22;
-        this.prevStageHp = Math.max(this.prevStageHp, this.stageHp);
-        this.stageHp -= pierceDmg;
-        this.addFloatingText(`互質削甲 -${pierceDmg}!`, '#a5b4fc');
-        game.createSparks(this.x, this.y, '#818cf8', 8);
-      } else {
-        this.addFloatingText(`無法被 ${primeFactor} 整除!`, '#94a3b8');
-        game.createSparks(this.x, this.y, '#94a3b8', 5);
-      }
+      this.addFloatingText(`無法被 ${primeFactor} 整除!`, '#94a3b8');
+      if (game && game.createSparks) game.createSparks(this.x, this.y, '#94a3b8', 5);
       return false;
     }
 
@@ -202,7 +301,7 @@ export class Monster {
       sound.playShoot(primeFactor);
       const remainingHits = Math.ceil(this.stageHp / effectiveDamage);
       this.addFloatingText(`-${effectiveDamage} (剩${remainingHits}下)`, '#38bdf8');
-      game.createSparks(this.x, this.y, '#38bdf8', 6);
+      if (game && game.createSparks) game.createSparks(this.x, this.y, '#38bdf8', 6);
       return true;
     }
 
@@ -213,7 +312,7 @@ export class Monster {
 
     // 彈出金色醒目運算式動態回饋
     this.addFloatingText(`${oldVal} ÷ ${primeFactor} = ${newVal}`, '#fde047');
-    game.createSparks(this.x, this.y, '#38bdf8', 18);
+    if (game && game.createSparks) game.createSparks(this.x, this.y, '#38bdf8', 18);
 
     // 更新數值
     this.value = newVal;
@@ -222,13 +321,13 @@ export class Monster {
     // 魔王分裂護衛侍從機制
     if (this.isBoss && this.bossSkills.includes('split_adds') && newVal > 10) {
       const minionVal = Math.min(30, Math.max(6, Math.floor(newVal / 4)));
-      game.spawnSplitClone(this, minionVal);
+      if (game && game.spawnSplitClone) game.spawnSplitClone(this, minionVal);
       this.addFloatingText('召喚因數侍從!', '#f59e0b');
     }
 
     // 一般特殊分裂怪機制
     if (this.splitOnDivide && newVal > 1) {
-      game.spawnSplitClone(this, newVal);
+      if (game && game.spawnSplitClone) game.spawnSplitClone(this, newVal);
       this.splitOnDivide = false;
       return true;
     }
@@ -273,19 +372,20 @@ export class Monster {
   onEliminated(primeFactor = null, game) {
     this.isDead = true;
     sound.playEliminate();
-    const goldMult = game && game.perkManager ? (1 + game.perkManager.getGoldMultiplier()) : 1.0;
     const lcmBountyBonus = this.isLcmMerged ? 1.5 : 1.0;
-    const baseBounty = Math.max(10, Math.floor(Math.abs(this.originalValue) * 0.58 * goldMult * lcmBountyBonus));
+    const baseBounty = Math.max(10, Math.floor(Math.abs(this.originalValue) * 0.58 * lcmBountyBonus));
     const reward = this.isBoss ? Math.max(80, Math.floor(baseBounty * 2.2)) : baseBounty;
-    game.addGold(reward, this.x, this.y);
-    game.createExplosion(this.x, this.y, this.isLcmMerged ? '#ec4899' : (this.isBoss ? '#f59e0b' : '#22c55e'), this.isBoss || this.isLcmMerged ? 50 : 24);
+    if (game) {
+      if (game.addGold) game.addGold(reward, this.x, this.y);
+      if (game.createExplosion) game.createExplosion(this.x, this.y, this.isLcmMerged ? '#ec4899' : (this.isBoss ? '#f59e0b' : '#22c55e'), this.isBoss || this.isLcmMerged ? 50 : 24);
+    }
 
     // 方案三：孿生雙子陣亡觸發狂暴
     if (this.twinPartner && !this.twinPartner.isDead && !this.twinPartner.isRaging) {
       this.twinPartner.isRaging = true;
       this.twinPartner.speed = this.twinPartner.baseSpeed * 1.6;
       this.twinPartner.addFloatingText('⚡ 雙子狂暴 (速度+60%)!', '#ef4444');
-      game.createSparks(this.twinPartner.x, this.twinPartner.y, '#ef4444', 20);
+      if (game && game.createSparks) game.createSparks(this.twinPartner.x, this.twinPartner.y, '#ef4444', 20);
     }
 
     // 方案三：費波那契黃金螺旋減速波
@@ -303,11 +403,6 @@ export class Monster {
     // 模組三：公倍數合體巨獸因數裂變引爆
     if (this.isLcmMerged && game && game.lcmManager) {
       game.lcmManager.triggerFissionShockwave(this.x, this.y, primeFactor);
-    }
-
-    // 歐拉篩法因數連鎖引爆
-    if (game && game.perkManager && game.perkManager.hasEulerSieve() && primeFactor) {
-      game.triggerEulerSieveExplosion(this.x, this.y, primeFactor);
     }
   }
 
@@ -338,6 +433,40 @@ export class Monster {
       sound.playResist();
       this.addFloatingText('負數不可運算!', '#f43f5e');
       return false;
+    }
+
+    // 循環小數幽靈判定
+    if (this.isRecurring) {
+      this.operatorCooldown = 1.6;
+      if (this.recurringType === '0.9') {
+        // 0.9̇ = 1 極限坍縮！
+        sound.playDivide();
+        this.addFloatingText('0.9̇ = 1 (極限坍縮!)', '#2dd4bf');
+        if (game && game.createExplosion) game.createExplosion(this.x, this.y, '#2dd4bf', 30);
+        this.isRecurring = false;
+        this.value = 1;
+        this.onEliminated(null, game);
+        return true;
+      } else {
+        // 對其他循環幽靈施加運算子脈衝，削弱循環護盾
+        sound.playShoot(3);
+        this.stageHp -= 35;
+        this.hitFlashTimer = 0.22;
+        this.addFloatingText('運算微調 -35!', '#2dd4bf');
+        if (game && game.createSparks) game.createSparks(this.x, this.y, '#14b8a6', 15);
+        if (this.stageHp <= 0) {
+          const newInt = this.recurringNumerator || 1;
+          this.isRecurring = false;
+          this.value = newInt;
+          if (newInt <= 1) {
+            this.onEliminated(null, game);
+          } else {
+            this.maxStageHp = this.calcStageMaxHp(newInt, this.isBoss);
+            this.stageHp = this.maxStageHp;
+          }
+        }
+        return true;
+      }
     }
 
     // 方案三：完全數聖靈護盾被 ±1 運算子擊碎！
@@ -388,8 +517,7 @@ export class Monster {
     if (this.isSquare) {
       // 完全平方數：造成方根暴擊破甲！
       sound.playShoot(5);
-      const critMult = game && game.perkManager ? game.perkManager.getSquareCritMultiplier() : 2.5;
-      const critDmg = Math.round(damage * critMult);
+      const critDmg = Math.round(damage * 2.5);
       this.stageHp -= critDmg;
       game.createSparks(this.x, this.y, '#f59e0b', 12);
 
@@ -560,6 +688,17 @@ export class Monster {
         this.y += (dy / dist) * step;
         this.progress += step;
       }
+
+      // 循環小數幽靈：記錄歷史座標產生身後殘影
+      if (this.isRecurring) {
+        if (!this.trailHistory) this.trailHistory = [];
+        this.trailTimer = (this.trailTimer || 0) + dt;
+        if (this.trailTimer >= 0.08) {
+          this.trailTimer = 0;
+          this.trailHistory.unshift({ x: this.x, y: this.y });
+          if (this.trailHistory.length > 7) this.trailHistory.pop();
+        }
+      }
     } else {
       // 抵達終點基地
       this.reachedEnd = true;
@@ -574,10 +713,29 @@ export class Monster {
   draw(ctx) {
     ctx.save();
 
+    // 循環小數幽靈：身後拖曳淡出的循環小數數字殘影
+    if (this.isRecurring && this.trailHistory && this.trailHistory.length > 0) {
+      ctx.save();
+      ctx.font = 'bold 12px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const trailChar = this.recurringTrailDigit || '3';
+      this.trailHistory.forEach((pt, idx) => {
+        const alpha = 0.55 * (1 - (idx + 1) / (this.trailHistory.length + 1));
+        ctx.fillStyle = `rgba(192, 132, 252, ${alpha})`;
+        ctx.shadowColor = '#c084fc';
+        ctx.shadowBlur = 6;
+        ctx.fillText(trailChar, pt.x, pt.y);
+      });
+      ctx.restore();
+    }
+
     // 繪製陰影與光環
     ctx.shadowBlur = this.isBoss ? 20 : 12;
     if (this.isBoss) {
       ctx.shadowColor = '#f59e0b';
+    } else if (this.isRecurring) {
+      ctx.shadowColor = '#c084fc';
     } else if (this.isNegative) {
       ctx.shadowColor = '#a855f7';
     } else if (this.splitOnDivide) {
@@ -591,6 +749,8 @@ export class Monster {
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     if (this.isBoss) {
       ctx.fillStyle = '#451a03'; // 深金琥珀核
+    } else if (this.isRecurring) {
+      ctx.fillStyle = '#2e1065'; // 幽靈紫核
     } else if (this.isNegative) {
       ctx.fillStyle = '#2e1065';
     } else if (this.splitOnDivide) {
@@ -612,6 +772,25 @@ export class Monster {
       ctx.strokeStyle = 'rgba(245, 158, 11, 0.6)';
       ctx.lineWidth = 2;
       ctx.stroke();
+    } else if (this.isRecurring) {
+      const pulse = Math.sin(this.pulseAngle * 1.8) * 3;
+      ctx.strokeStyle = '#c084fc';
+      ctx.stroke();
+
+      // 幽靈靈氣環
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius + 5 + pulse, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(192, 132, 252, 0.7)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 頭頂 ∞ 標記
+      ctx.fillStyle = '#d8b4fe';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('∞', this.x, this.y - this.radius - 8);
     } else if (this.isNegative) {
       const pulse = Math.sin(this.pulseAngle) * 3;
       ctx.strokeStyle = '#c084fc';
@@ -775,15 +954,21 @@ export class Monster {
 
     // 繪製中心數字 (整數四捨五入防浮點數誤差)
     ctx.shadowBlur = 0;
-    ctx.fillStyle = this.isNegative ? '#fbcfe8' : '#ffffff';
-    ctx.font = `bold ${this.isBoss ? 20 : 18}px "Outfit", sans-serif`;
+    let displayVal = Math.round(this.value);
+    if (this.isRecurring) {
+      displayVal = this.recurringDisplay || '0.3̇';
+      ctx.fillStyle = '#f5d0fe';
+      ctx.font = `bold ${this.recurringType === '0.142857' ? 12 : 15}px "Outfit", sans-serif`;
+    } else {
+      ctx.fillStyle = this.isNegative ? '#fbcfe8' : '#ffffff';
+      ctx.font = `bold ${this.isBoss ? 20 : 18}px "Outfit", sans-serif`;
+    }
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const displayVal = Math.round(this.value);
     ctx.fillText(`${displayVal}`, this.x, this.y - (this.isNegative ? 0 : 2));
 
     // 質因數提示小彩燈
-    if (!this.isNegative && displayVal > 1) {
+    if (!this.isNegative && (this.isRecurring || displayVal > 1)) {
       const factors = this.getFactors();
       const dotRadius = 3.5;
       const startX = this.x - ((factors.length - 1) * 9) / 2;

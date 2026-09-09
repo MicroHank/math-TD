@@ -82,8 +82,22 @@ export class EndlessManager {
         continue;
       }
 
+      // 循環小數幽靈 (0.3̇, 0.6̇, 0.142857, 0.9̇)
+      if (waveNumber >= 3 && roll < 0.20) {
+        const phantomPool = ['0.3', '0.6', '0.142857', '0.9'];
+        const rType = phantomPool[Math.floor(Math.random() * (waveNumber >= 6 ? phantomPool.length : 2))];
+        enemies.push({
+          val: rType,
+          isRecurring: true,
+          recurringType: rType,
+          delay: 0.85,
+          speed: baseSpeed * 0.95
+        });
+        continue;
+      }
+
       // 孿生質數雙子 (成對生成)
-      if (waveNumber >= 3 && roll < 0.28 && i < enemyCount - 1) {
+      if (waveNumber >= 3 && roll < 0.36 && i < enemyCount - 1) {
         const pairIdx = Math.min(twinPairs.length - 1, Math.floor(Math.random() * (1 + Math.floor(waveNumber / 4))));
         const pair = twinPairs[pairIdx];
         enemies.push({
@@ -101,7 +115,7 @@ export class EndlessManager {
       }
 
       // 費波那契衝鋒隊
-      if (waveNumber >= 2 && roll < 0.42) {
+      if (waveNumber >= 2 && roll < 0.50) {
         const fibVal = fibs[Math.min(fibs.length - 1, Math.floor(Math.random() * (2 + Math.floor(waveNumber / 3))))];
         enemies.push({
           val: fibVal,
@@ -112,7 +126,7 @@ export class EndlessManager {
       }
 
       // 負數護盾怪
-      if (waveNumber >= 3 && roll < 0.58) {
+      if (waveNumber >= 3 && roll < 0.66) {
         const negVal = -(Math.floor(Math.random() * (waveNumber * 10)) + 12);
         enemies.push({
           val: negVal,
@@ -123,7 +137,7 @@ export class EndlessManager {
       }
 
       // 完全平方數
-      if (waveNumber >= 2 && roll < 0.72) {
+      if (waveNumber >= 2 && roll < 0.80) {
         const sqVal = squares[Math.min(squares.length - 1, Math.floor(Math.random() * (3 + Math.floor(waveNumber / 4))))];
         enemies.push({
           val: sqVal,
