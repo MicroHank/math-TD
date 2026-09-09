@@ -11,6 +11,7 @@ import { GeometricResonanceManager } from './GeometricResonanceManager.js';
 import { LcmMergeManager } from './LcmMergeManager.js';
 import { techTree } from './TechTreeManager.js';
 import { endlessManager } from './EndlessManager.js';
+import { TutorialManager } from './TutorialManager.js';
 
 export class Game {
   constructor(canvas, uiCallbacks) {
@@ -19,7 +20,7 @@ export class Game {
     this.ui = uiCallbacks || {};
 
     // 遊戲參數與經濟
-    this.gameMode = 'adventure'; // 'adventure', 'endless', 'boss_rush'
+    this.gameMode = 'adventure'; // 'adventure', 'endless', 'boss_rush', 'tutorial'
     this.bossRushStageIndex = 1;
     this.currentLevelId = '1-1';
     this.currentLevel = LEVELS['1-1'];
@@ -31,6 +32,9 @@ export class Game {
     this.isPaused = false;
     this.isGameOver = false;
     this.isGameOverReported = false;
+
+    // 教學學院管理器
+    this.tutorialManager = new TutorialManager(this);
 
     // 波次肉鴿天賦管理器
     this.perkManager = new PerkManager(this);
@@ -80,19 +84,29 @@ export class Game {
 
   loadLevel(levelId, mode = 'adventure', stageIndex = 1) {
     let levelData;
-    if (mode === 'endless' || levelId === 'endless') {
+    if (mode === 'tutorial' || (typeof levelId === 'string' && levelId.startsWith('tutorial_'))) {
+      this.gameMode = 'tutorial';
+      this.currentLevelId = levelId;
+      levelData = LEVELS[levelId] || LEVELS['tutorial_master'];
+      if (this.tutorialManager) {
+        this.tutorialManager.startLesson(levelId);
+      }
+    } else if (mode === 'endless' || levelId === 'endless') {
       this.gameMode = 'endless';
       this.currentLevelId = 'endless';
       levelData = endlessManager.getEndlessLevelConfig(1);
+      if (this.tutorialManager) this.tutorialManager.stopLesson();
     } else if (mode === 'boss_rush' || (typeof levelId === 'string' && levelId.startsWith('boss_rush'))) {
       this.gameMode = 'boss_rush';
       this.bossRushStageIndex = stageIndex || (parseInt(levelId.split('_')[2]) || 1);
       this.currentLevelId = `boss_rush_${this.bossRushStageIndex}`;
       levelData = endlessManager.getBossRushLevelConfig(this.bossRushStageIndex);
+      if (this.tutorialManager) this.tutorialManager.stopLesson();
     } else {
       this.gameMode = 'adventure';
       levelData = LEVELS[levelId] || LEVELS['1-1'];
       this.currentLevelId = levelId;
+      if (this.tutorialManager) this.tutorialManager.stopLesson();
     }
 
     this.currentLevel = levelData;
@@ -534,6 +548,27 @@ export class Game {
       stars = 2;
     }
 
+    // 教學學院模式勝利結算
+    if (this.gameMode === 'tutorial') {
+      const isMaster = this.currentLevelId === 'tutorial_master';
+      if (this.tutorialManager) {
+        this.tutorialManager.onTutorialCompleted(this.currentLevelId);
+      }
+      const rewardText = isMaster ? '🎓 學院畢業！研究點數 +5 ⭐' : '🎓 課堂特訓通關！研究點數 +1 ⭐';
+      this.coinFloats.push(new CoinFloat({ x: 480, y: 230, text: rewardText, color: '#38bdf8' }));
+      if (this.ui.onLevelVictory) {
+        this.ui.onLevelVictory({
+          levelId: this.currentLevelId,
+          levelName: this.currentLevel.name,
+          stars: stars,
+          isTutorial: true,
+          nextLevelId: this.currentLevel.nextLevelId
+        });
+      }
+      this.syncUI();
+      return;
+    }
+
     // 魔王連戰勝利結算
     if (this.gameMode === 'boss_rush') {
       progress.updateBossRushRecord(this.bossRushStageIndex);
@@ -581,6 +616,10 @@ export class Game {
         lives: this.lives,
         maxLives: this.maxLives,
         gameMode: this.gameMode,
+        isTutorial: this.gameMode === 'tutorial',
+        tutorialStep: (this.tutorialManager && this.tutorialManager.isTutorialActive)
+          ? this.tutorialManager.getCurrentStepInfo(this.waveManager.currentWaveIndex)
+          : null,
         bossRushStageIndex: this.bossRushStageIndex,
         wave: this.waveManager.currentWaveIndex + (this.waveManager.waveInProgress ? 1 : 0),
         displayWaveNumber: this.waveManager.currentWaveIndex + 1,

@@ -142,6 +142,15 @@ export class ProgressManager {
     return false;
   }
 
+  // 教學學院通關狀態
+  isTutorialMasterCompleted() {
+    return (this.data.levelStars && this.data.levelStars['tutorial_master'] > 0);
+  }
+
+  isTutorialLessonCompleted(lessonId) {
+    return (this.data.levelStars && this.data.levelStars[lessonId] > 0);
+  }
+
   // 重置遊戲所有進度與 LocalStorage，恢復最初狀態
   resetAllProgress() {
     try {

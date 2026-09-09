@@ -5,6 +5,7 @@ import { progress } from './engine/ProgressManager.js';
 import { sound } from './engine/Audio.js';
 import { techTree, TECH_BRANCHES, TECH_NODES } from './engine/TechTreeManager.js';
 import { endlessManager } from './engine/EndlessManager.js';
+import { TUTORIAL_LESSONS, TUTORIAL_MASTER_STEPS } from './engine/TutorialManager.js';
 
 window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('game-canvas');
@@ -14,6 +15,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const battleView = document.getElementById('battle-view');
 
   // 首頁 DOM 元素引用
+  const btnHomeTutorial = document.getElementById('btn-home-tutorial');
+  const homeTutorialBadge = document.getElementById('home-tutorial-badge');
   const btnHomeAdventure = document.getElementById('btn-home-adventure');
   const btnHomeEndless = document.getElementById('btn-home-endless');
   const btnHomeBossRush = document.getElementById('btn-home-boss-rush');
@@ -29,6 +32,38 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnHomeReset = document.getElementById('btn-home-reset');
   const homeStatStages = document.getElementById('home-stat-stages');
   const homeStatStars = document.getElementById('home-stat-stars');
+
+  // 數論作戰學院 DOM 元素
+  const modalTutorialAcademy = document.getElementById('modal-tutorial-academy');
+  const btnCloseAcademy = document.getElementById('btn-close-academy');
+  const btnStartMasterTut = document.getElementById('btn-start-master-tut');
+  const cardTutorialMaster = document.getElementById('card-tutorial-master');
+  const academyLessonsGrid = document.getElementById('academy-lessons-grid');
+  const academyRecordText = document.getElementById('academy-record-text');
+
+  // 砲塔 / 秘術特寫 Spotlight DOM 元素
+  const modalTowerSpotlight = document.getElementById('modal-tower-spotlight');
+  const spotlightCanvas = document.getElementById('spotlight-canvas');
+  const spotlightBadge = document.getElementById('spotlight-badge');
+  const spotlightStepTag = document.getElementById('spotlight-step-tag');
+  const spotlightHalo = document.getElementById('spotlight-halo');
+  const spotlightIconLabel = document.getElementById('spotlight-icon-label');
+  const spotlightTitle = document.getElementById('spotlight-title');
+  const spotlightFormula = document.getElementById('spotlight-formula');
+  const spotlightTargets = document.getElementById('spotlight-targets');
+  const spotlightDesc = document.getElementById('spotlight-desc');
+  const spotlightTimerBar = document.getElementById('spotlight-timer-bar');
+  const spotlightCountdown = document.getElementById('spotlight-countdown');
+  const btnCloseSpotlight = document.getElementById('btn-close-spotlight');
+  const btnSpotlightX = document.getElementById('btn-spotlight-x');
+
+  // 戰鬥動態教學指引看板 DOM 元素
+  const hudTutorialBanner = document.getElementById('hud-tutorial-banner');
+  const tutStepTitle = document.getElementById('tut-step-title');
+  const tutTargetTag = document.getElementById('tut-target-tag');
+  const tutInstructorMsg = document.getElementById('tut-instructor-msg');
+  const tutFormulaText = document.getElementById('tut-formula-text');
+  const tutActionPrompt = document.getElementById('tut-action-prompt');
 
   // 戰鬥頂部導航
   const btnBackHome = document.getElementById('btn-back-home');
@@ -215,6 +250,11 @@ window.addEventListener('DOMContentLoaded', () => {
     if (homeStatStages) homeStatStages.textContent = `${progress.getClearedLevelsCount()} / 20`;
     if (homeStatStars) homeStatStars.textContent = `${techTree.getAvailableStars()} ⭐ (${techTree.getTotalEarnedStars()} 總獲取)`;
 
+    if (homeTutorialBadge) {
+      const masterDone = progress.isTutorialMasterCompleted();
+      homeTutorialBadge.textContent = masterDone ? '⭐ 已認證結業' : '進入學院 ➔';
+    }
+
     if (homeEndlessBadge) {
       const rec = progress.getEndlessRecord();
       homeEndlessBadge.textContent = rec > 0 ? `紀錄: 第 ${rec} 波` : '尚未挑戰';
@@ -246,6 +286,74 @@ window.addEventListener('DOMContentLoaded', () => {
       homeSoundIcon.textContent = sound.muted ? '🔇' : '🔊';
       homeSoundText.textContent = sound.muted ? '音效：已靜音' : '音效：開啟';
     }
+  }
+
+  // 渲染數論作戰學院選單
+  function renderTutorialAcademy() {
+    if (!academyLessonsGrid) return;
+    const masterDone = progress.isTutorialMasterCompleted();
+    if (academyRecordText) {
+      academyRecordText.textContent = masterDone ? '⭐ 榮譽結業認證' : '尚未完成';
+      academyRecordText.style.color = masterDone ? '#4ade80' : '#38bdf8';
+    }
+
+    academyLessonsGrid.innerHTML = '';
+    TUTORIAL_LESSONS.filter(l => l.lessonNum > 0).forEach(lesson => {
+      const isCleared = progress.isTutorialLessonCompleted(lesson.id);
+      const card = document.createElement('div');
+      card.className = `academy-lesson-card ${isCleared ? 'cleared' : ''}`;
+      card.innerHTML = `
+        <div class="lesson-card-top">
+          <div class="lesson-card-icon" style="background: ${lesson.color}22; color: ${lesson.color}; border: 1px solid ${lesson.color}66;">${lesson.icon}</div>
+          <span class="lesson-badge">${lesson.badge}</span>
+        </div>
+        <div class="lesson-card-title">${lesson.title}</div>
+        <div class="lesson-card-desc">${lesson.description}</div>
+        <div class="lesson-card-footer">
+          <span class="lesson-waves">波次: ${lesson.wavesCount} 波</span>
+          <span class="${isCleared ? 'lesson-cleared-tag' : 'lesson-reward'}">${isCleared ? '✔ 已掌握 (+1⭐)' : lesson.reward}</span>
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        if (modalTutorialAcademy) modalTutorialAcademy.classList.add('hidden');
+        showBattleScreen(lesson.id, 'tutorial');
+      });
+
+      academyLessonsGrid.appendChild(card);
+    });
+  }
+
+  // 學院入口按鈕綁定
+  if (btnHomeTutorial) {
+    btnHomeTutorial.addEventListener('click', () => {
+      if (modalTutorialAcademy) {
+        renderTutorialAcademy();
+        modalTutorialAcademy.classList.remove('hidden');
+      }
+    });
+  }
+
+  if (btnCloseAcademy) {
+    btnCloseAcademy.addEventListener('click', () => {
+      if (modalTutorialAcademy) modalTutorialAcademy.classList.add('hidden');
+    });
+  }
+
+  if (btnStartMasterTut) {
+    btnStartMasterTut.addEventListener('click', () => {
+      if (modalTutorialAcademy) modalTutorialAcademy.classList.add('hidden');
+      showBattleScreen('tutorial_master', 'tutorial');
+    });
+  }
+
+  if (cardTutorialMaster) {
+    cardTutorialMaster.addEventListener('click', (e) => {
+      if (e.target !== btnStartMasterTut) {
+        if (modalTutorialAcademy) modalTutorialAcademy.classList.add('hidden');
+        showBattleScreen('tutorial_master', 'tutorial');
+      }
+    });
   }
 
   // 切換至遊戲首頁
@@ -297,8 +405,6 @@ window.addEventListener('DOMContentLoaded', () => {
     currentActiveChapter = chapterId;
     if (!stagesGrid) return;
     stagesGrid.innerHTML = '';
-    const chapter = CHAPTERS.find(c => c.id === chapterId);
-    if (!chapter) return;
 
     // 更新分頁按鈕高亮
     chapterTabs.forEach(tab => {
@@ -308,6 +414,39 @@ window.addEventListener('DOMContentLoaded', () => {
         tab.classList.remove('active');
       }
     });
+
+    if (chapterId === 'tutorial') {
+      // 渲染所有教學關卡
+      TUTORIAL_LESSONS.forEach(tut => {
+        const lvl = LEVELS[tut.id];
+        if (!lvl) return;
+        const isCleared = tut.id === 'tutorial_master' ? progress.isTutorialMasterCompleted() : progress.isTutorialLessonCompleted(tut.id);
+
+        const card = document.createElement('div');
+        card.className = `stage-card ${isCleared ? 'cleared' : ''}`;
+        card.innerHTML = `
+          <div class="stage-header-row">
+            <span class="stage-name">${lvl.name}</span>
+            <span class="stage-stars">${isCleared ? '⭐⭐⭐' : '☆☆☆'}</span>
+          </div>
+          <div class="stage-desc">${lvl.subtitle}</div>
+          <span class="stage-badge badge-normal">
+            波次: ${lvl.waves.length} ｜ ${isCleared ? '✔ 已掌握' : tut.reward}
+          </span>
+        `;
+
+        card.addEventListener('click', () => {
+          modalStageMap.classList.add('hidden');
+          showBattleScreen(tut.id, 'tutorial');
+        });
+
+        stagesGrid.appendChild(card);
+      });
+      return;
+    }
+
+    const chapter = CHAPTERS.find(c => c.id === chapterId);
+    if (!chapter) return;
 
     chapter.levels.forEach(levelId => {
       const lvl = LEVELS[levelId];
@@ -617,6 +756,351 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==========================================================
+  // 砲塔 / 秘術放大特寫 Spotlight 動態渲染與計時控制
+  // ==========================================================
+  let spotlightAnimFrame = null;
+  let spotlightTimerInterval = null;
+  let spotlightStartTime = 0;
+  const SPOTLIGHT_DURATION = 4000;
+
+  function drawSpotlightCanvas(ctx, type, icon, color, timestamp) {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, 160, 160);
+    const cx = 80;
+    const cy = 80;
+    const t = (timestamp || 0) * 0.001;
+
+    // 1. 背景能量微波光環
+    ctx.save();
+    const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 70);
+    grad.addColorStop(0, `${color}44`);
+    grad.addColorStop(0.7, `${color}11`);
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 70, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 2. 外圍旋轉符文結界環
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(t * 0.8);
+    ctx.strokeStyle = `${color}66`;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.arc(0, 0, 58, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // 3. 核心底座與旋轉砲管/幾何結晶
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    if (type === 'PRIME_2') {
+      // 雙子砲：雙重旋轉砲管
+      ctx.rotate(t * 1.5);
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 12;
+      ctx.fillRect(-6, -42, 12, 28);
+      ctx.fillRect(-6, 14, 12, 28);
+      ctx.beginPath();
+      ctx.arc(0, 0, 24, 0, Math.PI * 2);
+      ctx.fillStyle = '#0f172a';
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = color;
+      ctx.stroke();
+    } else if (type === 'PRIME_3') {
+      // 三元激光：三角旋轉棱鏡
+      ctx.rotate(t * 1.2);
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 14;
+      for (let i = 0; i < 3; i++) {
+        ctx.save();
+        ctx.rotate((i * Math.PI * 2) / 3);
+        ctx.fillRect(-5, -42, 10, 26);
+        ctx.restore();
+      }
+      ctx.beginPath();
+      ctx.arc(0, 0, 24, 0, Math.PI * 2);
+      ctx.fillStyle = '#0f172a';
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = color;
+      ctx.stroke();
+    } else if (type === 'PRIME_5') {
+      // 五芒衝擊：五芒星砲台
+      ctx.rotate(t * 1.0);
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 14;
+      for (let i = 0; i < 5; i++) {
+        ctx.save();
+        ctx.rotate((i * Math.PI * 2) / 5);
+        ctx.fillRect(-4, -40, 8, 24);
+        ctx.restore();
+      }
+      ctx.beginPath();
+      ctx.arc(0, 0, 25, 0, Math.PI * 2);
+      ctx.fillStyle = '#0f172a';
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = color;
+      ctx.stroke();
+    } else if (type === 'PRIME_7') {
+      // 七曜天琴：七曜星弦
+      ctx.rotate(t * 0.9);
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 16;
+      for (let i = 0; i < 7; i++) {
+        ctx.save();
+        ctx.rotate((i * Math.PI * 2) / 7);
+        ctx.fillRect(-3, -42, 6, 26);
+        ctx.restore();
+      }
+      ctx.beginPath();
+      ctx.arc(0, 0, 26, 0, Math.PI * 2);
+      ctx.fillStyle = '#0f172a';
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = color;
+      ctx.stroke();
+    } else if (type === 'ABSOLUTE') {
+      // 絕對值稜鏡：旋轉晶體鑽石
+      ctx.rotate(t * 1.2);
+      ctx.fillStyle = '#c084fc';
+      ctx.shadowColor = '#c084fc';
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+      ctx.moveTo(0, -38);
+      ctx.lineTo(32, 0);
+      ctx.lineTo(0, 38);
+      ctx.lineTo(-32, 0);
+      ctx.closePath();
+      ctx.strokeStyle = '#f3e8ff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(192, 132, 252, 0.3)';
+      ctx.fill();
+    } else if (type === 'SQRT') {
+      // 方根重力井：旋轉雙層方框
+      ctx.rotate(t * 1.1);
+      ctx.strokeStyle = '#f59e0b';
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 16;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(-26, -26, 52, 52);
+      ctx.rotate(Math.PI / 4);
+      ctx.strokeStyle = '#fde047';
+      ctx.strokeRect(-20, -20, 40, 40);
+    } else if (type === 'OPERATOR') {
+      // 運算子調整塔：八角量子脈衝陣
+      ctx.rotate(t * 1.4);
+      ctx.strokeStyle = '#14b8a6';
+      ctx.shadowColor = '#14b8a6';
+      ctx.shadowBlur = 16;
+      ctx.lineWidth = 3;
+      for (let i = 0; i < 4; i++) {
+        ctx.save();
+        ctx.rotate((i * Math.PI) / 2);
+        ctx.strokeRect(-18, -18, 36, 36);
+        ctx.restore();
+      }
+    } else if (type === 'ZERO_FREEZE') {
+      // 絕對零度塔：冰晶雪花
+      ctx.rotate(-t * 1.0);
+      ctx.strokeStyle = '#06b6d4';
+      ctx.shadowColor = '#06b6d4';
+      ctx.shadowBlur = 18;
+      ctx.lineWidth = 2.5;
+      for (let i = 0; i < 6; i++) {
+        ctx.save();
+        ctx.rotate((i * Math.PI) / 3);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -40);
+        ctx.moveTo(-10, -26);
+        ctx.lineTo(0, -34);
+        ctx.lineTo(10, -26);
+        ctx.stroke();
+        ctx.restore();
+      }
+    } else if (type === 'UPGRADE_SELL') {
+      // 升級變賣：旋轉金環與升級箭頭
+      ctx.rotate(t * 1.2);
+      ctx.strokeStyle = '#f59e0b';
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 16;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, 36, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 4; i++) {
+        ctx.save();
+        ctx.rotate((i * Math.PI) / 2);
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.moveTo(0, -42);
+        ctx.lineTo(8, -30);
+        ctx.lineTo(-8, -30);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+    } else if (type === 'SPELLS') {
+      // 指揮官秘術：三色量子奧義陣
+      ctx.rotate(t * 1.6);
+      ctx.lineWidth = 3;
+      ctx.shadowBlur = 20;
+      ctx.strokeStyle = '#38bdf8';
+      ctx.shadowColor = '#38bdf8';
+      ctx.beginPath(); ctx.arc(0, 0, 42, 0, (Math.PI * 2) / 3); ctx.stroke();
+      ctx.strokeStyle = '#c084fc';
+      ctx.shadowColor = '#c084fc';
+      ctx.beginPath(); ctx.arc(0, 0, 42, (Math.PI * 2) / 3, (Math.PI * 4) / 3); ctx.stroke();
+      ctx.strokeStyle = '#fbbf24';
+      ctx.shadowColor = '#fbbf24';
+      ctx.beginPath(); ctx.arc(0, 0, 42, (Math.PI * 4) / 3, Math.PI * 2); ctx.stroke();
+    } else if (type === 'FUSION_6' || type === 'FUSION_15' || type === 'FUSION_ABS_SQRT' || type === 'FUSION_FACTORIAL') {
+      // 複合神塔：雙環陀螺儀
+      ctx.rotate(t * 2);
+      ctx.strokeStyle = '#ec4899';
+      ctx.shadowColor = '#ec4899';
+      ctx.shadowBlur = 20;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 44, 20, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.rotate(Math.PI / 2);
+      ctx.strokeStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 44, 20, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      // 結業考核 / 預設
+      ctx.rotate(t * 1.2);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.shadowColor = '#38bdf8';
+      ctx.shadowBlur = 18;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, 36, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // 4. 中心文字符號 (不隨整體旋轉)
+    ctx.restore();
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.font = 'bold 22px "Outfit", "Noto Sans TC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 12;
+    ctx.fillText(icon || 'TD', 0, 0);
+    ctx.restore();
+  }
+
+  function showTowerSpotlight(stepInfo, waveNum = 1, totalWaves = 12) {
+    if (!modalTowerSpotlight || !stepInfo) return;
+    const sp = stepInfo.spotlight || {};
+    const color = sp.color || '#38bdf8';
+    const icon = sp.icon || 'TD';
+    const type = sp.towerType || 'PRIME_2';
+
+    if (spotlightBadge) spotlightBadge.textContent = sp.category || '🌟 數論特訓';
+    if (spotlightStepTag) spotlightStepTag.textContent = `第 ${waveNum} / ${totalWaves} 課`;
+    if (spotlightTitle) spotlightTitle.textContent = sp.name || stepInfo.title;
+    if (spotlightFormula) spotlightFormula.textContent = sp.formula || stepInfo.formula;
+    if (spotlightTargets) spotlightTargets.textContent = sp.targets || stepInfo.targetEnemies;
+    if (spotlightDesc) spotlightDesc.textContent = sp.desc || stepInfo.keyPoint;
+    if (spotlightIconLabel) {
+      spotlightIconLabel.textContent = icon;
+      spotlightIconLabel.style.color = color;
+      spotlightIconLabel.style.borderColor = `${color}66`;
+    }
+    if (spotlightHalo) {
+      spotlightHalo.style.background = `radial-gradient(circle, ${color}55 0%, transparent 70%)`;
+    }
+
+    modalTowerSpotlight.classList.remove('hidden');
+
+    // 啟動 Canvas 旋轉動畫循環
+    if (spotlightCanvas) {
+      const ctx = spotlightCanvas.getContext('2d');
+      if (spotlightAnimFrame) cancelAnimationFrame(spotlightAnimFrame);
+
+      const loop = (ts) => {
+        drawSpotlightCanvas(ctx, type, icon, color, ts);
+        if (!modalTowerSpotlight.classList.contains('hidden')) {
+          spotlightAnimFrame = requestAnimationFrame(loop);
+        }
+      };
+      spotlightAnimFrame = requestAnimationFrame(loop);
+    }
+
+    // 4 秒自動倒數進度條
+    spotlightStartTime = Date.now();
+    if (spotlightTimerInterval) clearInterval(spotlightTimerInterval);
+
+    const updateCountdown = () => {
+      const elapsed = Date.now() - spotlightStartTime;
+      const remaining = Math.max(0, SPOTLIGHT_DURATION - elapsed);
+      const secondsLeft = Math.ceil(remaining / 1000);
+
+      if (spotlightCountdown) spotlightCountdown.textContent = secondsLeft;
+      if (spotlightTimerBar) {
+        const percent = (remaining / SPOTLIGHT_DURATION) * 100;
+        spotlightTimerBar.style.width = `${percent}%`;
+      }
+
+      if (remaining <= 0) {
+        closeTowerSpotlight();
+      }
+    };
+
+    updateCountdown();
+    spotlightTimerInterval = setInterval(updateCountdown, 100);
+  }
+
+  function closeTowerSpotlight() {
+    if (spotlightTimerInterval) {
+      clearInterval(spotlightTimerInterval);
+      spotlightTimerInterval = null;
+    }
+    if (spotlightAnimFrame) {
+      cancelAnimationFrame(spotlightAnimFrame);
+      spotlightAnimFrame = null;
+    }
+    if (modalTowerSpotlight) {
+      modalTowerSpotlight.classList.add('hidden');
+    }
+  }
+
+  if (btnCloseSpotlight) {
+    btnCloseSpotlight.addEventListener('click', closeTowerSpotlight);
+  }
+
+  if (btnSpotlightX) {
+    btnSpotlightX.addEventListener('click', closeTowerSpotlight);
+  }
+
+  if (modalTowerSpotlight) {
+    modalTowerSpotlight.addEventListener('click', (e) => {
+      if (e.target === modalTowerSpotlight) {
+        closeTowerSpotlight();
+      }
+    });
+  }
+
   // 初始化遊戲實體
   let game;
   let currentGold = 0;
@@ -650,6 +1134,58 @@ window.addEventListener('DOMContentLoaded', () => {
 
       btnSpeed.textContent = stats.gameSpeed === 1 ? '1x 速度' : '2x 速度';
       btnPause.textContent = stats.isPaused ? '▶ 繼續' : '⏸ 暫停';
+
+      // 教學指引看板與 Spotlight 特寫彈窗觸發
+      if (stats.isTutorial && stats.tutorialStep) {
+        if (hudTutorialBanner) {
+          hudTutorialBanner.classList.remove('hidden');
+          if (tutStepTitle) tutStepTitle.textContent = stats.tutorialStep.title;
+          if (tutTargetTag) tutTargetTag.textContent = stats.tutorialStep.targetEnemies;
+          if (tutInstructorMsg) tutInstructorMsg.textContent = stats.tutorialStep.instructor;
+          if (tutFormulaText) tutFormulaText.textContent = stats.tutorialStep.formula;
+          if (tutActionPrompt) tutActionPrompt.textContent = stats.tutorialStep.actionPrompt;
+        }
+
+        // 當切換至新教學波次時，彈出 4 秒放大特寫標示 (Spotlight Highlight)
+        if (game && game.tutorialManager && game.tutorialManager.lastSpotlightWave !== stats.waveIndex && !stats.isLevelFinished) {
+          game.tutorialManager.lastSpotlightWave = stats.waveIndex;
+          showTowerSpotlight(stats.tutorialStep, currentWave, stats.totalWaves);
+        }
+
+        // 推薦防禦塔引導光效 (Guided Highlight)
+        const recTower = stats.tutorialStep.recommendedTower;
+        const spotTower = stats.tutorialStep.spotlight ? stats.tutorialStep.spotlight.towerType : null;
+
+        // 1. 建造面板卡片高亮
+        buildOptionCards.forEach(card => {
+          if (recTower && card.dataset.towerType === recTower) {
+            card.classList.add('guided-highlight');
+          } else {
+            card.classList.remove('guided-highlight');
+          }
+        });
+
+        // 2. 升級與變賣操作按鈕高亮 (第 9 課)
+        const isUpgradeSellLesson = (recTower === 'UPGRADE_SELL' || spotTower === 'UPGRADE_SELL');
+        if (btnUpgradeDamage) btnUpgradeDamage.classList.toggle('guided-highlight', isUpgradeSellLesson);
+        if (btnUpgradeSpeed) btnUpgradeSpeed.classList.toggle('guided-highlight', isUpgradeSellLesson);
+        if (btnSell) btnSell.classList.toggle('guided-highlight', isUpgradeSellLesson);
+
+        // 3. QWE 指揮官秘術按鈕高亮 (第 10 課)
+        const isSpellsLesson = (recTower === 'SPELLS' || spotTower === 'SPELLS');
+        if (btnSpellGcd) btnSpellGcd.classList.toggle('guided-highlight', isSpellsLesson);
+        if (btnSpellVortex) btnSpellVortex.classList.toggle('guided-highlight', isSpellsLesson);
+        if (btnSpellOverdrive) btnSpellOverdrive.classList.toggle('guided-highlight', isSpellsLesson);
+      } else {
+        if (hudTutorialBanner) hudTutorialBanner.classList.add('hidden');
+        buildOptionCards.forEach(card => card.classList.remove('guided-highlight'));
+        if (btnUpgradeDamage) btnUpgradeDamage.classList.remove('guided-highlight');
+        if (btnUpgradeSpeed) btnUpgradeSpeed.classList.remove('guided-highlight');
+        if (btnSell) btnSell.classList.remove('guided-highlight');
+        if (btnSpellGcd) btnSpellGcd.classList.remove('guided-highlight');
+        if (btnSpellVortex) btnSpellVortex.classList.remove('guided-highlight');
+        if (btnSpellOverdrive) btnSpellOverdrive.classList.remove('guided-highlight');
+      }
 
       // 魔王血條更新
       if (stats.activeBoss) {
@@ -720,20 +1256,43 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     },
 
-    onLevelVictory: ({ levelId, levelName, stars, nextLevelId, isBossRush, bossRushStage }) => {
+    onLevelVictory: ({ levelId, levelName, stars, nextLevelId, isBossRush, bossRushStage, isTutorial }) => {
       currentNextLevelId = nextLevelId;
-      victoryLevelTitle.textContent = isBossRush ? `👑 魔王 Stage ${bossRushStage} 討伐成功！` : `🏆 關卡【${levelName}】守衛成功！`;
-      let starsDisplay = '⭐⭐⭐';
-      if (stars === 2) starsDisplay = '⭐⭐☆';
-      else if (stars === 1) starsDisplay = '⭐☆☆';
-      victoryStars.textContent = starsDisplay;
-      victoryLevelDesc.textContent = isBossRush
-        ? (nextLevelId ? `成功擊潰魔王！準備迎戰下一階強敵！(獲得 +3 研究點數 ⭐)` : `🎉 恭喜！你已成功通關全部 5 階魔王連戰！`)
-        : `成功擊潰該關卡全部怪物波次！(獲得 +1 研究點數 ⭐)`;
+
+      if (isTutorial) {
+        const isMaster = levelId === 'tutorial_master';
+        victoryLevelTitle.textContent = isMaster ? `🎓 數論作戰學院特訓畢業！` : `🎓 課堂特訓守衛成功！`;
+        victoryStars.textContent = '⭐⭐⭐';
+        victoryLevelDesc.textContent = isMaster
+          ? `恭喜你！已完全掌握所有 8 大基礎防禦塔與 4 大複合神塔功用！(榮譽獲得 +5 研究點數 ⭐)`
+          : `成功通關【${levelName}】！已掌握該塔之數論克制技巧！(獲得 +1 研究點數 ⭐)`;
+      } else if (isBossRush) {
+        victoryLevelTitle.textContent = `👑 魔王 Stage ${bossRushStage} 討伐成功！`;
+        let starsDisplay = '⭐⭐⭐';
+        if (stars === 2) starsDisplay = '⭐⭐☆';
+        else if (stars === 1) starsDisplay = '⭐☆☆';
+        victoryStars.textContent = starsDisplay;
+        victoryLevelDesc.textContent = nextLevelId
+          ? `成功擊潰魔王！準備迎戰下一階強敵！(獲得 +3 研究點數 ⭐)`
+          : `🎉 恭喜！你已成功通關全部 5 階魔王連戰！`;
+      } else {
+        victoryLevelTitle.textContent = `🏆 關卡【${levelName}】守衛成功！`;
+        let starsDisplay = '⭐⭐⭐';
+        if (stars === 2) starsDisplay = '⭐⭐☆';
+        else if (stars === 1) starsDisplay = '⭐☆☆';
+        victoryStars.textContent = starsDisplay;
+        victoryLevelDesc.textContent = `成功擊潰該關卡全部怪物波次！(獲得 +1 研究點數 ⭐)`;
+      }
 
       if (nextLevelId) {
         btnNextLevel.style.display = 'block';
-        btnNextLevel.textContent = isBossRush ? `▶ 挑戰魔王 Stage ${bossRushStage + 1}` : `▶ 前進下一關卡`;
+        if (isTutorial) {
+          btnNextLevel.textContent = levelId === 'tutorial_master' ? `🚀 開始挑戰第一章冒險` : `▶ 前進下一堂特訓課`;
+        } else if (isBossRush) {
+          btnNextLevel.textContent = `▶ 挑戰魔王 Stage ${bossRushStage + 1}`;
+        } else {
+          btnNextLevel.textContent = `▶ 前進下一關卡`;
+        }
       } else {
         btnNextLevel.style.display = 'none';
       }
@@ -1021,6 +1580,8 @@ window.addEventListener('DOMContentLoaded', () => {
         if (currentNextLevelId.startsWith('boss_rush_')) {
           const stageIdx = parseInt(currentNextLevelId.split('_')[2]) || 1;
           showBattleScreen(currentNextLevelId, 'boss_rush', stageIdx);
+        } else if (currentNextLevelId.startsWith('tutorial_') || currentNextLevelId === 'tutorial_master') {
+          showBattleScreen(currentNextLevelId, 'tutorial');
         } else {
           showBattleScreen(currentNextLevelId);
         }

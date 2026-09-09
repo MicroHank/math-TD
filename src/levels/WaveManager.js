@@ -60,50 +60,58 @@ export class WaveManager {
 
     // 1. 複製敵軍資料並區分普通怪與魔王
     const enemies = wave.enemies.map(e => ({ ...e }));
-    const normalEnemies = [];
-    const bossEnemies = [];
+    const isDeterministic = !!(this.levelData.isTutorial || wave.noShuffle);
 
-    enemies.forEach(e => {
-      if (e.isBoss) {
-        bossEnemies.push(e);
-      } else {
-        normalEnemies.push(e);
+    let allEnemies = [];
+    if (isDeterministic) {
+      allEnemies = enemies;
+    } else {
+      const normalEnemies = [];
+      const bossEnemies = [];
+
+      enemies.forEach(e => {
+        if (e.isBoss) {
+          bossEnemies.push(e);
+        } else {
+          normalEnemies.push(e);
+        }
+      });
+
+      // 2. Fisher-Yates 洗牌演算法：打亂普通怪物出場順序 (保持成對孿生怪相鄰)
+      for (let i = normalEnemies.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [normalEnemies[i], normalEnemies[j]] = [normalEnemies[j], normalEnemies[i]];
       }
-    });
 
-    // 2. Fisher-Yates 洗牌演算法：打亂普通怪物出場順序 (保持成對孿生怪相鄰)
-    for (let i = normalEnemies.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [normalEnemies[i], normalEnemies[j]] = [normalEnemies[j], normalEnemies[i]];
+      allEnemies = [...normalEnemies, ...bossEnemies];
     }
 
-    // 3. 隨機路線分配 (避免固定在上路或下路) 與時間延遲/速度微幅抖動
+    // 3. 路線分配與時間延遲/速度
     const numLanes = this.lanes ? this.lanes.length : 1;
-    const allEnemies = [...normalEnemies, ...bossEnemies];
 
     this.spawnQueue = allEnemies.map(e => {
-      const chosenLane = numLanes > 1
-        ? Math.floor(Math.random() * numLanes)
-        : (e.lane !== undefined ? e.lane : 0);
+      const chosenLane = (isDeterministic || e.lane !== undefined)
+        ? (e.lane !== undefined ? e.lane : 0)
+        : (numLanes > 1 ? Math.floor(Math.random() * numLanes) : 0);
 
       const baseDelay = e.delay || 0.8;
-      const jitteredDelay = +(baseDelay * (0.75 + Math.random() * 0.50)).toFixed(2);
+      const finalDelay = isDeterministic ? baseDelay : +(baseDelay * (0.75 + Math.random() * 0.50)).toFixed(2);
 
       const baseSpeed = e.speed || (58 + Math.min(20, this.currentWaveIndex * 4));
-      const jitteredSpeed = Math.round(baseSpeed * (0.92 + Math.random() * 0.16));
+      const finalSpeed = isDeterministic ? baseSpeed : Math.round(baseSpeed * (0.92 + Math.random() * 0.16));
 
       return {
         ...e,
         lane: chosenLane,
-        delay: jitteredDelay,
-        speed: jitteredSpeed
+        delay: finalDelay,
+        speed: finalSpeed
       };
     });
 
     this.monstersCountThisWave = this.spawnQueue.length;
     this.isSpawning = true;
     this.waveInProgress = true;
-    this.spawnTimer = 0.3 + Math.random() * 0.4;
+    this.spawnTimer = isDeterministic ? 0.3 : (0.3 + Math.random() * 0.4);
     this.recentTwinSpawn = null;
     return true;
   }

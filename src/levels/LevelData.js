@@ -2674,6 +2674,652 @@ export const LEVELS = {
         ]
       }
     ]
+  },
+
+  // ================= 數論作戰學院：全塔功能教學關卡 (Tutorial Academy) =================
+  // ================= 數論作戰學院：全塔功能教學關卡 (Tutorial Academy) =================
+  'tutorial_master': {
+    id: 'tutorial_master',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    name: '🎓 數論學院：全塔與秘術通關特訓',
+    subtitle: '12 波次完整掌握 8 大基礎塔、升級變賣、QWE 秘術與 4 大複合神塔',
+    tip: '💡 歡迎來到數論作戰學院！跟隨數論教官的引導，學習各防禦塔的數論除法、淨化、開方、升級變賣與指揮官秘術！',
+    nextLevelId: '1-1',
+    initialGold: 480,
+    initialLives: 15,
+    lanes: [
+      [
+        { x: 30, y: 180 },
+        { x: 260, y: 180 },
+        { x: 260, y: 380 },
+        { x: 500, y: 380 },
+        { x: 500, y: 180 },
+        { x: 740, y: 180 },
+        { x: 740, y: 340 },
+        { x: 930, y: 340 }
+      ]
+    ],
+    buildPads: [
+      { id: 'tp1', x: 140, y: 110 },
+      { id: 'tp2', x: 140, y: 250 },
+      { id: 'tp3', x: 260, y: 450 },
+      { id: 'tp4', x: 380, y: 310 },
+      { id: 'tp5', x: 380, y: 450 },
+      { id: 'tp6', x: 500, y: 110 },
+      { id: 'tp7', x: 620, y: 250 },
+      { id: 'tp8', x: 620, y: 110 },
+      { id: 'tp9', x: 740, y: 420 },
+      { id: 'tp10', x: 840, y: 270 }
+    ],
+    waves: [
+      {
+        title: '第一課：2號 雙子砲（偶數除法分解）',
+        tip: '💡 偶數（2, 4, 6, 8, 12）可被 2 整除。建造【2號 雙子砲】，每次擊中進行 N ÷ 2 直到為 1 擊破！',
+        noShuffle: true,
+        enemies: [
+          { val: 2, speed: 45, delay: 1.2, noShuffle: true },
+          { val: 4, speed: 45, delay: 1.2, noShuffle: true },
+          { val: 4, speed: 45, delay: 1.2, noShuffle: true },
+          { val: 6, speed: 45, delay: 1.3, noShuffle: true },
+          { val: 8, speed: 45, delay: 1.3, noShuffle: true },
+          { val: 12, speed: 42, delay: 1.4, noShuffle: true }
+        ]
+      },
+      {
+        title: '第二課：3號 三元激光（數字和判別法）',
+        tip: '💡 數字和為 3 的倍數（如 9, 15, 27 ➔ 2+7=9）。建造【3號 三元激光】執行 N ÷ 3！',
+        noShuffle: true,
+        enemies: [
+          { val: 3, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 6, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 9, speed: 46, delay: 1.2, noShuffle: true },
+          { val: 15, speed: 46, delay: 1.3, noShuffle: true },
+          { val: 27, speed: 44, delay: 1.4, noShuffle: true }
+        ]
+      },
+      {
+        title: '第三課：5號 五芒衝擊（尾數 0 或 5 剋星）',
+        tip: '💡 個位數為 0 或 5 的怪物（5, 10, 15, 25, 50）請建造【5號 五芒衝擊】進行強效除法！',
+        noShuffle: true,
+        enemies: [
+          { val: 5, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 10, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 15, speed: 48, delay: 1.3, noShuffle: true },
+          { val: 25, speed: 46, delay: 1.3, noShuffle: true },
+          { val: 50, speed: 44, delay: 1.4, noShuffle: true }
+        ]
+      },
+      {
+        title: '第四課：7號 七曜天琴（難纏 7 倍數重砲）',
+        tip: '💡 7 的倍數（7, 14, 21, 28, 35, 49）難以被 2, 3, 5 除盡。建造超遠射程【7號 七曜天琴】！',
+        noShuffle: true,
+        enemies: [
+          { val: 7, speed: 52, delay: 1.2, noShuffle: true },
+          { val: 14, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 21, speed: 50, delay: 1.3, noShuffle: true },
+          { val: 28, speed: 48, delay: 1.3, noShuffle: true },
+          { val: 35, speed: 46, delay: 1.4, noShuffle: true },
+          { val: 49, speed: 45, delay: 1.5, noShuffle: true }
+        ]
+      },
+      {
+        title: '第五課：|x| 絕對值稜鏡（負數幽靈淨化）',
+        tip: '⚠️ 負數怪（-6, -10, -16, -35）質數砲無法直接傷害！在前線建造【|x| 絕對值稜鏡】淨化為正數！',
+        noShuffle: true,
+        enemies: [
+          { val: -6, speed: 50, delay: 1.2, noShuffle: true },
+          { val: -10, speed: 48, delay: 1.2, noShuffle: true },
+          { val: -16, speed: 48, delay: 1.3, noShuffle: true },
+          { val: -35, speed: 46, delay: 1.4, noShuffle: true }
+        ]
+      },
+      {
+        title: '第六課：[+/-] 運算子調整塔（化質數為合數）',
+        tip: '💡 質數刺客（11, 13, 17, 19, 23）無法被整除。建造【運算子塔】發動 ±1 微調（如 11-1=10, 13-1=12）！',
+        noShuffle: true,
+        enemies: [
+          { val: 11, speed: 52, delay: 1.2, noShuffle: true },
+          { val: 13, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 17, speed: 50, delay: 1.3, noShuffle: true },
+          { val: 19, speed: 48, delay: 1.3, noShuffle: true },
+          { val: 23, speed: 46, delay: 1.4, noShuffle: true }
+        ]
+      },
+      {
+        title: '第七課：√x 根號方根重力井（完全平方怪剋星）',
+        tip: '💡 幾何完全平方怪（16, 25, 36, 49, 64, 81, 100）受【√x 根號重力井】打擊將直接開方（√36 ➔ 6）！',
+        noShuffle: true,
+        enemies: [
+          { val: 16, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 25, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 36, speed: 48, delay: 1.3, noShuffle: true },
+          { val: 49, speed: 46, delay: 1.3, noShuffle: true },
+          { val: 64, speed: 45, delay: 1.4, noShuffle: true },
+          { val: 100, speed: 42, delay: 1.5, noShuffle: true }
+        ]
+      },
+      {
+        title: '第八課：×0 絕對零度力場塔（極限控場減速）',
+        tip: '💡 面對高速斐波那契衝鋒怪（21, 34, 55），在路徑轉角建造【×0 絕對零度塔】乘零減速 50%+！',
+        noShuffle: true,
+        enemies: [
+          { val: 21, speed: 72, delay: 1.0, noShuffle: true },
+          { val: 34, speed: 70, delay: 1.1, noShuffle: true },
+          { val: 55, speed: 68, delay: 1.2, noShuffle: true }
+        ]
+      },
+      {
+        title: '第九課：🔧 砲塔三向升級與變賣操作',
+        tip: '💡 點擊已建造的砲塔開啟升級面板：可分別提升【射程 🎯】、【威力 💥】、【攻速 ⚡】；若不需要可點擊【💰 變賣 (+70% 金幣)】！',
+        noShuffle: true,
+        enemies: [
+          { val: 36, speed: 46, delay: 1.2, noShuffle: true },
+          { val: 48, speed: 44, delay: 1.3, noShuffle: true },
+          { val: 72, speed: 42, delay: 1.4, noShuffle: true }
+        ]
+      },
+      {
+        title: '第十課：⚡ 指揮官主動秘術 (Q / W / E 鍵)',
+        tip: '✨ 點擊下方技能按鈕或按快捷鍵：[Q] 圈內怪除以最大公因數！[W] 召喚黑洞 mod 5 餘數0/1瞬間湮滅！[E] 全場攻速 +60%！',
+        noShuffle: true,
+        enemies: [
+          { val: 12, speed: 48, delay: 0.8, noShuffle: true },
+          { val: 18, speed: 48, delay: 0.8, noShuffle: true },
+          { val: 24, speed: 46, delay: 0.8, noShuffle: true },
+          { val: 30, speed: 46, delay: 0.8, noShuffle: true },
+          { val: 15, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 26, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 31, speed: 46, delay: 1.2, noShuffle: true }
+        ]
+      },
+      {
+        title: '第十一課：⚛️ 複合神塔融合 & 幾何共鳴結界',
+        tip: '✨ 點選防禦塔點擊「⚛️ 數論融合」進化為複合神塔；3 座相鄰防禦塔將自動形成三角結界提升 25% 攻速！',
+        noShuffle: true,
+        enemies: [
+          { val: 42, speed: 54, delay: 1.2, noShuffle: true },
+          { val: 60, speed: 52, delay: 1.2, noShuffle: true },
+          { val: -64, speed: 50, delay: 1.3, noShuffle: true },
+          { val: 70, speed: 48, delay: 1.4, noShuffle: true }
+        ]
+      },
+      {
+        title: '🎓 第十二課：學院畢業總驗收（大聯防實戰）',
+        tip: '🏆 綜合運用前線絕對值、運算子微調、開方重力、後方質數重砲與 QWE 秘術，順利守衛核心並自學院畢業！',
+        noShuffle: true,
+        enemies: [
+          { val: -36, speed: 56, delay: 1.0, noShuffle: true },
+          { val: 17, speed: 54, delay: 1.0, noShuffle: true },
+          { val: 49, speed: 52, delay: 1.1, noShuffle: true },
+          { val: 60, speed: 50, delay: 1.1, noShuffle: true },
+          { val: 23, speed: 52, delay: 1.2, noShuffle: true },
+          { val: 81, speed: 48, delay: 1.3, noShuffle: true },
+          { val: 120, speed: 46, delay: 1.5, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  // 專項單塔特訓關卡 (Single Tower Lessons)
+  'tutorial_p2': {
+    id: 'tutorial_p2',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    name: '🎓 特訓：2號 雙子砲（偶數除法）',
+    subtitle: '掌握偶數除法 N ÷ 2',
+    tip: '💡 偶數怪物（尾數 0, 2, 4, 6, 8）是 2 的倍數。建造【2號 雙子砲】進行除法消滅！',
+    nextLevelId: 'tutorial_p3',
+    initialGold: 300,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 480, y: 280 }, { x: 480, y: 180 }, { x: 930, y: 180 }]],
+    buildPads: [
+      { id: 'p1', x: 200, y: 200 }, { id: 'p2', x: 340, y: 200 },
+      { id: 'p3', x: 200, y: 360 }, { id: 'p4', x: 340, y: 360 },
+      { id: 'p5', x: 600, y: 100 }, { id: 'p6', x: 740, y: 100 }
+    ],
+    waves: [
+      {
+        title: '第一波：基礎偶數兵團',
+        tip: '建造 2 號砲分解 2, 4, 6, 8！',
+        noShuffle: true,
+        enemies: [
+          { val: 2, speed: 45, delay: 1.2, noShuffle: true },
+          { val: 4, speed: 45, delay: 1.2, noShuffle: true },
+          { val: 6, speed: 45, delay: 1.3, noShuffle: true },
+          { val: 8, speed: 45, delay: 1.3, noShuffle: true }
+        ]
+      },
+      {
+        title: '第二波：高耐受偶數先鋒',
+        tip: '多段除法打擊：16 ➔ 8 ➔ 4 ➔ 2 ➔ 1 消滅！',
+        noShuffle: true,
+        enemies: [
+          { val: 8, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 12, speed: 46, delay: 1.2, noShuffle: true },
+          { val: 16, speed: 44, delay: 1.3, noShuffle: true },
+          { val: 24, speed: 42, delay: 1.4, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_p3': {
+    id: 'tutorial_p3',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    name: '🎓 特訓：3號 三元激光（數字和判別）',
+    subtitle: '掌握數字和為 3 的倍數判別法',
+    tip: '💡 數字和為 3 的倍數（如 9, 15, 27 ➔ 2+7=9）。建造【3號 三元激光】執行 N ÷ 3！',
+    nextLevelId: 'tutorial_p5',
+    initialGold: 350,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 480, y: 280 }, { x: 480, y: 180 }, { x: 930, y: 180 }]],
+    buildPads: [
+      { id: 'p1', x: 200, y: 200 }, { id: 'p2', x: 340, y: 200 },
+      { id: 'p3', x: 200, y: 360 }, { id: 'p4', x: 340, y: 360 },
+      { id: 'p5', x: 600, y: 100 }, { id: 'p6', x: 740, y: 100 }
+    ],
+    waves: [
+      {
+        title: '第一波：純 3 的倍數進攻',
+        tip: '建造 3 號砲除法分解 3, 9, 15！',
+        noShuffle: true,
+        enemies: [
+          { val: 3, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 9, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 15, speed: 46, delay: 1.3, noShuffle: true }
+        ]
+      },
+      {
+        title: '第二波：高階 3 倍數與奇數合數',
+        tip: '3 號砲持續除法：27 ➔ 9 ➔ 3 ➔ 1 消滅！',
+        noShuffle: true,
+        enemies: [
+          { val: 15, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 21, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 27, speed: 45, delay: 1.4, noShuffle: true },
+          { val: 33, speed: 44, delay: 1.4, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_p5': {
+    id: 'tutorial_p5',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    name: '🎓 特訓：5號 五芒衝擊（尾數 0 或 5）',
+    subtitle: '掌握尾數 0 或 5 的 5 的倍數特性',
+    tip: '💡 個位數為 0 或 5 的數（5, 10, 15, 25, 50）是 5 的倍數。建造【5號 五芒衝擊】！',
+    nextLevelId: 'tutorial_p7',
+    initialGold: 350,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 480, y: 280 }, { x: 480, y: 180 }, { x: 930, y: 180 }]],
+    buildPads: [
+      { id: 'p1', x: 200, y: 200 }, { id: 'p2', x: 340, y: 200 },
+      { id: 'p3', x: 200, y: 360 }, { id: 'p4', x: 340, y: 360 },
+      { id: 'p5', x: 600, y: 100 }, { id: 'p6', x: 740, y: 100 }
+    ],
+    waves: [
+      {
+        title: '第一波：5 的倍數先遣部隊',
+        tip: '建造 5 號砲打擊 5, 10, 15！',
+        noShuffle: true,
+        enemies: [
+          { val: 5, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 10, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 15, speed: 48, delay: 1.3, noShuffle: true }
+        ]
+      },
+      {
+        title: '第二波：高階 5 倍數衝鋒',
+        tip: '5 號砲強效除法：50 ➔ 10 ➔ 2 (由 2 號砲收尾)！',
+        noShuffle: true,
+        enemies: [
+          { val: 20, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 25, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 35, speed: 46, delay: 1.3, noShuffle: true },
+          { val: 50, speed: 44, delay: 1.4, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_p7': {
+    id: 'tutorial_p7',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    name: '🎓 特訓：7號 七曜天琴（難纏 7 倍數）',
+    subtitle: '掌握 7 的倍數重砲壓制',
+    tip: '💡 7 的倍數（7, 14, 21, 28, 35, 49）難以被 2, 3, 5 除盡。建造【7號 七曜天琴】！',
+    nextLevelId: 'tutorial_abs',
+    initialGold: 380,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 480, y: 280 }, { x: 480, y: 180 }, { x: 930, y: 180 }]],
+    buildPads: [
+      { id: 'p1', x: 200, y: 200 }, { id: 'p2', x: 340, y: 200 },
+      { id: 'p3', x: 200, y: 360 }, { id: 'p4', x: 340, y: 360 },
+      { id: 'p5', x: 600, y: 100 }, { id: 'p6', x: 740, y: 100 }
+    ],
+    waves: [
+      {
+        title: '第一波：7 的倍數小隊',
+        tip: '建造 7 號砲精準擊破 7, 14, 21！',
+        noShuffle: true,
+        enemies: [
+          { val: 7, speed: 52, delay: 1.2, noShuffle: true },
+          { val: 14, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 21, speed: 50, delay: 1.3, noShuffle: true }
+        ]
+      },
+      {
+        title: '第二波：七曜高階重裝怪',
+        tip: '7 號砲超遠程除法：49 ➔ 7 ➔ 1 消滅！',
+        noShuffle: true,
+        enemies: [
+          { val: 28, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 35, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 49, speed: 46, delay: 1.4, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_abs': {
+    id: 'tutorial_abs',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    name: '🎓 特訓：|x| 絕對值稜鏡（負數淨化）',
+    subtitle: '在前線淨化負數幽靈 |-n| ➔ +n',
+    tip: '⚠️ 負數怪對質數砲免疫！在起點前線建造【|x| 絕對值稜鏡】破除護盾！',
+    nextLevelId: 'tutorial_op',
+    initialGold: 380,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 480, y: 280 }, { x: 480, y: 180 }, { x: 930, y: 180 }]],
+    buildPads: [
+      { id: 'p1', x: 100, y: 200 }, { id: 'p2', x: 240, y: 200 },
+      { id: 'p3', x: 100, y: 360 }, { id: 'p4', x: 240, y: 360 },
+      { id: 'p5', x: 600, y: 100 }, { id: 'p6', x: 740, y: 100 }
+    ],
+    waves: [
+      {
+        title: '第一波：負數幽靈突襲',
+        tip: '在前線基座建造 |x| 絕對值稜鏡，後方建 2 號砲！',
+        noShuffle: true,
+        enemies: [
+          { val: -4, speed: 48, delay: 1.2, noShuffle: true },
+          { val: -6, speed: 48, delay: 1.2, noShuffle: true },
+          { val: -8, speed: 46, delay: 1.3, noShuffle: true }
+        ]
+      },
+      {
+        title: '第二波：負數大軍壓境',
+        tip: '絕對值淨化 |-20| ➔ +20，再由 2、5 號砲除法消滅！',
+        noShuffle: true,
+        enemies: [
+          { val: -10, speed: 50, delay: 1.2, noShuffle: true },
+          { val: -16, speed: 48, delay: 1.2, noShuffle: true },
+          { val: -20, speed: 46, delay: 1.3, noShuffle: true },
+          { val: -35, speed: 44, delay: 1.4, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_op': {
+    id: 'tutorial_op',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    name: '🎓 特訓：[+/-] 運算子調整塔（化質為合）',
+    subtitle: '量子微調 ±1，解決無法整除的質數刺客',
+    tip: '💡 質數怪（11, 13, 17, 19）無法被整除。建造【運算子塔】±1 微調化為合數！',
+    nextLevelId: 'tutorial_sqrt',
+    initialGold: 380,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 480, y: 280 }, { x: 480, y: 180 }, { x: 930, y: 180 }]],
+    buildPads: [
+      { id: 'p1', x: 140, y: 200 }, { id: 'p2', x: 280, y: 200 },
+      { id: 'p3', x: 140, y: 360 }, { id: 'p4', x: 280, y: 360 },
+      { id: 'p5', x: 600, y: 100 }, { id: 'p6', x: 740, y: 100 }
+    ],
+    waves: [
+      {
+        title: '第一波：質數刺客侵襲',
+        tip: '建造 [+/-] 運算子塔微調 11-1=10, 13-1=12！',
+        noShuffle: true,
+        enemies: [
+          { val: 11, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 13, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 17, speed: 48, delay: 1.3, noShuffle: true }
+        ]
+      },
+      {
+        title: '第二波：高階質數突進',
+        tip: '運算子微調 19+1=20, 23+1=24，質數砲連鎖消滅！',
+        noShuffle: true,
+        enemies: [
+          { val: 17, speed: 52, delay: 1.2, noShuffle: true },
+          { val: 19, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 23, speed: 48, delay: 1.3, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_sqrt': {
+    id: 'tutorial_sqrt',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    name: '🎓 特訓：√x 根號方根重力井（完全平方）',
+    subtitle: '完全平方幾何怪剋星，直接開方 √x',
+    tip: '💡 完全平方數（16, 25, 36, 49, 64, 100）受【√x 根號重力井】打擊將直接開方重創！',
+    nextLevelId: 'tutorial_zero',
+    initialGold: 400,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 480, y: 280 }, { x: 480, y: 180 }, { x: 930, y: 180 }]],
+    buildPads: [
+      { id: 'p1', x: 200, y: 200 }, { id: 'p2', x: 340, y: 200 },
+      { id: 'p3', x: 200, y: 360 }, { id: 'p4', x: 340, y: 360 },
+      { id: 'p5', x: 600, y: 100 }, { id: 'p6', x: 740, y: 100 }
+    ],
+    waves: [
+      {
+        title: '第一波：平方幾何方塊怪',
+        tip: '建造 √x 根號塔直接開方：√16 ➔ 4, √25 ➔ 5, √36 ➔ 6！',
+        noShuffle: true,
+        enemies: [
+          { val: 16, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 25, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 36, speed: 48, delay: 1.3, noShuffle: true }
+        ]
+      },
+      {
+        title: '第二波：百數平方巨獸',
+        tip: '根號開方重創：√64 ➔ 8, √100 ➔ 10！',
+        noShuffle: true,
+        enemies: [
+          { val: 49, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 64, speed: 48, delay: 1.2, noShuffle: true },
+          { val: 81, speed: 46, delay: 1.3, noShuffle: true },
+          { val: 100, speed: 44, delay: 1.4, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_zero': {
+    id: 'tutorial_zero',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    name: '🎓 特訓：×0 絕對零度力場塔（極限減速）',
+    subtitle: '乘零歸零光環，大範圍牽制高速衝鋒怪',
+    tip: '💡 絕對零度塔發散持續乘零減速光環，牽制高速怪為防線爭取輸出時間！',
+    nextLevelId: 'tutorial_upgrade_sell',
+    initialGold: 380,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 480, y: 280 }, { x: 480, y: 180 }, { x: 930, y: 180 }]],
+    buildPads: [
+      { id: 'p1', x: 200, y: 200 }, { id: 'p2', x: 340, y: 200 },
+      { id: 'p3', x: 200, y: 360 }, { id: 'p4', x: 340, y: 360 },
+      { id: 'p5', x: 600, y: 100 }, { id: 'p6', x: 740, y: 100 }
+    ],
+    waves: [
+      {
+        title: '第一波：快速斐波那契衝鋒隊',
+        tip: '在路徑中心建造 ×0 絕對零度塔實施減速，配合 2、3 號砲擊破！',
+        noShuffle: true,
+        enemies: [
+          { val: 12, speed: 70, delay: 1.0, noShuffle: true },
+          { val: 18, speed: 70, delay: 1.0, noShuffle: true },
+          { val: 21, speed: 72, delay: 1.1, noShuffle: true }
+        ]
+      },
+      {
+        title: '第二波：極速衝鋒大軍',
+        tip: '零度力場範圍減速 50%+，從容分解 34, 55！',
+        noShuffle: true,
+        enemies: [
+          { val: 24, speed: 72, delay: 1.0, noShuffle: true },
+          { val: 34, speed: 70, delay: 1.1, noShuffle: true },
+          { val: 55, speed: 68, delay: 1.2, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_upgrade_sell': {
+    id: 'tutorial_upgrade_sell',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    name: '🎓 特訓：🔧 砲塔三向升級與變賣操作',
+    subtitle: '獨立強化 射程/威力/攻速，或隨時變賣回收 70% 軍費',
+    tip: '💡 點擊已建造的砲塔即可彈出面板，升級威力或變賣調整防線！',
+    nextLevelId: 'tutorial_spells',
+    initialGold: 450,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 480, y: 280 }, { x: 480, y: 180 }, { x: 930, y: 180 }]],
+    buildPads: [
+      { id: 'p1', x: 200, y: 200 }, { id: 'p2', x: 340, y: 200 },
+      { id: 'p3', x: 200, y: 360 }, { id: 'p4', x: 340, y: 360 },
+      { id: 'p5', x: 600, y: 100 }, { id: 'p6', x: 740, y: 100 }
+    ],
+    waves: [
+      {
+        title: '第一波：高耐久合數先鋒（升級威力）',
+        tip: '建造 2 號或 3 號砲後，點擊砲塔並點擊【💥 升級威力】與【⚡ 升級攻速】！',
+        noShuffle: true,
+        enemies: [
+          { val: 36, speed: 46, delay: 1.2, noShuffle: true },
+          { val: 48, speed: 44, delay: 1.3, noShuffle: true },
+          { val: 72, speed: 42, delay: 1.4, noShuffle: true }
+        ]
+      },
+      {
+        title: '第二波：戰略轉型（變賣重建）',
+        tip: '敵軍轉為質數刺客！點擊舊砲塔點擊【💰 變賣】，換建【運算子塔】與【質數砲】！',
+        noShuffle: true,
+        enemies: [
+          { val: 13, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 17, speed: 48, delay: 1.3, noShuffle: true },
+          { val: 19, speed: 46, delay: 1.4, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_spells': {
+    id: 'tutorial_spells',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    name: '🎓 特訓：⚡ 指揮官主動秘術 (Q / W / E)',
+    subtitle: '掌握 GCD 引爆、同餘黑洞 mod 5 與黃金超頻',
+    tip: '✨ 點選底部技能列或使用鍵盤快速鍵 [Q / W / E] 施放強力奧義！',
+    nextLevelId: 'tutorial_fusion',
+    initialGold: 350,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 480, y: 280 }, { x: 480, y: 180 }, { x: 930, y: 180 }]],
+    buildPads: [
+      { id: 'p1', x: 200, y: 200 }, { id: 'p2', x: 340, y: 200 },
+      { id: 'p3', x: 200, y: 360 }, { id: 'p4', x: 340, y: 360 },
+      { id: 'p5', x: 600, y: 100 }, { id: 'p6', x: 740, y: 100 }
+    ],
+    waves: [
+      {
+        title: '第一波：[Q鍵] 最大公因數 GCD 範圍引爆',
+        tip: '四隻因數怪聚集時，按 Q 鍵圈選怪物群，瞬間進行 gcd(12,18,24,30)=6 全體除以 6！',
+        noShuffle: true,
+        enemies: [
+          { val: 12, speed: 48, delay: 0.8, noShuffle: true },
+          { val: 18, speed: 48, delay: 0.8, noShuffle: true },
+          { val: 24, speed: 46, delay: 0.8, noShuffle: true },
+          { val: 30, speed: 46, delay: 0.8, noShuffle: true }
+        ]
+      },
+      {
+        title: '第二波：[W鍵] 同餘黑洞 Modulo Vortex 湮滅',
+        tip: '按 W 鍵在路徑上召喚同餘黑洞，15(mod 5=0)、26(mod 5=1)、31(mod 5=1) 觸碰直接湮滅！',
+        noShuffle: true,
+        enemies: [
+          { val: 15, speed: 48, delay: 1.0, noShuffle: true },
+          { val: 26, speed: 48, delay: 1.0, noShuffle: true },
+          { val: 31, speed: 46, delay: 1.0, noShuffle: true }
+        ]
+      },
+      {
+        title: '第三波：[E鍵] 黃金超頻極限射速',
+        tip: '大群快速部隊來襲！按 E 鍵開啟全場超頻，砲塔攻速暴增 +60%！',
+        noShuffle: true,
+        enemies: [
+          { val: 20, speed: 56, delay: 0.9, noShuffle: true },
+          { val: 24, speed: 54, delay: 0.9, noShuffle: true },
+          { val: 36, speed: 52, delay: 1.0, noShuffle: true },
+          { val: 40, speed: 50, delay: 1.0, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_fusion': {
+    id: 'tutorial_fusion',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    name: '🎓 特訓：⚛️ 複合神塔融合與幾何共鳴',
+    subtitle: '進化複合神塔與構建 3 塔幾何三角結界',
+    tip: '✨ 點選砲塔點擊「⚛️ 數論融合」進化為複合神塔；3 座相鄰塔將自動構成三角結界 (+25% 攻速)！',
+    nextLevelId: 'tutorial_master',
+    initialGold: 500,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 480, y: 280 }, { x: 480, y: 180 }, { x: 930, y: 180 }]],
+    buildPads: [
+      { id: 'p1', x: 200, y: 200 }, { id: 'p2', x: 340, y: 200 },
+      { id: 'p3', x: 270, y: 340 }, { id: 'p4', x: 600, y: 100 },
+      { id: 'p5', x: 740, y: 100 }, { id: 'p6', x: 670, y: 240 }
+    ],
+    waves: [
+      {
+        title: '第一波：複合神塔威力展示',
+        tip: '建造 2×3 六芒雙曜（同時除 2 與 3）或 3×5 加農（擊中產金幣）！',
+        noShuffle: true,
+        enemies: [
+          { val: 24, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 30, speed: 50, delay: 1.2, noShuffle: true },
+          { val: 42, speed: 48, delay: 1.3, noShuffle: true }
+        ]
+      },
+      {
+        title: '第二波：幾何三角結界共鳴',
+        tip: '將 3 個基座全部建滿砲塔，觸發金色幾何三角共振結界！',
+        noShuffle: true,
+        enemies: [
+          { val: 48, speed: 52, delay: 1.2, noShuffle: true },
+          { val: 60, speed: 50, delay: 1.2, noShuffle: true },
+          { val: -64, speed: 48, delay: 1.3, noShuffle: true },
+          { val: 70, speed: 46, delay: 1.4, noShuffle: true }
+        ]
+      }
+    ]
   }
 
 };
+

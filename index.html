@@ -37,6 +37,16 @@
 
       <!-- 主選單核心按鈕導航組 -->
       <div class="home-menu-grid">
+        <!-- 0. 數論作戰學院 (新手教學) -->
+        <button id="btn-home-tutorial" class="home-menu-card mode-tutorial" title="認識 8 大防禦塔與 4 大複合神塔功用，學習數論克制機制">
+          <div class="menu-card-icon">🎓</div>
+          <div class="menu-card-body">
+            <div class="menu-card-title">數論作戰學院 (教學關卡)</div>
+            <div class="menu-card-desc">認識每個防禦塔的功用、除法機制與實戰搭配</div>
+          </div>
+          <span class="menu-card-action" id="home-tutorial-badge">進入學院 ➔</span>
+        </button>
+
         <!-- 1. 開始冒險 -->
         <button id="btn-home-adventure" class="home-menu-card primary" title="開啟數論冒險星圖，挑戰 5 大世界 20 道關卡">
           <div class="menu-card-icon">🚀</div>
@@ -176,6 +186,25 @@
         <div id="hud-active-perks" class="hud-active-perks"></div>
 
       </section>
+
+      <!-- 動態教學指引看板 (Tutorial Guidance HUD) -->
+      <div id="hud-tutorial-banner" class="tutorial-banner hidden">
+        <div class="tutorial-banner-left">
+          <div class="tutorial-avatar" title="數論學院教官">🤖</div>
+          <div class="tutorial-content">
+            <div class="tutorial-step-header">
+              <span id="tut-step-title" class="tut-step-title">第一課：2號 雙子砲 (PRIME_2)</span>
+              <span id="tut-target-tag" class="tut-target-tag">目標：偶數怪 [2, 4, 6, 8]</span>
+            </div>
+            <div id="tut-instructor-msg" class="tut-instructor-msg">🤖 數論教官：歡迎來到數論學院！點選基座建造【2號 雙子砲】。</div>
+            <div class="tut-formula-row">
+              <span class="tut-formula-icon">📐 核心公式：</span>
+              <code id="tut-formula-text" class="tut-formula-text">N ÷ 2 ➔ 1 (擊破消除)</code>
+              <span id="tut-action-prompt" class="tut-action-prompt">💡 請在基座建造 1~2 座 2 號砲！</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
     <!-- 遊戲中央舞台 -->
     <main id="stage-wrapper">
@@ -483,6 +512,7 @@
         <!-- 常規冒險模式容器 -->
         <div id="map-view-adventure" class="map-mode-view active">
           <div class="chapter-tabs">
+            <button class="tab-btn" data-chapter="tutorial">🎓 新手教學</button>
             <button class="tab-btn active" data-chapter="world-1">第一章：合數平原</button>
             <button class="tab-btn" data-chapter="world-2">第二章：負數深淵</button>
             <button class="tab-btn" data-chapter="world-3">第三章：平方之峰</button>
@@ -492,6 +522,91 @@
           <div id="stages-grid" class="stages-container">
             <!-- 動態由 main.js 渲染關卡卡片與星級 -->
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 數論作戰學院 (Tutorial Academy Modal) -->
+    <div id="modal-tutorial-academy" class="modal-overlay hidden">
+      <div class="modal-content academy-modal-box">
+        <div class="modal-header">
+          <div class="academy-title-wrap">
+            <h2>🎓 數論作戰學院（防禦塔實戰教學）</h2>
+            <p class="modal-subtitle">掌握 8 大基礎防禦塔與 4 大複合神塔功用，學習數論除法、淨化、開方與減速！</p>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <div class="academy-record-tag">
+              學院認證：<span id="academy-record-text" class="record-val">未完成</span>
+            </div>
+            <button id="btn-close-academy" class="btn-close">✕</button>
+          </div>
+        </div>
+
+        <!-- 學院主打推薦：12 波完整主線大課堂 -->
+        <div class="academy-master-banner" id="card-tutorial-master">
+          <div class="master-banner-left">
+            <span class="master-badge">👑 學院推薦主線</span>
+            <h3 class="master-title">🏛️ 全塔實戰通關特訓課（12 波次全系列）</h3>
+            <p class="master-desc">從 2、3、5、7 質數砲，到絕對值淨化、運算子微調、開方重力井、零度減速力場、砲塔升級變賣、QWE 指揮官主動秘術及複合神塔融合，跟隨數論教官逐步實戰，領取豐厚科研點數！</p>
+            <div class="master-meta-row">
+              <span class="meta-chip">波次: 12 波</span>
+              <span class="meta-chip reward">畢業獎勵: ⭐ +5 點科研研究點數</span>
+              <span class="meta-chip diff">難度: 循序漸進</span>
+            </div>
+          </div>
+          <button class="btn-action pulse btn-start-master-tut" id="btn-start-master-tut">進入全塔課堂 ➔</button>
+        </div>
+
+        <!-- 單塔獨立專項特訓課堂網格 -->
+        <div class="academy-section-title">
+          <span>📚 專項 1-on-1 靶場特訓</span>
+          <span class="section-subtitle">點選單一防禦塔或戰術項目進行專屬功能演練（每課通關獲 +1 ⭐）</span>
+        </div>
+        <div id="academy-lessons-grid" class="academy-lessons-grid">
+          <!-- 動態由 main.js 渲染 11 堂專項特訓卡片 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 砲塔/武器特寫 Spotlight 彈窗 (Tower / Weapon Spotlight Modal) -->
+    <div id="modal-tower-spotlight" class="modal-overlay hidden">
+      <div class="spotlight-card">
+        <div class="spotlight-header">
+          <div class="spotlight-badge-wrap">
+            <span id="spotlight-badge" class="spotlight-badge">🌟 數論防禦特寫</span>
+            <span id="spotlight-step-tag" class="spotlight-step-tag">教學波次</span>
+          </div>
+          <button id="btn-spotlight-x" class="btn-close" title="關閉特寫">✕</button>
+        </div>
+
+        <div class="spotlight-body">
+          <div class="spotlight-visual-box">
+            <div class="spotlight-canvas-halo" id="spotlight-halo"></div>
+            <canvas id="spotlight-canvas" width="160" height="160"></canvas>
+            <div id="spotlight-icon-label" class="spotlight-icon-label">2</div>
+          </div>
+
+          <div class="spotlight-info-box">
+            <h2 id="spotlight-title" class="spotlight-title">2號 雙子砲</h2>
+            <div class="spotlight-formula-wrap">
+              <span class="formula-label">📐 核心數論公式：</span>
+              <code id="spotlight-formula" class="spotlight-formula">N ÷ 2 ➔ 1 (擊破消除)</code>
+            </div>
+            <div id="spotlight-targets-box" class="spotlight-targets-box">
+              <span class="target-label">🎯 剋制目標：</span>
+              <span id="spotlight-targets" class="spotlight-targets">偶數合數怪獸 (2, 4, 6, 8, 12...)</span>
+            </div>
+            <p id="spotlight-desc" class="spotlight-desc">偶數剋星！只要怪物數值包含因數 2，每次擊中就會進行除以 2 分解，直到數值縮減為 1 瞬間消滅！</p>
+          </div>
+        </div>
+
+        <div class="spotlight-footer">
+          <div class="spotlight-timer-track">
+            <div id="spotlight-timer-bar" class="spotlight-timer-bar"></div>
+          </div>
+          <button id="btn-close-spotlight" class="btn-action pulse spotlight-action-btn">
+            ▶ 進入本課實戰 (<span id="spotlight-countdown">4</span>s)
+          </button>
         </div>
       </div>
     </div>
@@ -597,13 +712,65 @@
           <button id="btn-close-guide" class="btn-close">✕</button>
         </div>
         <div class="modal-body">
+          <!-- 全防禦塔詳細圖鑑與功用一覽 -->
           <div class="guide-card">
-            <h3>🔹 質因數分解消除機制</h3>
-            <p>怪物身上的數字代表它的生命。當防禦塔的質數<strong>能整除</strong>該數字時，怪物就會被立即除以該質數（例如 $30 \div 3 = 10$），數值持續縮小直到變為 <strong>1</strong> 瞬間消滅並噴發金幣！</p>
-            <div class="guide-chips">
-              <span class="chip chip-blue">● 藍點：代表包含因數 2</span>
-              <span class="chip chip-yellow">● 黃點：代表包含因數 3</span>
-              <span class="chip chip-green">● 綠點：代表包含因數 5</span>
+            <h3>🏛️ 數論防線：全防禦塔功能圖鑑與克制矩陣</h3>
+            <p>戰場上共有 8 種基礎防禦塔與 4 種進化複合神塔，各司其職克制不同類型的數字怪獸：</p>
+            
+            <div class="tower-codex-grid">
+              <div class="codex-item" style="border-left-color: #38bdf8;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(56,189,248,0.2); color: #38bdf8;">2</span> 2號 雙子砲 (PRIME_2)</div>
+                <div class="codex-formula">公式：$N \div 2 \implies 1$ 消除</div>
+                <div class="codex-desc">偶數剋星！凡尾數為 0, 2, 4, 6, 8 均可被其持續除以 2，直到縮減為 1 擊破。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #fbbf24;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(251,191,36,0.2); color: #fbbf24;">3</span> 3號 三元激光 (PRIME_3)</div>
+                <div class="codex-formula">公式：$\sum \text{數位} \pmod 3 = 0 \implies N \div 3$</div>
+                <div class="codex-desc">3的倍數剋星！若數字各位數相加為 3 的倍數（如 $27 \to 2+7=9$），立即進行除以 3 分解。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #34d399;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(52,211,153,0.2); color: #34d399;">5</span> 5號 五芒衝擊 (PRIME_5)</div>
+                <div class="codex-formula">公式：$\text{尾數} \in \{0, 5\} \implies N \div 5$</div>
+                <div class="codex-desc">尾數 0 或 5 剋星！單發威力強大且射程廣，對 10, 15, 25, 35, 50 造成巨額除法破壞。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #8b5cf6;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(139,92,246,0.2); color: #a78bfa;">7</span> 7號 七曜天琴 (PRIME_7)</div>
+                <div class="codex-formula">公式：$N \pmod 7 = 0 \implies N \div 7$</div>
+                <div class="codex-desc">高階 7 倍數重砲！超遠射程，專門壓制 14, 21, 28, 35, 49 等無法被 2, 3, 5 除盡的強敵。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #c084fc;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(192,132,252,0.2); color: #c084fc;">|x|</span> |x| 絕對值稜鏡 (ABSOLUTE)</div>
+                <div class="codex-formula">公式：$|-n| \to +n$ 淨化反向護盾</div>
+                <div class="codex-desc">負數幽靈剋星！負數怪免疫質數砲，必須在起點前線建造稜鏡，將其淨化為正數後方能消滅。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #14b8a6;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(20,184,166,0.2); color: #2dd4bf;">±1</span> [+/-] 運算子調整塔 (OPERATOR)</div>
+                <div class="codex-formula">公式：$P \pm 1 \implies \text{合數}$ (如 $11-1=10, 13-1=12$)</div>
+                <div class="codex-desc">孤傲質數刺客剋星！針對 11, 13, 17, 19 等質數怪發動量子微調，化質為合讓質數砲整除。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #f59e0b;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(245,158,11,0.2); color: #fbbf24;">√x</span> √x 根號方根重力井 (SQRT)</div>
+                <div class="codex-formula">公式：$\sqrt{n^2} \to n$ (如 $\sqrt{36} \to 6$)</div>
+                <div class="codex-desc">完全平方數剋星！對 16, 25, 36, 49, 64, 81, 100 等幾何方塊怪直接開方，數值大幅縮小。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #06b6d4;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(6,182,212,0.2); color: #22d3ee;">×0</span> ×0 絕對零度力場塔 (ZERO_FREEZE)</div>
+                <div class="codex-formula">公式：乘零歸零光環 $\implies \text{減速 } 50\%+$</div>
+                <div class="codex-desc">高速怪極限控場！不需單體瞄準，常駐範圍乘零力場使所有高速衝鋒怪急遽減速。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #ec4899; grid-column: 1 / -1;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(236,72,153,0.2); color: #ec4899;">⚛️</span> 複合神塔融合系列 (鍵盤 5 ~ 8)</div>
+                <div class="codex-formula">包含：2×3 六芒雙曜 (雙除)、3×5 聚財加農 (產金)、|√x| 虛數引力 (負數直開根號)、n! 階乘坍縮波</div>
+                <div class="codex-desc">當防禦塔等級提升後可點選執行「數論融合」，兼具多重質數打擊與強大附帶異能！</div>
+              </div>
             </div>
           </div>
 
