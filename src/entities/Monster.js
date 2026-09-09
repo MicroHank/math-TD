@@ -12,7 +12,8 @@ export class Monster {
     bossName = '',
     bossSkills = [],
     isRecurring = false,
-    recurringType = null
+    recurringType = null,
+    hpMultiplier = 1.0
   }) {
     this.id = id;
     this.value = value;
@@ -86,6 +87,7 @@ export class Monster {
     this.radius = isBoss ? 36 : 24;
 
     // 總體數值生命與多段階層耐受度系統 (Multi-Hit Division Durability)
+    this.hpMultiplier = Math.max(0.1, hpMultiplier || 1.0);
     this.maxHp = Math.max(1, Math.abs(typeof value === 'number' ? value : 1));
     this.hp = Math.max(0, Math.abs(typeof value === 'number' ? value : 1));
     this.maxStageHp = this.calcStageMaxHp(value, isBoss);
@@ -134,13 +136,14 @@ export class Monster {
 
   // 計算每個數字階段分解前所需的耐受度血量 (例如 6 面對 2 號砲 25 傷害，需承受 70 點約 3 發打擊)
   calcStageMaxHp(val, isBoss = false) {
+    const mult = this.hpMultiplier || 1.0;
     if (this.isRecurring) {
       let recBase = 65;
       if (this.recurringType === '0.6') recBase = 75;
       else if (this.recurringType === '0.142857') recBase = 85;
       else recBase = 60;
       if (isBoss) recBase = Math.round(recBase * 2.8);
-      return recBase;
+      return Math.round(recBase * mult);
     }
 
     const absVal = Math.abs(typeof val === 'number' ? val : 1);
@@ -156,7 +159,7 @@ export class Monster {
     if (isBoss) {
       base = Math.round(base * 3.2); // 魔王耐受度更厚實
     }
-    return base;
+    return Math.round(base * mult);
   }
 
   get isNegative() {

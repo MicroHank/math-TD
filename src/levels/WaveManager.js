@@ -143,7 +143,8 @@ export class WaveManager {
           bossName: enemyConfig.bossName || '',
           bossSkills: enemyConfig.bossSkills || [],
           isRecurring: !!enemyConfig.isRecurring,
-          recurringType: enemyConfig.recurringType || null
+          recurringType: enemyConfig.recurringType || null,
+          hpMultiplier: enemyConfig.hpMultiplier || 1.0
         });
 
         // 孿生質數雙子自動配對機制

@@ -23,25 +23,40 @@ export class EndlessManager {
     };
   }
 
-  // 動態生成指定波次的數論怪物陣容
+  // 動態生成指定波次的數論怪物陣容 (隨波次全面提升數量、耐受血量與移速)
   generateEndlessWave(waveNumber) {
     const isBossWave = waveNumber % 5 === 0;
-    const enemyCount = Math.min(28, 7 + Math.floor(waveNumber * 1.4));
-    const baseSpeed = Math.min(105, 58 + Math.floor(waveNumber * 2.2));
+
+    // 1. 怪物數量隨波次持續增長 (打破原先 28 隻低上限，漸進成長至百隻大潮)
+    const enemyCount = Math.min(95, 7 + Math.floor(waveNumber * 1.5) + Math.floor(Math.pow(waveNumber, 1.12) * 0.35));
+
+    // 2. 怪物耐受血量倍率隨波次指數階梯式成長 (Wave 1: 1.0x, Wave 5: 1.33x, Wave 10: 1.83x, Wave 20: 3.37x, Wave 30: 5.75x...)
+    const hpMultiplier = +(1.0 + (waveNumber - 1) * 0.07 + Math.pow(Math.max(0, waveNumber - 3), 1.28) * 0.025).toFixed(2);
+
+    // 3. 怪物基礎移動速度隨波次逐步攀升 (突破原 105 封頂，上限調至 180 高速衝鋒)
+    const baseSpeed = Math.min(180, Math.round(58 + waveNumber * 2.2 + Math.pow(Math.max(0, waveNumber - 4), 1.15) * 0.55));
+
+    // 4. 出怪間隔隨波次適度緊縮，讓大潮形成密集行軍衝鋒
+    const delayScale = Math.max(0.40, Math.pow(0.982, Math.min(60, waveNumber - 1)));
+
     const enemies = [];
 
-    // 孿生質數池
+    // 孿生質數池 (隨波次加入更大質數對)
     const twinPairs = [
-      [11, 13], [17, 19], [29, 31], [41, 43], [59, 61], [71, 73]
+      [11, 13], [17, 19], [29, 31], [41, 43], [59, 61], [71, 73],
+      [101, 103], [107, 109], [137, 139], [149, 151], [179, 181], [191, 193]
     ];
 
-    // 完全平方數池
-    const squares = [16, 25, 36, 49, 64, 81, 100, 144, 196, 225, 256, 289 , 324, 361, 400];
+    // 完全平方數池 (隨波次納入高階平方)
+    const squares = [
+      16, 25, 36, 49, 64, 81, 100, 144, 196, 225, 256, 289, 324, 361, 400,
+      441, 484, 529, 576, 625, 676, 729, 784, 841, 900
+    ];
 
     // 費波那契衝鋒怪池
-    const fibs = [8, 13, 21, 34, 55, 89, 144, 233, 377];
+    const fibs = [8, 13, 21, 34, 55, 89, 144, 233, 377, 610];
 
-    // 1. 若為魔王波次：加入強大魔王怪
+    // 1. 若為魔王波次：加入強大魔王怪 (血量與移速隨 Wave 額外強化)
     if (isBossWave) {
       const bossTier = Math.floor(waveNumber / 5);
       let bossVal = 60 * bossTier;
@@ -55,15 +70,20 @@ export class EndlessManager {
       }
       if (bossTier >= 3) {
         bossName = `歐拉萬象神君 Wave ${waveNumber}`;
+        bossSkills.push('multiply_aura');
       }
+
+      const bossHpMultiplier = +(hpMultiplier * (1 + bossTier * 0.25)).toFixed(2);
+      const bossSpeed = Math.max(42, Math.round(baseSpeed * 0.65));
 
       enemies.push({
         val: bossVal,
-        delay: 2.0,
-        speed: Math.max(38, baseSpeed * 0.65),
+        delay: +(2.0 * delayScale).toFixed(2),
+        speed: bossSpeed,
         isBoss: true,
         bossName: bossName,
-        bossSkills: bossSkills
+        bossSkills: bossSkills,
+        hpMultiplier: bossHpMultiplier
       });
     }
 
@@ -71,13 +91,14 @@ export class EndlessManager {
     for (let i = 0; i < enemyCount; i++) {
       const roll = Math.random();
 
-      // 完全數 (6, 28, 496)
+      // 完全數 (6, 28, 496, 8128)
       if (waveNumber >= 4 && roll < 0.12) {
-        const perfVal = waveNumber >= 15 && Math.random() < 0.3 ? 496 : (waveNumber >= 8 ? 28 : 6);
+        const perfVal = waveNumber >= 20 && Math.random() < 0.25 ? 8128 : (waveNumber >= 12 && Math.random() < 0.4 ? 496 : (waveNumber >= 6 ? 28 : 6));
         enemies.push({
           val: perfVal,
-          delay: 0.9,
-          speed: baseSpeed * 0.85
+          delay: +(0.9 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.85),
+          hpMultiplier: hpMultiplier
         });
         continue;
       }
@@ -90,82 +111,93 @@ export class EndlessManager {
           val: rType,
           isRecurring: true,
           recurringType: rType,
-          delay: 0.85,
-          speed: baseSpeed * 0.95
+          delay: +(0.85 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.95),
+          hpMultiplier: hpMultiplier
         });
         continue;
       }
 
       // 孿生質數雙子 (成對生成)
       if (waveNumber >= 3 && roll < 0.36 && i < enemyCount - 1) {
-        const pairIdx = Math.min(twinPairs.length - 1, Math.floor(Math.random() * (1 + Math.floor(waveNumber / 4))));
+        const pairIdx = Math.min(twinPairs.length - 1, Math.floor(Math.random() * (1 + Math.floor(waveNumber / 3))));
         const pair = twinPairs[pairIdx];
         enemies.push({
           val: pair[0],
-          delay: 0.6,
-          speed: baseSpeed
+          delay: +(0.55 * delayScale).toFixed(2),
+          speed: baseSpeed,
+          hpMultiplier: hpMultiplier
         });
         enemies.push({
           val: pair[1],
-          delay: 0.2,
-          speed: baseSpeed
+          delay: +(0.20 * delayScale).toFixed(2),
+          speed: baseSpeed,
+          hpMultiplier: hpMultiplier
         });
         i++; // 消耗兩個怪位
         continue;
       }
 
-      // 費波那契衝鋒隊
+      // 費波那契極速衝鋒隊
       if (waveNumber >= 2 && roll < 0.50) {
         const fibVal = fibs[Math.min(fibs.length - 1, Math.floor(Math.random() * (2 + Math.floor(waveNumber / 3))))];
         enemies.push({
           val: fibVal,
-          delay: 0.7,
-          speed: baseSpeed * 1.35
+          delay: +(0.65 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 1.35),
+          hpMultiplier: hpMultiplier
         });
         continue;
       }
 
       // 負數護盾怪
       if (waveNumber >= 3 && roll < 0.66) {
-        const negVal = -(Math.floor(Math.random() * (waveNumber * 10)) + 12);
+        const negVal = -(Math.floor(Math.random() * (waveNumber * 12)) + 12);
         enemies.push({
           val: negVal,
-          delay: 0.8,
-          speed: baseSpeed * 0.95
+          delay: +(0.75 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.95),
+          hpMultiplier: hpMultiplier
         });
         continue;
       }
 
       // 完全平方數
       if (waveNumber >= 2 && roll < 0.80) {
-        const sqVal = squares[Math.min(squares.length - 1, Math.floor(Math.random() * (3 + Math.floor(waveNumber / 4))))];
+        const sqVal = squares[Math.min(squares.length - 1, Math.floor(Math.random() * (3 + Math.floor(waveNumber / 3))))];
         enemies.push({
           val: sqVal,
-          delay: 0.8,
-          speed: baseSpeed * 0.9
+          delay: +(0.75 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.90),
+          hpMultiplier: hpMultiplier
         });
         continue;
       }
 
-      // 基礎高因數合數
+      // 基礎高因數合數 (隨波次加深因數層次)
       const baseFactors = [2, 3, 5, 7];
       let composite = baseFactors[Math.floor(Math.random() * 3)];
-      const depth = Math.min(4, 1 + Math.floor(waveNumber / 5));
+      const depth = Math.min(6, 1 + Math.floor(waveNumber / 4));
       for (let k = 0; k < depth; k++) {
         composite *= baseFactors[Math.floor(Math.random() * baseFactors.length)];
       }
 
       enemies.push({
         val: composite,
-        delay: 0.75,
-        speed: baseSpeed
+        delay: +(0.70 * delayScale).toFixed(2),
+        speed: baseSpeed,
+        hpMultiplier: hpMultiplier
       });
     }
 
     return {
       waveNumber: waveNumber,
-      title: isBossWave ? `👑 第 ${waveNumber} 波：魔王算力霸主降臨！` : `第 ${waveNumber} 波：數論複合潮汐 (深度 ${waveNumber})`,
-      tip: isBossWave ? '魔王擁有分裂與反轉技能，請集中複合神塔火力！' : '孿生雙子陣亡會狂暴，請先以 ±1 運算子擊碎完全數護盾！',
+      title: isBossWave
+        ? `👑 第 ${waveNumber} 波：魔王算力霸主降臨！(耐受:×${enemies[0].hpMultiplier} · 移速:${enemies[0].speed})`
+        : `第 ${waveNumber} 波：數論複合潮汐 (怪數:${enemyCount} · 耐受:×${hpMultiplier} · 移速:${baseSpeed})`,
+      tip: isBossWave
+        ? `魔王擁有分裂與反轉技能！耐受血量提升至 ${enemies[0].hpMultiplier} 倍！`
+        : `無盡算力試煉！隨波次推進，怪物數量、耐受血量與移速全面飆升！`,
       enemies: enemies
     };
   }

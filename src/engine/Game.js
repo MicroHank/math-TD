@@ -255,10 +255,29 @@ export class Game {
     }
   }
 
+  getFactorialTowerCount() {
+    return this.towers.filter(t => t.type === 'fusion_factorial').length;
+  }
+
+  canBuildFactorialTower() {
+    return this.getFactorialTowerCount() < 2;
+  }
+
   buildTowerOnSelectedPad(towerType, pad = this.selectedPad) {
     if (!pad) return false;
     const config = TOWER_TYPES[towerType];
     if (!config) return false;
+
+    if ((towerType === 'FUSION_FACTORIAL' || config.type === 'fusion_factorial') && !this.canBuildFactorialTower()) {
+      sound.playResist();
+      this.coinFloats.push(new CoinFloat({
+        x: pad.x,
+        y: pad.y - 20,
+        text: '⚠️ n! 階乘神塔每關限建 2 座！',
+        color: '#ec4899'
+      }));
+      return false;
+    }
 
     const techDiscount = (config.type === 'prime' ? techTree.getPrimeUpgradeDiscount() : 0);
     const finalCost = Math.round(config.cost * (1 - techDiscount));
@@ -312,6 +331,19 @@ export class Game {
 
   upgradeSelectedTowerStat(statType) {
     if (!this.selectedTower) return false;
+
+    // n! 階乘神塔為終極神域，無法升級
+    if (this.selectedTower.type === 'fusion_factorial' || !this.selectedTower.isUpgradeable) {
+      sound.playResist();
+      this.coinFloats.push(new CoinFloat({
+        x: this.selectedTower.x,
+        y: this.selectedTower.y - 20,
+        text: '⚠️ n! 階乘神塔為終極神域，無法升級！',
+        color: '#ec4899'
+      }));
+      return false;
+    }
+
     let cost = 0;
     let canUpgrade = false;
 
@@ -351,6 +383,19 @@ export class Game {
 
   upgradeSelectedTower() {
     if (!this.selectedTower) return;
+
+    // n! 階乘神塔為終極神域，無法升級
+    if (this.selectedTower.type === 'fusion_factorial' || !this.selectedTower.isUpgradeable) {
+      sound.playResist();
+      this.coinFloats.push(new CoinFloat({
+        x: this.selectedTower.x,
+        y: this.selectedTower.y - 20,
+        text: '⚠️ n! 階乘神塔為終極神域，無法升級！',
+        color: '#ec4899'
+      }));
+      return;
+    }
+
     const cost = this.selectedTower.upgradeCost;
     if (cost > 0 && this.gold >= cost) {
       this.gold -= cost;
@@ -411,7 +456,8 @@ export class Game {
       value: newVal,
       waypoints: parentMonster.waypoints,
       speed: parentMonster.speed * 1.15,
-      splitOnDivide: false
+      splitOnDivide: false,
+      hpMultiplier: parentMonster.hpMultiplier || 1.0
     });
     clone.x = parentMonster.x + (Math.random() * 16 - 8);
     clone.y = parentMonster.y + (Math.random() * 16 - 8);

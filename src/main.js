@@ -188,11 +188,27 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateBuildOptions(goldAmount) {
+    const factorialCount = game ? game.getFactorialTowerCount() : 0;
+    const isFactorialCapped = factorialCount >= 2;
+
     buildOptionCards.forEach(card => {
       const typeKey = card.dataset.towerType;
       const config = TOWER_TYPES[typeKey];
       if (config) {
-        card.disabled = (goldAmount < config.cost);
+        const costEl = card.querySelector('.option-cost');
+        if (typeKey === 'FUSION_FACTORIAL') {
+          if (isFactorialCapped) {
+            card.disabled = true;
+            card.classList.add('limit-reached');
+            if (costEl) costEl.textContent = '已達上限 (2/2)';
+          } else {
+            card.disabled = (goldAmount < config.cost);
+            card.classList.remove('limit-reached');
+            if (costEl) costEl.textContent = `${config.cost} 🪙 (${factorialCount}/2)`;
+          }
+        } else {
+          card.disabled = (goldAmount < config.cost);
+        }
       }
     });
   }
@@ -1238,63 +1254,91 @@ window.addEventListener('DOMContentLoaded', () => {
     else if (tower.label === '2×3') labelDesc = '六芒雙曜神塔';
     else if (tower.label === '3×5') labelDesc = '星軌聚財加農';
     else if (tower.label === '|√x|') labelDesc = '虛數引力稜鏡';
-    else if (tower.label === 'n!') labelDesc = '階乘坍縮波';
+    else if (tower.label === 'n!') labelDesc = '階乘坍縮波 (限2座·終極神域)';
 
     towerName.textContent = `${tower.label} - ${labelDesc}`;
-    const totalUpgradePoints = (tower.rangeLevel - 1) + (tower.damageLevel - 1) + (tower.speedLevel - 1);
-    towerLevel.textContent = totalUpgradePoints > 0 ? `Lv ${tower.level} (★+${totalUpgradePoints})` : `Lv 1`;
 
-    // 1. 射程維度
-    statRangeLvl.textContent = `Lv ${tower.rangeLevel}/${tower.maxRangeLevel}`;
-    if (tower.rangeLevel >= tower.maxRangeLevel) {
+    if (tower.type === 'fusion_factorial' || !tower.isUpgradeable) {
+      towerLevel.textContent = '終極神域 (不可升級)';
+      towerLevel.style.color = '#ec4899';
+
+      // 1. 射程維度
+      statRangeLvl.textContent = 'MAX';
       statRangeLvl.classList.add('max-tag');
-      statRangeVal.textContent = `${tower.range}px (已達上限)`;
+      statRangeVal.textContent = `${tower.range}px (終極)`;
       costUpgradeRange.textContent = 'MAX';
       btnUpgradeRange.disabled = true;
-    } else {
-      statRangeLvl.classList.remove('max-tag');
-      const nextRange = tower.getNextRange();
-      statRangeVal.innerHTML = `${tower.range}px <span class="val-arrow">➔</span> <span class="val-next">${nextRange}px</span>`;
-      const cost = tower.getUpgradeRangeCost();
-      costUpgradeRange.textContent = `${cost}🪙`;
-      btnUpgradeRange.disabled = goldAmount < cost;
-    }
 
-    // 2. 威力維度
-    statDamageLvl.textContent = `Lv ${tower.damageLevel}/${tower.maxDamageLevel}`;
-    if (tower.damageLevel >= tower.maxDamageLevel) {
+      // 2. 威力維度
+      statDamageLvl.textContent = 'MAX';
       statDamageLvl.classList.add('max-tag');
-      statDamageVal.textContent = `${tower.damage} (已達上限)`;
+      statDamageVal.textContent = `${tower.damage} (終極)`;
       costUpgradeDamage.textContent = 'MAX';
       btnUpgradeDamage.disabled = true;
-    } else {
-      statDamageLvl.classList.remove('max-tag');
-      const nextDamage = tower.getNextDamage();
-      statDamageVal.innerHTML = `${tower.damage} <span class="val-arrow">➔</span> <span class="val-next">${nextDamage}</span>`;
-      const cost = tower.getUpgradeDamageCost();
-      costUpgradeDamage.textContent = `${cost}🪙`;
-      btnUpgradeDamage.disabled = goldAmount < cost;
-    }
 
-    // 3. 攻速維度
-    statSpeedLvl.textContent = `Lv ${tower.speedLevel}/${tower.maxSpeedLevel}`;
-    if (tower.speedLevel >= tower.maxSpeedLevel) {
+      // 3. 攻速維度
+      statSpeedLvl.textContent = 'MAX';
       statSpeedLvl.classList.add('max-tag');
-      statSpeedVal.textContent = `${tower.fireRate}/s (已達上限)`;
+      statSpeedVal.textContent = `${tower.fireRate}/s (終極)`;
       costUpgradeSpeed.textContent = 'MAX';
       btnUpgradeSpeed.disabled = true;
     } else {
-      statSpeedLvl.classList.remove('max-tag');
-      const nextSpeed = tower.getNextFireRate();
-      statSpeedVal.innerHTML = `${tower.fireRate}/s <span class="val-arrow">➔</span> <span class="val-next">${nextSpeed}/s</span>`;
-      const cost = tower.getUpgradeSpeedCost();
-      costUpgradeSpeed.textContent = `${cost}🪙`;
-      btnUpgradeSpeed.disabled = goldAmount < cost;
+      towerLevel.style.color = '';
+      const totalUpgradePoints = (tower.rangeLevel - 1) + (tower.damageLevel - 1) + (tower.speedLevel - 1);
+      towerLevel.textContent = totalUpgradePoints > 0 ? `Lv ${tower.level} (★+${totalUpgradePoints})` : `Lv 1`;
+
+      // 1. 射程維度
+      statRangeLvl.textContent = `Lv ${tower.rangeLevel}/${tower.maxRangeLevel}`;
+      if (tower.rangeLevel >= tower.maxRangeLevel) {
+        statRangeLvl.classList.add('max-tag');
+        statRangeVal.textContent = `${tower.range}px (已達上限)`;
+        costUpgradeRange.textContent = 'MAX';
+        btnUpgradeRange.disabled = true;
+      } else {
+        statRangeLvl.classList.remove('max-tag');
+        const nextRange = tower.getNextRange();
+        statRangeVal.innerHTML = `${tower.range}px <span class="val-arrow">➔</span> <span class="val-next">${nextRange}px</span>`;
+        const cost = tower.getUpgradeRangeCost();
+        costUpgradeRange.textContent = `${cost}🪙`;
+        btnUpgradeRange.disabled = goldAmount < cost;
+      }
+
+      // 2. 威力維度
+      statDamageLvl.textContent = `Lv ${tower.damageLevel}/${tower.maxDamageLevel}`;
+      if (tower.damageLevel >= tower.maxDamageLevel) {
+        statDamageLvl.classList.add('max-tag');
+        statDamageVal.textContent = `${tower.damage} (已達上限)`;
+        costUpgradeDamage.textContent = 'MAX';
+        btnUpgradeDamage.disabled = true;
+      } else {
+        statDamageLvl.classList.remove('max-tag');
+        const nextDamage = tower.getNextDamage();
+        statDamageVal.innerHTML = `${tower.damage} <span class="val-arrow">➔</span> <span class="val-next">${nextDamage}</span>`;
+        const cost = tower.getUpgradeDamageCost();
+        costUpgradeDamage.textContent = `${cost}🪙`;
+        btnUpgradeDamage.disabled = goldAmount < cost;
+      }
+
+      // 3. 攻速維度
+      statSpeedLvl.textContent = `Lv ${tower.speedLevel}/${tower.maxSpeedLevel}`;
+      if (tower.speedLevel >= tower.maxSpeedLevel) {
+        statSpeedLvl.classList.add('max-tag');
+        statSpeedVal.textContent = `${tower.fireRate}/s (已達上限)`;
+        costUpgradeSpeed.textContent = 'MAX';
+        btnUpgradeSpeed.disabled = true;
+      } else {
+        statSpeedLvl.classList.remove('max-tag');
+        const nextSpeed = tower.getNextFireRate();
+        statSpeedVal.innerHTML = `${tower.fireRate}/s <span class="val-arrow">➔</span> <span class="val-next">${nextSpeed}/s</span>`;
+        const cost = tower.getUpgradeSpeedCost();
+        costUpgradeSpeed.textContent = `${cost}🪙`;
+        btnUpgradeSpeed.disabled = goldAmount < cost;
+      }
     }
 
     // 4. 複合神塔融合選項
     if (btnFuseTower) {
-      const fusions = tower.getAvailableFusions ? tower.getAvailableFusions() : [];
+      const fusions = tower.getAvailableFusions ? tower.getAvailableFusions(game) : [];
       if (fusions.length > 0) {
         const fusion = fusions[0];
         btnFuseTower.classList.remove('hidden');
@@ -1302,9 +1346,12 @@ window.addEventListener('DOMContentLoaded', () => {
         btnFuseTower.disabled = goldAmount < fusion.cost;
         btnFuseTower.onclick = () => {
           if (game.gold >= fusion.cost) {
-            game.gold -= fusion.cost;
-            tower.fuseInto(fusion.key);
-            game.syncUI();
+            const success = tower.fuseInto(fusion.key, game);
+            if (success) {
+              game.gold -= fusion.cost;
+              game.syncUI();
+              updateTowerPanel(tower, game.gold);
+            }
           }
         };
       } else {

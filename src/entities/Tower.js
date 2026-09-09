@@ -7,7 +7,8 @@ import {
   FreezeRingEffect,
   DualPrimeProjectile,
   ImaginaryPrismBeam,
-  FactorialDecayWave
+  FactorialDecayWave,
+  CoinFloat
 } from './Projectile.js';
 import { sound } from '../engine/Audio.js';
 import { techTree } from '../engine/TechTreeManager.js';
@@ -68,19 +69,24 @@ export class Tower {
     return +(this.baseFireRate * (1 + this.speedLevel * 0.25)).toFixed(2);
   }
 
+  // 判斷砲塔是否允許升級 (n! 階乘神塔每關限 2 座且為終極神域，無法升級)
+  get isUpgradeable() {
+    return this.type !== 'fusion_factorial';
+  }
+
   // 各自升級費用
   getUpgradeRangeCost() {
-    if (this.rangeLevel >= this.maxRangeLevel) return 0;
+    if (!this.isUpgradeable || this.rangeLevel >= this.maxRangeLevel) return 0;
     return Math.round(this.cost * 0.45 * this.rangeLevel);
   }
 
   getUpgradeDamageCost() {
-    if (this.damageLevel >= this.maxDamageLevel) return 0;
+    if (!this.isUpgradeable || this.damageLevel >= this.maxDamageLevel) return 0;
     return Math.round(this.cost * 0.55 * this.damageLevel);
   }
 
   getUpgradeSpeedCost() {
-    if (this.speedLevel >= this.maxSpeedLevel) return 0;
+    if (!this.isUpgradeable || this.speedLevel >= this.maxSpeedLevel) return 0;
     return Math.round(this.cost * 0.45 * this.speedLevel);
   }
 
@@ -106,7 +112,7 @@ export class Tower {
 
   // 獨立升級方法
   upgradeRange(rangeMultiplier = 1.0) {
-    if (this.rangeLevel >= this.maxRangeLevel) return false;
+    if (!this.isUpgradeable || this.rangeLevel >= this.maxRangeLevel) return false;
     const cost = this.getUpgradeRangeCost();
     this.totalInvested += cost;
     this.rangeLevel++;
@@ -121,7 +127,7 @@ export class Tower {
   }
 
   upgradeDamage() {
-    if (this.damageLevel >= this.maxDamageLevel) return false;
+    if (!this.isUpgradeable || this.damageLevel >= this.maxDamageLevel) return false;
     const cost = this.getUpgradeDamageCost();
     this.totalInvested += cost;
     this.damageLevel++;
@@ -132,7 +138,7 @@ export class Tower {
   }
 
   upgradeSpeed() {
-    if (this.speedLevel >= this.maxSpeedLevel) return false;
+    if (!this.isUpgradeable || this.speedLevel >= this.maxSpeedLevel) return false;
     const cost = this.getUpgradeSpeedCost();
     this.totalInvested += cost;
     this.speedLevel++;
@@ -143,6 +149,7 @@ export class Tower {
   }
 
   upgrade() {
+    if (!this.isUpgradeable) return false;
     // 預設綜合升級：依序升級等級最低的項目
     if (this.damageLevel <= this.speedLevel && this.damageLevel <= this.rangeLevel && this.damageLevel < this.maxDamageLevel) {
       return this.upgradeDamage();
@@ -352,7 +359,7 @@ export class Tower {
   }
 
   // 取得當前砲塔可進化的複合神塔選項
-  getAvailableFusions() {
+  getAvailableFusions(game) {
     const fusions = [];
     if (this.type === 'prime' && (this.factor === 2 || this.factor === 3)) {
       fusions.push({
@@ -376,19 +383,31 @@ export class Tower {
       });
     }
     if (this.type === 'operator' || (this.type === 'prime' && this.factor === 7)) {
-      fusions.push({
-        key: 'FUSION_FACTORIAL',
-        targetType: TOWER_TYPES.FUSION_FACTORIAL,
-        cost: Math.max(80, TOWER_TYPES.FUSION_FACTORIAL.cost - this.totalInvested)
-      });
+      const canFactorial = !game || game.canBuildFactorialTower();
+      if (canFactorial) {
+        fusions.push({
+          key: 'FUSION_FACTORIAL',
+          targetType: TOWER_TYPES.FUSION_FACTORIAL,
+          cost: Math.max(80, TOWER_TYPES.FUSION_FACTORIAL.cost - this.totalInvested)
+        });
+      }
     }
     return fusions;
   }
 
   // 執行融合蛻變
-  fuseInto(fusionKey) {
+  fuseInto(fusionKey, game) {
     const config = TOWER_TYPES[fusionKey];
     if (!config) return false;
+
+    if ((fusionKey === 'FUSION_FACTORIAL' || config.type === 'fusion_factorial') && game && !game.canBuildFactorialTower()) {
+      if (sound && sound.playResist) sound.playResist();
+      if (game && game.coinFloats) {
+        game.coinFloats.push(new CoinFloat({ x: this.x, y: this.y - 20, text: '⚠️ n! 階乘神塔每關限建 2 座！', color: '#ec4899' }));
+      }
+      return false;
+    }
+
     this.type = config.type;
     this.factor = config.factor;
     this.baseRange = config.range;
@@ -924,16 +943,17 @@ export const TOWER_TYPES = {
   },
   FUSION_FACTORIAL: {
     type: 'fusion_factorial',
-    factor: null,
+    factor: 0,
     category: 'fusion',
+    isUpgradeable: false,
     name: 'n! 階乘坍縮衝擊波',
-    subtitle: '微積分階乘連鎖波，貫穿路徑衰減全場怪物因數階層',
+    subtitle: '每關限建 2 座·不可升級',
     cost: 240,
     range: 190,
-    fireRate: 0.9,
+    fireRate: 0.85,
     damage: 70,
-    color: '#a855f7',
-    label: 'n!'
+    color: '#ec4899',
+    label: 'n!',
+    desc: '發射貫穿全路徑的階乘波，使全場怪物數值瞬間衰減因數階層（每關至多建造 2 座，為終極神域無法升級）'
   }
 };
-
