@@ -91,8 +91,20 @@ export class LcmMergeManager {
       finalVal = finalVal * 2;
     }
 
-    // 標記被吸收的怪物死亡
+    // 標記被吸收的怪物死亡並解除雙子鏈接
     absorbed.isDead = true;
+    if (absorbed.twinPartner) {
+      if (absorbed.twinPartner.twinPartner === absorbed) {
+        absorbed.twinPartner.twinPartner = null;
+      }
+      absorbed.twinPartner = null;
+    }
+    if (winner.twinPartner) {
+      if (winner.twinPartner.twinPartner === winner) {
+        winner.twinPartner.twinPartner = null;
+      }
+      winner.twinPartner = null;
+    }
 
     // 更新合體主體屬性
     winner.value = finalVal;

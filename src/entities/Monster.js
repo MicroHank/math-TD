@@ -113,6 +113,7 @@ export class Monster {
     this.twinPartner = null;        // 孿生質數雙子夥伴引用
     this.isRaging = false;          // 雙子狂暴狀態
     this.hasPerfectShield = this.isPerfectNumber; // 完全數聖靈護盾 (70% 減傷，需 ±1 破盾)
+    this.isProcessingResonance = false; // 防重入遞迴保護鎖
   }
 
   checkFibonacci(val) {
@@ -159,19 +160,19 @@ export class Monster {
   }
 
   get isNegative() {
-    return this.value < 0;
+    return typeof this.value === 'number' && this.value < 0;
   }
 
   // 判定是否為完全平方數（幾何方塊怪，例如 4, 9, 16, 25, 36, 49, 64, 81, 100）
   get isSquare() {
-    if (this.isNegative || this.value <= 1) return false;
+    if (this.isNegative || typeof this.value !== 'number' || this.value <= 1) return false;
     const s = Math.round(Math.sqrt(this.value));
     return s * s === this.value;
   }
 
   // 判定是否為質數（孤傲質數刺客，例如 7, 11, 13, 17, 19, 23...）
   get isPrime() {
-    if (this.isNegative || this.value <= 1) return false;
+    if (this.isNegative || typeof this.value !== 'number' || this.value <= 1) return false;
     for (let i = 2; i * i <= this.value; i++) {
       if (this.value % i === 0) return false;
     }
@@ -212,8 +213,8 @@ export class Monster {
     });
   }
 
-  // 受到質數砲多段打擊 (damage 預設 25)
-  takePrimeHit(primeFactor, damage = 25, game) {
+  // 受到質數砲多段打擊 (damage 預設 25, fromResonance 避免共振循環)
+  takePrimeHit(primeFactor, damage = 25, game, fromResonance = false) {
     if (this.isDead) return false;
 
     // 負數怪物對常規質數砲免疫！
@@ -286,9 +287,14 @@ export class Monster {
       this.addFloatingText('完全數護盾 -70%!', '#fde047');
     }
 
-    // 方案三：孿生質數雙子量子共振分攤傷害 (25%)
-    if (this.twinPartner && !this.twinPartner.isDead) {
-      this.twinPartner.takeResonanceDamage(Math.round(effectiveDamage * 0.25), game);
+    // 方案三：孿生質數雙子量子共振分攤傷害 (25%)，帶防重入鎖
+    if (!fromResonance && !this.isProcessingResonance && this.twinPartner && !this.twinPartner.isDead && !this.twinPartner.isProcessingResonance) {
+      this.isProcessingResonance = true;
+      try {
+        this.twinPartner.takeResonanceDamage(Math.round(effectiveDamage * 0.25), game);
+      } finally {
+        this.isProcessingResonance = false;
+      }
     }
 
     // 可以整除！扣減當前階層耐受度
@@ -345,26 +351,32 @@ export class Monster {
     return true;
   }
 
-  // 受到量子共振傳導傷害
+  // 受到量子共振傳導傷害（帶防重入與單向防循環保護）
   takeResonanceDamage(dmg, game) {
-    if (this.isDead || dmg <= 0) return;
-    this.stageHp -= dmg;
-    this.hitFlashTimer = 0.15;
-    this.addFloatingText(`量子共振 -${dmg}`, '#c084fc');
-    game.createSparks(this.x, this.y, '#a855f7', 4);
-    if (this.stageHp <= 0) {
-      const factors = this.getFactors();
-      if (factors.length > 0) {
-        this.takePrimeHit(factors[0], 25, game);
-      } else {
-        this.value = Math.max(1, this.value - 1);
-        if (this.value <= 1) {
-          this.onEliminated(null, game);
+    if (this.isDead || dmg <= 0 || this.isProcessingResonance) return;
+    this.isProcessingResonance = true;
+    try {
+      this.stageHp -= dmg;
+      this.hitFlashTimer = 0.15;
+      this.addFloatingText(`量子共振 -${dmg}`, '#c084fc');
+      if (game && game.createSparks) game.createSparks(this.x, this.y, '#a855f7', 4);
+      if (this.stageHp <= 0) {
+        const factors = this.getFactors();
+        if (factors.length > 0) {
+          this.takePrimeHit(factors[0], 25, game, true); // fromResonance = true
         } else {
-          this.maxStageHp = this.calcStageMaxHp(this.value, this.isBoss);
-          this.stageHp = this.maxStageHp;
+          this.value = Math.max(1, this.value - 1);
+          if (this.value <= 1) {
+            this.onEliminated(null, game);
+          } else {
+            this.maxStageHp = this.calcStageMaxHp(this.value, this.isBoss);
+            this.stageHp = this.maxStageHp;
+            this.prevStageHp = this.stageHp;
+          }
         }
       }
+    } finally {
+      this.isProcessingResonance = false;
     }
   }
 
@@ -380,12 +392,19 @@ export class Monster {
       if (game.createExplosion) game.createExplosion(this.x, this.y, this.isLcmMerged ? '#ec4899' : (this.isBoss ? '#f59e0b' : '#22c55e'), this.isBoss || this.isLcmMerged ? 50 : 24);
     }
 
-    // 方案三：孿生雙子陣亡觸發狂暴
-    if (this.twinPartner && !this.twinPartner.isDead && !this.twinPartner.isRaging) {
-      this.twinPartner.isRaging = true;
-      this.twinPartner.speed = this.twinPartner.baseSpeed * 1.6;
-      this.twinPartner.addFloatingText('⚡ 雙子狂暴 (速度+60%)!', '#ef4444');
-      if (game && game.createSparks) game.createSparks(this.twinPartner.x, this.twinPartner.y, '#ef4444', 20);
+    // 方案三：孿生雙子陣亡觸發狂暴（雙向斷開鏈接）
+    if (this.twinPartner && !this.twinPartner.isDead) {
+      const partner = this.twinPartner;
+      this.twinPartner = null;
+      partner.twinPartner = null;
+      if (!partner.isRaging) {
+        partner.isRaging = true;
+        partner.speed = partner.baseSpeed * 1.6;
+        partner.addFloatingText('⚡ 雙子狂暴 (速度+60%)!', '#ef4444');
+        if (game && game.createSparks) game.createSparks(partner.x, partner.y, '#ef4444', 20);
+      }
+    } else {
+      this.twinPartner = null;
     }
 
     // 方案三：費波那契黃金螺旋減速波
