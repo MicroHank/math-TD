@@ -34,11 +34,54 @@ export class GeometricResonanceManager {
     this.particles = [];
   }
 
+  // 嚴格檢測三塔是否符合限定的質數聖環組合：僅限 [2, 3, 5] 或 [3, 5, 7]，其餘皆無法形成三角形
+  evaluateTriad(t1, t2, t3) {
+    const getFactors = (t) => {
+      if (!t) return [];
+      if (typeof t.factor === 'number' && t.factor > 0) return [t.factor];
+      if (Array.isArray(t.factor)) return t.factor.filter(f => typeof f === 'number' && f > 0);
+      return [];
+    };
+
+    const f1s = getFactors(t1);
+    const f2s = getFactors(t2);
+    const f3s = getFactors(t3);
+
+    if (f1s.length === 0 || f2s.length === 0 || f3s.length === 0) {
+      return null;
+    }
+
+    for (const f1 of f1s) {
+      for (const f2 of f2s) {
+        for (const f3 of f3s) {
+          if (f1 === f2 || f2 === f3 || f1 === f3) continue;
+          const sorted = [f1, f2, f3].sort((a, b) => a - b);
+          const key = sorted.join(',');
+          if (key === '2,3,5') {
+            return {
+              type: 'TRINITY_235',
+              name: '🔮 質數三相聖環 (2-3-5)',
+              label: 'Π30',
+              color: '#c084fc'
+            };
+          } else if (key === '3,5,7') {
+            return {
+              type: 'TRIPLET_357',
+              name: '✨ 七曜三聯聖環 (3-5-7)',
+              label: 'Π105',
+              color: '#fbbf24'
+            };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   // 重新計算場上所有塔的幾何拓撲與共鳴關係
   recalculate() {
-    this.maxLinkDistance = techTree.getMaxLinkDistance();
+    this.maxLinkDistance = techTree.getMaxTriangleDistance ? techTree.getMaxTriangleDistance() : 220;
     const towers = this.game.towers || [];
-    const prevLinkLen = this.links.length;
     const prevTriLen = this.triangles.length;
 
     // 清空塔身上的矩陣標記
@@ -49,51 +92,10 @@ export class GeometricResonanceManager {
       t.geometricColor = null;
     }
 
-    const newLinks = [];
     const n = towers.length;
-
-    // 1. 搜尋二塔共鳴光弦
-    for (let i = 0; i < n; i++) {
-      for (let j = i + 1; j < n; j++) {
-        const t1 = towers[i];
-        const t2 = towers[j];
-        const dist = Math.hypot(t1.x - t2.x, t1.y - t2.y);
-
-        if (dist <= this.maxLinkDistance) {
-          // 判定是否為同質數/同類型諧波
-          const isHarmonic = (t1.type === t2.type && t1.factor === t2.factor);
-          let linkColor = '#38bdf8'; // 預設電光藍
-          if (isHarmonic) {
-            linkColor = t1.color || '#38bdf8';
-          } else if (t1.factor && t2.factor) {
-            linkColor = '#818cf8'; // 雙質數和弦紫藍
-          }
-
-          newLinks.push({
-            id: `${t1.id}_${t2.id}`,
-            t1,
-            t2,
-            dist,
-            isHarmonic,
-            factor: isHarmonic ? t1.factor : null,
-            color: linkColor,
-            power: isHarmonic ? 1.6 : 1.0
-          });
-
-          // 賦予塔身基礎共鳴加成 (+6% 攻速)
-          t1.inGeometricMatrix = true;
-          t2.inGeometricMatrix = true;
-          t1.geometricSpeedBonus = Math.max(t1.geometricSpeedBonus, 0.06);
-          t2.geometricSpeedBonus = Math.max(t2.geometricSpeedBonus, 0.06);
-        }
-      }
-    }
-
-    // 2. 搜尋三塔共振三角結界 (Delta Sanctuary)
     const newTriangles = [];
-    const linkSet = new Set(newLinks.map(l => l.id));
-    const hasLink = (a, b) => linkSet.has(`${a.id}_${b.id}`) || linkSet.has(`${b.id}_${a.id}`);
 
+    // 1. 搜尋三塔共振三角結界：必須在指定距離範圍內 (<= maxLinkDistance) 且符合 [2, 3, 5] 或 [3, 5, 7] 質數聖環規則
     for (let i = 0; i < n; i++) {
       for (let j = i + 1; j < n; j++) {
         for (let k = j + 1; k < n; k++) {
@@ -101,58 +103,77 @@ export class GeometricResonanceManager {
           const t2 = towers[j];
           const t3 = towers[k];
 
-          if (hasLink(t1, t2) && hasLink(t2, t3) && hasLink(t3, t1)) {
-            // 三塔兩兩相連，構成共鳴三角形！
-            const cx = (t1.x + t2.x + t3.x) / 3;
-            const cy = (t1.y + t2.y + t3.y) / 3;
+          // 形成三角形要件：三塔間距皆必須在指定範圍內，不能太遠！
+          const d12 = Math.hypot(t1.x - t2.x, t1.y - t2.y);
+          const d23 = Math.hypot(t2.x - t3.x, t2.y - t3.y);
+          const d31 = Math.hypot(t3.x - t1.x, t3.y - t1.y);
 
-            // 檢查是否符合特殊幾何/數論神級組合
-            const factors = [t1.factor, t2.factor, t3.factor].filter(Boolean);
-            const types = [t1.type, t2.type, t3.type];
-
-            // A. 質數三相聖環 (Prime Trinity: 2, 3, 5)
-            const isPrimeTrinity = factors.includes(2) && factors.includes(3) && factors.includes(5);
-
-            // B. 畢氏三元光陣 (Pythagorean Holy Trinity: 3, 4, 5 或 方根/運算子組合)
-            const has3 = factors.includes(3);
-            const has5 = factors.includes(5);
-            const has4 = types.includes('sqrt') || types.includes('operator') || factors.includes(4);
-            const isPythagorean = (has3 && has4 && has5);
-
-            let triColor = '#06b6d4'; // 預設幾何青藍
-            let specialName = '幾何共鳴三角陣';
-
-            if (isPythagorean) {
-              triColor = '#fbbf24'; // 耀金畢氏聖光
-              specialName = '✨ 畢氏三相聖光陣 (3-4-5)';
-            } else if (isPrimeTrinity) {
-              triColor = '#c084fc'; // 紫金質數階乘光環
-              specialName = '🔮 質數三相聖環 (2-3-5)';
-            }
-
-            newTriangles.push({
-              id: `${t1.id}_${t2.id}_${t3.id}`,
-              t1,
-              t2,
-              t3,
-              centroid: { x: cx, y: cy },
-              isPythagorean,
-              isPrimeTrinity,
-              color: triColor,
-              specialName,
-              pulseAngle: Math.random() * Math.PI * 2
-            });
-
-            // 結界內/頂點塔享有溫和攻速與射程加成 (+12% ~ +18%)
-            const baseTriSpeed = techTree.getTriangleSpeedBonus();
-            const triSpeed = isPythagorean ? Math.min(0.25, baseTriSpeed + 0.05) : baseTriSpeed;
-            for (const vt of [t1, t2, t3]) {
-              vt.inGeometricMatrix = true;
-              vt.geometricSpeedBonus = Math.max(vt.geometricSpeedBonus, triSpeed);
-              vt.geometricRangeBonus = Math.max(vt.geometricRangeBonus, 0.10);
-              vt.geometricColor = triColor;
-            }
+          if (d12 > this.maxLinkDistance || d23 > this.maxLinkDistance || d31 > this.maxLinkDistance) {
+            continue; // 距離太遠，無法形成三角形
           }
+
+          // 質數聖環組合檢定：僅限 2, 3, 5 或 3, 5, 7，其餘皆不能形成三角形！
+          const triad = this.evaluateTriad(t1, t2, t3);
+          if (!triad) continue;
+
+          const cx = (t1.x + t2.x + t3.x) / 3;
+          const cy = (t1.y + t2.y + t3.y) / 3;
+
+          newTriangles.push({
+            id: `${t1.id}_${t2.id}_${t3.id}`,
+            t1,
+            t2,
+            t3,
+            centroid: { x: cx, y: cy },
+            triadType: triad.type,
+            isTrinity235: triad.type === 'TRINITY_235',
+            isTriplet357: triad.type === 'TRIPLET_357',
+            color: triad.color,
+            specialName: triad.name,
+            label: triad.label,
+            pulseAngle: Math.random() * Math.PI * 2
+          });
+
+          // 結界內/頂點塔享有溫和攻速與射程加成 (+12% ~ +16%)
+          const baseTriSpeed = techTree.getTriangleSpeedBonus();
+          const triSpeed = triad.type === 'TRIPLET_357' ? Math.min(0.25, baseTriSpeed + 0.04) : baseTriSpeed;
+          for (const vt of [t1, t2, t3]) {
+            vt.inGeometricMatrix = true;
+            vt.geometricSpeedBonus = Math.max(vt.geometricSpeedBonus, triSpeed);
+            vt.geometricRangeBonus = Math.max(vt.geometricRangeBonus, 0.10);
+            vt.geometricColor = triad.color;
+          }
+        }
+      }
+    }
+
+    // 2. 沒有形成三角形的砲塔之間不需要連線！
+    // 只有構成有效三角區域的邊 (Edges of active triangles)，才會有光弦連線！
+    const newLinks = [];
+    const linkMap = new Map();
+
+    for (const tri of newTriangles) {
+      const edges = [
+        [tri.t1, tri.t2],
+        [tri.t2, tri.t3],
+        [tri.t3, tri.t1]
+      ];
+
+      for (const [ta, tb] of edges) {
+        const edgeId = ta.id < tb.id ? `${ta.id}_${tb.id}` : `${tb.id}_${ta.id}`;
+        if (!linkMap.has(edgeId)) {
+          const dist = Math.hypot(ta.x - tb.x, ta.y - tb.y);
+          const linkObj = {
+            id: edgeId,
+            t1: ta,
+            t2: tb,
+            dist,
+            isHarmonic: false,
+            color: tri.color,
+            power: 1.5
+          };
+          linkMap.set(edgeId, linkObj);
+          newLinks.push(linkObj);
         }
       }
     }
@@ -160,8 +181,8 @@ export class GeometricResonanceManager {
     this.links = newLinks;
     this.triangles = newTriangles;
 
-    // 音效反饋：若形成了新的連線或結界，播放共鳴生成音
-    if (this.links.length > prevLinkLen || this.triangles.length > prevTriLen) {
+    // 音效反饋：若形成了新的結界，播放共鳴生成音
+    if (this.triangles.length > prevTriLen) {
       sound.playResonanceForm();
     }
   }
@@ -216,22 +237,22 @@ export class GeometricResonanceManager {
           // 結界重力壓制：減速 15% (享受科技樹三角聖域強化)
           const slowRatio = techTree.getTriangleSlowRatio();
           m.applySlow(slowRatio, 0.4);
-          m.stageHp = Math.max(1, m.stageHp - (tri.isPythagorean ? 10 : 6) * dt);
+          m.stageHp = Math.max(1, m.stageHp - (tri.isTriplet357 ? 10 : 6) * dt);
 
           // 質數三相聖環額外掉落標記
-          if (tri.isPrimeTrinity) {
+          if (tri.isTrinity235) {
             m.primeTrinityBuff = true;
           }
         }
       }
     }
 
-    // 3. 畢氏聖光定期脈衝 (傷害適度削弱為溫和爆發)
-    const pythInterval = techTree.getPythagoreanInterval();
-    if (this.pulseIntervalTimer >= pythInterval) {
+    // 3. 七曜三聯聖環 (3-5-7) 定期聖光脈衝
+    const pulseInterval = techTree.getPythagoreanInterval();
+    if (this.pulseIntervalTimer >= pulseInterval) {
       this.pulseIntervalTimer = 0;
       for (const tri of this.triangles) {
-        if (tri.isPythagorean) {
+        if (tri.isTriplet357) {
           sound.playResonancePulse();
           this.game.createExplosion(tri.centroid.x, tri.centroid.y, '#fbbf24', 18);
 
@@ -240,7 +261,7 @@ export class GeometricResonanceManager {
             if (m.isDead) continue;
             if (pointInTriangle(m, tri.t1, tri.t2, tri.t3)) {
               m.stageHp = Math.max(1, m.stageHp - pulseDmg);
-              m.addFloatingText(`⚡ 畢氏聖光 -${pulseDmg}!`, '#fbbf24');
+              m.addFloatingText(`⚡ 三聯聖光 -${pulseDmg}!`, '#fbbf24');
               this.game.createSparks(m.x, m.y, '#f59e0b', 8);
             }
           }
@@ -312,7 +333,7 @@ export class GeometricResonanceManager {
       ctx.fillStyle = tri.color;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const label = tri.isPythagorean ? 'Δ345' : (tri.isPrimeTrinity ? 'Π30' : 'Δ');
+      const label = tri.label || (tri.isTriplet357 ? 'Π105' : (tri.isTrinity235 ? 'Π30' : 'Δ'));
       ctx.fillText(label, 0, 0);
       ctx.restore();
     }
@@ -379,7 +400,7 @@ export class GeometricResonanceManager {
       trianglesCount: this.triangles.length,
       specialNames,
       hasMatrix: (this.links.length > 0 || this.triangles.length > 0),
-      speedBonus: this.triangles.length > 0 ? '+12%' : (this.links.length > 0 ? '+6%' : '+0%'),
+      speedBonus: this.triangles.length > 0 ? (this.triangles.some(t => t.isTriplet357) ? '+16%' : '+12%') : (this.links.length > 0 ? '+6%' : '+0%'),
       manaGenBonus: +(this.triangles.length * 0.25).toFixed(1)
     };
   }

@@ -151,8 +151,8 @@ export const TECH_NODES = {
     cost: 2,
     reqId: 'ge_1',
     icon: '🔗',
-    name: '幾何光弦擴展',
-    desc: '幾何共鳴光弦最大連線距離擴大至 360px',
+    name: '幾何共鳴擴展',
+    desc: '三角聖環最大成型範圍由 220px 擴大至 260px',
   },
   ge_3: {
     id: 'ge_3',
@@ -171,8 +171,8 @@ export const TECH_NODES = {
     cost: 4,
     reqId: 'ge_3',
     icon: '✨',
-    name: '畢氏光能矩陣',
-    desc: '畢氏聖光打擊傷害提升至 50 且發動間隔縮短至 2.0s',
+    name: '三聯聖光矩陣',
+    desc: '3-5-7 七曜聖光打擊傷害提升至 50 且發動間隔縮短至 2.0s',
   },
   ge_5: {
     id: 'ge_5',
@@ -305,8 +305,12 @@ export class TechTreeManager {
     return this.isUnlocked('ge_1') ? 80 : 0;
   }
 
+  getMaxTriangleDistance() {
+    return this.isUnlocked('ge_2') ? 260 : 220;
+  }
+
   getMaxLinkDistance() {
-    return this.isUnlocked('ge_2') ? 360 : 300;
+    return this.getMaxTriangleDistance();
   }
 
   getTriangleSpeedBonus() {
