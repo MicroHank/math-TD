@@ -179,8 +179,7 @@ export class WaveManager {
         // 無盡模式：持續推進波次，更新最高紀錄
         progressManager.updateEndlessRecord(this.currentWaveIndex);
         if (this.currentWaveIndex % 5 === 0) {
-          // 每 5 波贈送 +5 點科研研究星級
-          progressManager.addTechPoints(5);
+          // 每 5 波贈送額外金幣獎勵 (無盡模式不給予科研研究點數)
           game.addGold(150, game.width / 2, game.height / 2);
         }
         // 動態準備下一波

@@ -571,9 +571,10 @@ export class Game {
     const bonus = Math.round((70 + completedWaveNum * 30) * multiplier);
     this.addGold(bonus, 480, 280);
 
-    // 每波完成獲得 +1 點數論研究院科技研究點數 (教學關卡不給予科研獎勵)
+    // 每波完成獲得 +1 點數論研究院科技研究點數 (教學關卡與無盡模式不給予科研獎勵)
     const isTutorialLevel = this.gameMode === 'tutorial' || (this.currentLevelId && this.currentLevelId.startsWith('tutorial'));
-    if (!isTutorialLevel) {
+    const isEndlessLevel = this.gameMode === 'endless' || this.currentLevelId === 'endless' || (this.waveManager && this.waveManager.isEndlessMode);
+    if (!isTutorialLevel && !isEndlessLevel) {
       progress.addTechPoints(1);
       this.coinFloats.push(new CoinFloat({ x: 480, y: 230, text: '✨ 研究點數 +1 ⭐', color: '#38bdf8' }));
     }
