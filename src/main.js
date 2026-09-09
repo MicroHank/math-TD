@@ -1096,7 +1096,7 @@ window.addEventListener('DOMContentLoaded', () => {
         btnStartWave.innerHTML = '▶ 開始下一波 (Space)';
       }
 
-      btnSpeed.textContent = stats.gameSpeed === 1 ? '1x 速度' : '2x 速度';
+      btnSpeed.textContent = stats.gameSpeed + 'x 速度';
       btnPause.textContent = stats.isPaused ? '▶ 繼續' : '⏸ 暫停';
 
       // 教學指引看板與 Spotlight 特寫彈窗觸發

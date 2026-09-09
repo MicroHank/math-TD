@@ -478,7 +478,11 @@ export class Game {
   }
 
   toggleSpeed() {
-    this.gameSpeed = this.gameSpeed === 1 ? 2 : 1;
+    if (this.gameSpeed === 5) {
+      this.gameSpeed = 1;
+    } else {
+      this.gameSpeed++;
+    }
     this.syncUI();
   }
 
