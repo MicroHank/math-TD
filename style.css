@@ -1069,7 +1069,7 @@ body {
   position: absolute;
   top: 16px;
   left: 16px;
-  width: 310px;
+  width: 330px;
   background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(56, 189, 248, 0.45);
@@ -1095,10 +1095,10 @@ body {
 
 .build-tabs {
   display: flex;
-  gap: 6px;
+  gap: 3px;
   margin-bottom: 10px;
   background: rgba(0, 0, 0, 0.4);
-  padding: 3px;
+  padding: 2px;
   border-radius: 9px;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }

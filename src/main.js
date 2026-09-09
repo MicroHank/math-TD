@@ -192,7 +192,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const fusionCount = game ? game.getFusionTowerCount() : 0;
 
     if (tabBuildSpecial) {
-      tabBuildSpecial.innerHTML = `⚡ 代數與力場 <span class="tab-count">(${specialCount}/6)</span>`;
+      tabBuildSpecial.innerHTML = `⚡ 代數力場 <span class="tab-count">(${specialCount}/6)</span>`;
       tabBuildSpecial.classList.toggle('tab-capped', specialCount >= 6);
     }
     if (tabBuildFusion) {
