@@ -25,7 +25,7 @@ export class LcmMergeManager {
     this.game = game;
     this.fusionRings = []; // 融合重力圈動畫
     this.shockwaves = [];  // 因數裂變震波
-    this.maxLcmCap = 720;  // 數值防線上限
+    this.maxLcmCap = 2220;  // 數值防線上限
     this.mergeDist = 28;   // 碰撞觸發距離 (px)
   }
 
@@ -83,13 +83,12 @@ export class LcmMergeManager {
     const val1 = winner.value;
     const val2 = absorbed.value;
 
-    let rawLcm = computeLcm(val1, val2);
-    let finalVal = Math.min(this.maxLcmCap, Math.round(rawLcm));
+    const rawLcm = computeLcm(val1, val2);
 
-    // 如果 LCM 等於原數值 (例如 6 與 12，LCM=12)，為保證合體危機感，乘上最小公倍擴展
-    if (finalVal === Math.max(val1, val2) && finalVal * 2 <= this.maxLcmCap) {
-      finalVal = finalVal * 2;
-    }
+    // 如果最小公倍數是其中一個怪物 (例如 LCM(6, 18) = 18)，那麼合併後要再乘以 2 (例如 18 * 2 = 36)
+    const isLcmEqualsOperand = (rawLcm === val1 || rawLcm === val2);
+    const targetVal = isLcmEqualsOperand ? rawLcm * 2 : rawLcm;
+    const finalVal = Math.min(this.maxLcmCap, Math.round(targetVal));
 
     // 標記被吸收的怪物死亡並解除雙子鏈接
     absorbed.isDead = true;
@@ -121,7 +120,11 @@ export class LcmMergeManager {
 
     // 音效與視覺
     sound.playLcmMerge();
-    winner.addFloatingText(`⚡ lcm(${val1}, ${val2}) = ${finalVal}!`, '#ec4899');
+    if (isLcmEqualsOperand) {
+      winner.addFloatingText(`⚡ LCM(${val1}, ${val2}) = ${rawLcm} ➔ ×2 = ${finalVal}!`, '#ec4899');
+    } else {
+      winner.addFloatingText(`⚡ LCM(${val1}, ${val2}) = ${finalVal}!`, '#ec4899');
+    }
     this.game.createExplosion(winner.x, winner.y, '#ec4899', 32);
 
     // 產生向內收縮的重力引力圈
