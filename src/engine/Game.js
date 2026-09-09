@@ -255,12 +255,52 @@ export class Game {
     }
   }
 
-  getFactorialTowerCount() {
-    return this.towers.filter(t => t.type === 'fusion_factorial').length;
+  getTowerTypeCount(towerTypeOrKey) {
+    const config = TOWER_TYPES[towerTypeOrKey];
+    const targetType = config ? config.type : towerTypeOrKey;
+    return this.towers.filter(t => t.type === targetType).length;
   }
 
-  canBuildFactorialTower() {
-    return this.getFactorialTowerCount() < 2;
+  canBuildTowerType(towerTypeOrKey, padOrTower = this.selectedPad) {
+    const config = TOWER_TYPES[towerTypeOrKey];
+    const targetType = config ? config.type : towerTypeOrKey;
+    const category = config ? config.category : null;
+
+    // 質數重砲不受限制；代數與力場以及複合神塔，所有型號全場最多各只能建造 1 座
+    const isLimited = category === 'special' || category === 'fusion' ||
+      ['absolute', 'sqrt', 'operator', 'zero', 'fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial'].includes(targetType);
+
+    if (!isLimited) return true;
+
+    const existingTower = padOrTower && (padOrTower.tower ? padOrTower.tower : (padOrTower.type ? padOrTower : null));
+    const isSameType = existingTower && existingTower.type === targetType;
+    const count = this.getTowerTypeCount(targetType) - (isSameType ? 1 : 0);
+
+    return count < 1;
+  }
+
+  getSpecialTowerCount() {
+    return this.towers.filter(t => (t.isSpecialTower ? t.isSpecialTower() : ['absolute', 'sqrt', 'operator', 'zero'].includes(t.type))).length;
+  }
+
+  getFusionTowerCount() {
+    return this.towers.filter(t => (t.isFusionTower ? t.isFusionTower() : ['fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial'].includes(t.type))).length;
+  }
+
+  getFactorialTowerCount() {
+    return this.getTowerTypeCount('fusion_factorial');
+  }
+
+  canBuildFactorialTower(padOrTower = this.selectedPad) {
+    return this.canBuildTowerType('FUSION_FACTORIAL', padOrTower);
+  }
+
+  canBuildSpecialTower(pad = this.selectedPad) {
+    return true;
+  }
+
+  canBuildFusionTower(padOrTower = this.selectedPad) {
+    return true;
   }
 
   buildTowerOnSelectedPad(towerType, pad = this.selectedPad) {
@@ -268,12 +308,13 @@ export class Game {
     const config = TOWER_TYPES[towerType];
     if (!config) return false;
 
-    if ((towerType === 'FUSION_FACTORIAL' || config.type === 'fusion_factorial') && !this.canBuildFactorialTower()) {
+    // 檢查代數與力場、複合神塔各型號全場限建 1 座
+    if (!this.canBuildTowerType(towerType, pad)) {
       sound.playResist();
       this.coinFloats.push(new CoinFloat({
         x: pad.x,
         y: pad.y - 20,
-        text: '⚠️ n! 階乘神塔每關限建 2 座！',
+        text: `⚠️ ${config.name} 全場限建 1 座！`,
         color: '#ec4899'
       }));
       return false;

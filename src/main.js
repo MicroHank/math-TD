@@ -188,26 +188,41 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateBuildOptions(goldAmount) {
-    const factorialCount = game ? game.getFactorialTowerCount() : 0;
-    const isFactorialCapped = factorialCount >= 2;
+    const specialCount = game ? game.getSpecialTowerCount() : 0;
+    const fusionCount = game ? game.getFusionTowerCount() : 0;
+
+    if (tabBuildSpecial) {
+      tabBuildSpecial.innerHTML = `⚡ 代數與力場 <span class="tab-count">(${specialCount}/4)</span>`;
+      tabBuildSpecial.classList.toggle('tab-capped', specialCount >= 4);
+    }
+    if (tabBuildFusion) {
+      tabBuildFusion.innerHTML = `⚛️ 複合神塔 <span class="tab-count">(${fusionCount}/4)</span>`;
+      tabBuildFusion.classList.toggle('tab-capped', fusionCount >= 4);
+    }
 
     buildOptionCards.forEach(card => {
       const typeKey = card.dataset.towerType;
       const config = TOWER_TYPES[typeKey];
       if (config) {
         const costEl = card.querySelector('.option-cost');
-        if (typeKey === 'FUSION_FACTORIAL') {
-          if (isFactorialCapped) {
+        const isLimited = config.category === 'special' || config.category === 'fusion' ||
+          ['ABSOLUTE', 'SQRT', 'OPERATOR', 'ZERO_FREEZE', 'FUSION_6', 'FUSION_15', 'FUSION_ABS_SQRT', 'FUSION_FACTORIAL'].includes(typeKey);
+
+        if (isLimited) {
+          const isCapped = game ? !game.canBuildTowerType(typeKey, game.selectedPad) : false;
+          if (isCapped) {
             card.disabled = true;
             card.classList.add('limit-reached');
-            if (costEl) costEl.textContent = '已達上限 (2/2)';
+            if (costEl) costEl.textContent = '已建置 (1/1)';
           } else {
             card.disabled = (goldAmount < config.cost);
             card.classList.remove('limit-reached');
-            if (costEl) costEl.textContent = `${config.cost} 🪙 (${factorialCount}/2)`;
+            if (costEl) costEl.textContent = `${config.cost} 🪙`;
           }
         } else {
           card.disabled = (goldAmount < config.cost);
+          card.classList.remove('limit-reached');
+          if (costEl) costEl.textContent = `${config.cost} 🪙`;
         }
       }
     });
@@ -1342,18 +1357,24 @@ window.addEventListener('DOMContentLoaded', () => {
       if (fusions.length > 0) {
         const fusion = fusions[0];
         btnFuseTower.classList.remove('hidden');
-        btnFuseTower.textContent = `⚛️ 升級為 ${fusion.targetType.label} (${fusion.cost}🪙)`;
-        btnFuseTower.disabled = goldAmount < fusion.cost;
-        btnFuseTower.onclick = () => {
-          if (game.gold >= fusion.cost) {
-            const success = tower.fuseInto(fusion.key, game);
-            if (success) {
-              game.gold -= fusion.cost;
-              game.syncUI();
-              updateTowerPanel(tower, game.gold);
+        const canFuse = game ? game.canBuildTowerType(fusion.key, tower) : true;
+        if (!canFuse) {
+          btnFuseTower.textContent = `⚛️ ${fusion.targetType.label} 全場已建置 (1/1)`;
+          btnFuseTower.disabled = true;
+        } else {
+          btnFuseTower.textContent = `⚛️ 升級為 ${fusion.targetType.label} (${fusion.cost}🪙)`;
+          btnFuseTower.disabled = goldAmount < fusion.cost;
+          btnFuseTower.onclick = () => {
+            if (game.gold >= fusion.cost) {
+              const success = tower.fuseInto(fusion.key, game);
+              if (success) {
+                game.gold -= fusion.cost;
+                game.syncUI();
+                updateTowerPanel(tower, game.gold);
+              }
             }
-          }
-        };
+          };
+        }
       } else {
         btnFuseTower.classList.add('hidden');
       }

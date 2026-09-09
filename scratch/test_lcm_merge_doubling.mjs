@@ -102,16 +102,17 @@ const manager = new LcmMergeManager(mockGame);
   console.log('✓ Case 5 passed: LCM(6, 10) = 30 -> NOT doubled, remains 30!');
 }
 
-// Case 6: Cap enforcement at maxLcmCap (720).
-// E.g. LCM(360, 720) = 720. 720 is operand -> 720 * 2 = 1440 -> capped to 720.
+// Case 6: Cap enforcement at maxLcmCap.
+// E.g. LCM(maxCap, maxCap) = maxCap -> maxCap * 2 -> capped to maxLcmCap.
 {
   floatingTexts.length = 0;
-  const m1 = createMockMonster('m1', 360, 20);
-  const m2 = createMockMonster('m2', 720, 10);
+  const cap = manager.maxLcmCap;
+  const m1 = createMockMonster('m1', cap, 20);
+  const m2 = createMockMonster('m2', cap, 10);
   manager.executeMerge(m1, m2);
 
-  console.assert(m1.value === 720, `Expected m1 value to be capped at 720, got ${m1.value}`);
-  console.log('✓ Case 6 passed: LCM(360, 720) = 720 -> 1440 capped to 720 maxLcmCap!');
+  console.assert(m1.value === cap, `Expected m1 value to be capped at ${cap}, got ${m1.value}`);
+  console.log(`✓ Case 6 passed: LCM(${cap}, ${cap}) = ${cap} -> doubled to ${cap * 2} capped to ${cap} maxLcmCap!`);
 }
 
 console.log('\n========================================');

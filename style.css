@@ -1128,6 +1128,18 @@ body {
   box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
 }
 
+.build-tab-btn .tab-count {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  opacity: 0.9;
+  margin-left: 3px;
+}
+
+.build-tab-btn.tab-capped {
+  border-color: rgba(244, 63, 94, 0.4);
+  color: #fca5a5;
+}
+
 .build-options-list {
   display: flex;
   flex-direction: column;

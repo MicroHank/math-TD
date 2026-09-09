@@ -66,53 +66,37 @@ const pad2 = game.buildPads[2];
 const build1 = game.buildTowerOnSelectedPad('FUSION_FACTORIAL', pad0);
 console.assert(build1 === true, 'Building 1st factorial tower should succeed');
 console.assert(game.getFactorialTowerCount() === 1, 'Factorial count should be 1');
-console.assert(game.canBuildFactorialTower() === true, 'canBuildFactorialTower should be true after 1st');
+console.assert(game.canBuildFactorialTower() === false, 'canBuildFactorialTower should be false after 1st (Limit: 1 per model)');
 
-// 3. Build second factorial tower
+// 3. Attempt to build 2nd factorial tower -> MUST FAIL (Limit: 1 per model)
 const build2 = game.buildTowerOnSelectedPad('FUSION_FACTORIAL', pad1);
-console.assert(build2 === true, 'Building 2nd factorial tower should succeed');
-console.assert(game.getFactorialTowerCount() === 2, 'Factorial count should be 2');
-console.assert(game.canBuildFactorialTower() === false, 'canBuildFactorialTower should be false after 2nd');
+console.assert(build2 === false, 'Building 2nd factorial tower should FAIL');
+console.assert(game.getFactorialTowerCount() === 1, 'Factorial count must remain 1');
 
-// 4. Attempt to build third factorial tower -> MUST FAIL
-const build3 = game.buildTowerOnSelectedPad('FUSION_FACTORIAL', pad2);
-console.assert(build3 === false, 'Building 3rd factorial tower should FAIL');
-console.assert(game.getFactorialTowerCount() === 2, 'Factorial count must remain 2');
-
-// 5. Test fusion path when limit is reached
+// 4. Test fusion path when limit is reached
 const buildOp = game.buildTowerOnSelectedPad('OPERATOR', pad2);
 console.assert(buildOp === true, 'Building operator tower should succeed');
 const opTower = pad2.tower;
 console.assert(opTower.type === 'operator', 'Tower on pad2 is operator');
 
-// Check available fusions when factorial count is 2
-const fusionsWhenCapped = opTower.getAvailableFusions(game);
-const hasFactorialWhenCapped = fusionsWhenCapped.some(f => f.key === 'FUSION_FACTORIAL');
-console.assert(!hasFactorialWhenCapped, 'FUSION_FACTORIAL should NOT be offered when count is 2');
+// Try to fuse into factorial when 1 already exists -> MUST FAIL
+const fuseAttempt = opTower.fuseInto('FUSION_FACTORIAL', game);
+console.assert(fuseAttempt === false, 'Fusing into factorial when 1 exists should FAIL');
+console.assert(opTower.type === 'operator', 'Tower must remain operator');
 
-// Direct fuse attempt into FUSION_FACTORIAL should also fail
-const fuseResult = opTower.fuseInto('FUSION_FACTORIAL', game);
-console.assert(fuseResult === false, 'fuseInto FUSION_FACTORIAL must return false when count is 2');
-console.assert(opTower.type === 'operator', 'Tower should remain operator');
-
-// 6. Test selling relaxation
+// 5. Sell first factorial tower -> count drops to 0, now fuse into factorial succeeds
 game.selectTower(pad0.tower);
 game.sellSelectedTower();
-console.assert(game.getFactorialTowerCount() === 1, 'After selling one, count should be 1');
+console.assert(game.getFactorialTowerCount() === 0, 'After selling, factorial count should be 0');
 console.assert(game.canBuildFactorialTower() === true, 'canBuildFactorialTower should be true after selling');
 
-// Now fusion should be offered and succeed
-const fusionsWhenUncapped = opTower.getAvailableFusions(game);
-const hasFactorialWhenUncapped = fusionsWhenUncapped.some(f => f.key === 'FUSION_FACTORIAL');
-console.assert(hasFactorialWhenUncapped, 'FUSION_FACTORIAL should now be offered when count is 1');
-
-const fuseResult2 = opTower.fuseInto('FUSION_FACTORIAL', game);
-console.assert(fuseResult2 === true, 'fuseInto FUSION_FACTORIAL should succeed when count is 1');
-console.assert(opTower.type === 'fusion_factorial', 'Tower successfully fused into fusion_factorial');
-console.assert(game.getFactorialTowerCount() === 2, 'Factorial count should be back to 2');
+const fuseSuccess = opTower.fuseInto('FUSION_FACTORIAL', game);
+console.assert(fuseSuccess === true, 'Fusing into factorial after selling should SUCCEED');
+console.assert(opTower.type === 'fusion_factorial', 'Tower is now fusion_factorial');
+console.assert(game.getFactorialTowerCount() === 1, 'Factorial count should be 1');
 
 // 7. Test NO-UPGRADE rules on Factorial Tower
-const factTower = pad1.tower;
+const factTower = pad2.tower;
 console.assert(factTower.type === 'fusion_factorial', 'Target tower is fusion_factorial');
 console.assert(factTower.isUpgradeable === false, 'isUpgradeable must be false');
 console.assert(factTower.getUpgradeRangeCost() === 0, 'getUpgradeRangeCost must be 0');

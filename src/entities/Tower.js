@@ -14,12 +14,13 @@ import { sound } from '../engine/Audio.js';
 import { techTree } from '../engine/TechTreeManager.js';
 
 export class Tower {
-  constructor({ id, x, y, type, range, fireRate, damage, cost, color, label, factor = null }) {
+  constructor({ id, x, y, type, range, fireRate, damage, cost, color, label, factor = null, category = null }) {
     this.id = id;
     this.x = x;
     this.y = y;
     this.type = type; // 'prime', 'absolute', 'operator', 'sqrt', 'zero'
     this.factor = factor; // 2, 3, 5, 7 or null
+    this.category = category || (TOWER_TYPES[type] && TOWER_TYPES[type].category) || this.deriveCategory(type);
     // 基礎與當前屬性
     this.baseRange = range;
     this.range = range;
@@ -51,6 +52,24 @@ export class Tower {
     const techDmgMult = techTree.getTowerDamageMultiplier();
     this.baseDamage = Math.round((damage !== undefined ? damage : ((TOWER_TYPES[type] && TOWER_TYPES[type].damage) || 25)) * techDmgMult);
     this.damage = this.baseDamage;
+  }
+
+  deriveCategory(type) {
+    if (['absolute', 'sqrt', 'operator', 'zero'].includes(type)) return 'special';
+    if (['fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial'].includes(type)) return 'fusion';
+    return 'prime';
+  }
+
+  isSpecialTower() {
+    return this.category === 'special' || ['absolute', 'sqrt', 'operator', 'zero'].includes(this.type);
+  }
+
+  isFusionTower() {
+    return this.category === 'fusion' || ['fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial'].includes(this.type);
+  }
+
+  isPrimeTower() {
+    return this.category === 'prime' || this.type === 'prime';
   }
 
   // 預覽與計算下一級數值
@@ -400,15 +419,17 @@ export class Tower {
     const config = TOWER_TYPES[fusionKey];
     if (!config) return false;
 
-    if ((fusionKey === 'FUSION_FACTORIAL' || config.type === 'fusion_factorial') && game && !game.canBuildFactorialTower()) {
+    // 檢查每種複合神塔全場限建 1 座
+    if (game && !game.canBuildTowerType(fusionKey, this)) {
       if (sound && sound.playResist) sound.playResist();
       if (game && game.coinFloats) {
-        game.coinFloats.push(new CoinFloat({ x: this.x, y: this.y - 20, text: '⚠️ n! 階乘神塔每關限建 2 座！', color: '#ec4899' }));
+        game.coinFloats.push(new CoinFloat({ x: this.x, y: this.y - 20, text: `⚠️ ${config.name} 全場限建 1 座！`, color: '#ec4899' }));
       }
       return false;
     }
 
     this.type = config.type;
+    this.category = config.category || 'fusion';
     this.factor = config.factor;
     this.baseRange = config.range;
     this.baseFireRate = config.fireRate;
@@ -799,7 +820,7 @@ export const TOWER_TYPES = {
   PRIME_2: {
     type: 'prime',
     factor: 2,
-    category: 'basic',
+    category: 'prime',
     name: '2號 雙子砲',
     subtitle: '對付偶數 / 2的倍數',
     cost: 50,
@@ -812,7 +833,7 @@ export const TOWER_TYPES = {
   PRIME_3: {
     type: 'prime',
     factor: 3,
-    category: 'basic',
+    category: 'prime',
     name: '3號 三元激光',
     subtitle: '對付數字和為3的倍數',
     cost: 75,
@@ -825,7 +846,7 @@ export const TOWER_TYPES = {
   PRIME_5: {
     type: 'prime',
     factor: 5,
-    category: 'basic',
+    category: 'prime',
     name: '5號 五芒衝擊',
     subtitle: '對付尾數 0 或 5',
     cost: 100,
@@ -838,9 +859,9 @@ export const TOWER_TYPES = {
   ABSOLUTE: {
     type: 'absolute',
     factor: null,
-    category: 'basic',
+    category: 'special',
     name: '|x| 絕對值稜鏡',
-    subtitle: '淨化負數怪 $|-n| \\to n$',
+    subtitle: '全場限建 1 座 ｜ 淨化負數怪 $|-n| \\to n$',
     cost: 120,
     range: 155,
     fireRate: 1.0,
@@ -851,9 +872,9 @@ export const TOWER_TYPES = {
   OPERATOR: {
     type: 'operator',
     factor: null,
-    category: 'basic',
+    category: 'special',
     name: '[+/-] 運算子調整塔',
-    subtitle: '加減微調，化質數為合數',
+    subtitle: '全場限建 1 座 ｜ 加減微調化質為合',
     cost: 90,
     range: 160,
     fireRate: 1.1,
@@ -864,7 +885,7 @@ export const TOWER_TYPES = {
   PRIME_7: {
     type: 'prime',
     factor: 7,
-    category: 'basic',
+    category: 'prime',
     name: '7號 七曜天琴',
     subtitle: '除以 7 ｜ 難纏倍數剋星',
     cost: 130,
@@ -877,9 +898,9 @@ export const TOWER_TYPES = {
   SQRT: {
     type: 'sqrt',
     factor: null,
-    category: 'basic',
+    category: 'special',
     name: '√x 根號方根重力井',
-    subtitle: '暴擊完全平方怪並直接開方！',
+    subtitle: '全場限建 1 座 ｜ 暴擊平方怪並直接開方',
     cost: 150,
     range: 160,
     fireRate: 0.85,
@@ -890,9 +911,9 @@ export const TOWER_TYPES = {
   ZERO_FREEZE: {
     type: 'zero',
     factor: null,
-    category: 'basic',
+    category: 'special',
     name: '×0 絕對零度力場塔',
-    subtitle: '乘零歸零！範圍強效減速力場',
+    subtitle: '全場限建 1 座 ｜ 乘零歸零範圍強效減速',
     cost: 110,
     range: 140,
     fireRate: 1.6,
@@ -907,7 +928,7 @@ export const TOWER_TYPES = {
     factor: [2, 3],
     category: 'fusion',
     name: '2×3 六芒雙曜神塔',
-    subtitle: '雙發質數導彈，同時執行 ÷2 與 ÷3 連除破甲',
+    subtitle: '全場限建 1 座 ｜ 同時執行 ÷2 與 ÷3 連除',
     cost: 160,
     range: 175,
     fireRate: 1.5,
@@ -920,7 +941,7 @@ export const TOWER_TYPES = {
     factor: [3, 5],
     category: 'fusion',
     name: '3×5 星軌聚財加農',
-    subtitle: '3與5交織金星軌道，每次命中額外奪取金幣',
+    subtitle: '全場限建 1 座 ｜ 3與5金星軌道奪取金幣',
     cost: 210,
     range: 180,
     fireRate: 1.2,
@@ -933,7 +954,7 @@ export const TOWER_TYPES = {
     factor: null,
     category: 'fusion',
     name: '|√x| 虛數引力稜鏡',
-    subtitle: '負數直開虛數根 $\\sqrt{|-x|}$，附加極限減速引力井',
+    subtitle: '全場限建 1 座 ｜ 負數直開虛數根＋極限引力井',
     cost: 260,
     range: 185,
     fireRate: 1.1,
@@ -947,7 +968,7 @@ export const TOWER_TYPES = {
     category: 'fusion',
     isUpgradeable: false,
     name: 'n! 階乘坍縮衝擊波',
-    subtitle: '每關限建 2 座·不可升級',
+    subtitle: '每關限建 1 座·不可升級',
     cost: 240,
     range: 190,
     fireRate: 0.85,
