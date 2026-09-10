@@ -1,6 +1,7 @@
 // Commander Active Math Spells & Energy (Mana) Engine for Math Tower Defense
 import { sound } from './Audio.js';
 import { techTree } from './TechTreeManager.js';
+import { CoinFloat } from '../entities/Projectile.js';
 
 function computeGcd(a, b) {
   a = Math.abs(a);
@@ -96,8 +97,24 @@ export class SpellManager {
     const spell = SPELLS[spellId];
     if (!spell) return false;
 
-    if (this.cooldowns[spellId] > 0 || this.mana < spell.cost) {
+    if (this.cooldowns[spellId] > 0) {
       sound.playResist();
+      return false;
+    }
+
+    if (this.mana < spell.cost) {
+      sound.playResist();
+      if (this.game && this.game.coinFloats) {
+        const cx = this.game.logicalWidth ? this.game.logicalWidth / 2 : 480;
+        const cy = this.game.logicalHeight ? this.game.logicalHeight / 2 : 280;
+        this.game.coinFloats.push(new CoinFloat({
+          x: cx,
+          y: cy - 20,
+          text: `⚠️ 算力能量不足 (${Math.round(this.mana)} / ${spell.cost})！`,
+          color: '#f43f5e',
+          life: 1.2
+        }));
+      }
       return false;
     }
 
@@ -120,13 +137,41 @@ export class SpellManager {
   castInstant(spellId) {
     const spell = SPELLS[spellId];
     if (!spell) return false;
-    if (this.cooldowns[spellId] > 0 || this.mana < spell.cost) {
+    if (this.cooldowns[spellId] > 0) {
       sound.playResist();
+      return false;
+    }
+
+    if (this.mana < spell.cost) {
+      sound.playResist();
+      if (this.game && this.game.coinFloats) {
+        const cx = this.game.logicalWidth ? this.game.logicalWidth / 2 : 480;
+        const cy = this.game.logicalHeight ? this.game.logicalHeight / 2 : 280;
+        this.game.coinFloats.push(new CoinFloat({
+          x: cx,
+          y: cy - 20,
+          text: `⚠️ 算力能量不足 (${Math.round(this.mana)} / ${spell.cost})！`,
+          color: '#f43f5e',
+          life: 1.2
+        }));
+      }
       return false;
     }
 
     this.mana -= spell.cost;
     this.cooldowns[spellId] = spell.cooldown;
+
+    if (this.game && this.game.coinFloats) {
+      const cx = this.game.logicalWidth ? this.game.logicalWidth / 2 : 480;
+      const cy = this.game.logicalHeight ? this.game.logicalHeight / 2 : 280;
+      this.game.coinFloats.push(new CoinFloat({
+        x: cx,
+        y: cy - 35,
+        text: `⚡ -${spell.cost} 能量 (黃金超頻啟動!)`,
+        color: '#fbbf24',
+        life: 1.3
+      }));
+    }
 
     if (spellId === 'overdrive') {
       this.goldenOverdriveTimer = 6.0;
@@ -155,6 +200,16 @@ export class SpellManager {
     this.mana -= spell.cost;
     this.cooldowns[spellId] = spell.cooldown;
     this.aimingSpell = null;
+
+    if (this.game && this.game.coinFloats) {
+      this.game.coinFloats.push(new CoinFloat({
+        x: x,
+        y: y - 25,
+        text: `⚡ -${spell.cost} 能量`,
+        color: spellId === 'gcd' ? '#fbbf24' : '#c084fc',
+        life: 1.3
+      }));
+    }
 
     if (spellId === 'gcd') {
       this.executeGcdBlast(x, y, spell.radius);

@@ -317,7 +317,7 @@
           <div class="panel-header">
             <div>
               <h3>🛠️ 建造防禦塔</h3>
-              <span class="pad-badge">點選型號直接於基座建置</span>
+              <span class="pad-badge">點選型號或按數字鍵 [1~6] 建造 ｜ [Tab] 切換分頁</span>
             </div>
             <button id="btn-close-build-panel" class="btn-close" title="取消選取">✕</button>
           </div>
@@ -331,6 +331,7 @@
           <!-- 質數與基礎重砲組 -->
           <div class="build-options-list active" id="build-list-prime">
             <button class="build-option-card" data-tower-type="PRIME_2">
+              <span class="hotkey-badge">1</span>
               <div class="option-icon prime-2">2</div>
               <div class="option-info">
                 <div class="option-title">2號 雙子砲</div>
@@ -340,6 +341,7 @@
             </button>
 
             <button class="build-option-card" data-tower-type="PRIME_3">
+              <span class="hotkey-badge">2</span>
               <div class="option-icon prime-3">3</div>
               <div class="option-info">
                 <div class="option-title">3號 三元激光</div>
@@ -349,6 +351,7 @@
             </button>
 
             <button class="build-option-card" data-tower-type="PRIME_5">
+              <span class="hotkey-badge">3</span>
               <div class="option-icon prime-5">5</div>
               <div class="option-info">
                 <div class="option-title">5號 五芒衝擊</div>
@@ -358,6 +361,7 @@
             </button>
 
             <button class="build-option-card" data-tower-type="PRIME_7">
+              <span class="hotkey-badge">4</span>
               <div class="option-icon prime-7">7</div>
               <div class="option-info">
                 <div class="option-title">7號 七曜天琴</div>
@@ -370,6 +374,7 @@
           <!-- 代數與力場組 (全場限建 1 座) -->
           <div class="build-options-list hidden" id="build-list-special">
             <button class="build-option-card" data-tower-type="ABSOLUTE">
+              <span class="hotkey-badge">1</span>
               <div class="option-icon absolute-prism">|x|</div>
               <div class="option-info">
                 <div class="option-title">絕對值稜鏡</div>
@@ -379,6 +384,7 @@
             </button>
 
             <button class="build-option-card" data-tower-type="SQRT">
+              <span class="hotkey-badge">2</span>
               <div class="option-icon sqrt-tower">√x</div>
               <div class="option-info">
                 <div class="option-title">√x 方根重力井</div>
@@ -388,6 +394,7 @@
             </button>
 
             <button class="build-option-card" data-tower-type="OPERATOR">
+              <span class="hotkey-badge">3</span>
               <div class="option-icon operator">±1</div>
               <div class="option-info">
                 <div class="option-title">運算子調整塔</div>
@@ -397,6 +404,7 @@
             </button>
 
             <button class="build-option-card" data-tower-type="ZERO_FREEZE">
+              <span class="hotkey-badge">4</span>
               <div class="option-icon zero-freeze">×0</div>
               <div class="option-info">
                 <div class="option-title">×0 絕對零度塔</div>
@@ -406,6 +414,7 @@
             </button>
 
             <button class="build-option-card" data-tower-type="TRIG">
+              <span class="hotkey-badge">5</span>
               <div class="option-icon fourier-tower">sin</div>
               <div class="option-info">
                 <div class="option-title">傅立葉諧波共振塔</div>
@@ -418,6 +427,7 @@
           <!-- 方案一：複合神塔組 (全場限建 1 座) -->
           <div class="build-options-list hidden" id="build-list-fusion">
             <button class="build-option-card fusion-card" data-tower-type="FUSION_6">
+              <span class="hotkey-badge">1</span>
               <div class="option-icon fusion-6">2×3</div>
               <div class="option-info">
                 <div class="option-title">2×3 六芒雙曜塔</div>
@@ -427,6 +437,7 @@
             </button>
 
             <button class="build-option-card fusion-card" data-tower-type="FUSION_15">
+              <span class="hotkey-badge">2</span>
               <div class="option-icon fusion-15">3×5</div>
               <div class="option-info">
                 <div class="option-title">3×5 星軌聚財加農</div>
@@ -436,6 +447,7 @@
             </button>
 
             <button class="build-option-card fusion-card" data-tower-type="FUSION_ABS_SQRT">
+              <span class="hotkey-badge">3</span>
               <div class="option-icon fusion-abs-sqrt">|√x|</div>
               <div class="option-info">
                 <div class="option-title">|√x| 虛數引力稜鏡</div>
@@ -445,6 +457,7 @@
             </button>
 
             <button class="build-option-card fusion-card" data-tower-type="FUSION_DERIVATIVE">
+              <span class="hotkey-badge">4</span>
               <div class="option-icon fusion-derivative">d/dx</div>
               <div class="option-info">
                 <div class="option-title">d/dx 費馬導數天琴</div>
@@ -454,6 +467,7 @@
             </button>
 
             <button class="build-option-card fusion-card" data-tower-type="FUSION_MONTE_CARLO">
+              <span class="hotkey-badge">5</span>
               <div class="option-icon fusion-monte-carlo">🎲</div>
               <div class="option-info">
                 <div class="option-title">🎲 蒙地卡羅投擲機</div>
@@ -463,6 +477,7 @@
             </button>
 
             <button class="build-option-card fusion-card" data-tower-type="FUSION_FACTORIAL">
+              <span class="hotkey-badge">6</span>
               <div class="option-icon fusion-factorial">n!</div>
               <div class="option-info">
                 <div class="option-title">n! 階乘坍縮衝擊波</div>

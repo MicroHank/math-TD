@@ -163,7 +163,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const buildListFusion = document.getElementById('build-list-fusion');
   const buildOptionCards = document.querySelectorAll('.build-option-card');
 
+  let currentBuildTab = 'prime';
+
   function switchBuildTab(tabKey) {
+    currentBuildTab = tabKey;
     if (tabBuildPrime) tabBuildPrime.classList.toggle('active', tabKey === 'prime');
     if (tabBuildSpecial) tabBuildSpecial.classList.toggle('active', tabKey === 'special');
     if (tabBuildFusion) tabBuildFusion.classList.toggle('active', tabKey === 'fusion');
@@ -1244,6 +1247,9 @@ window.addEventListener('DOMContentLoaded', () => {
       if (stats.selectedTower) {
         updateTowerPanel(stats.selectedTower, stats.gold);
       }
+
+      // 更新指揮官秘術與能量條狀態 (扣除能量與冷卻即時刷新)
+      updateSpellButtons(stats);
     },
 
     onTowerSelect: (tower) => {
@@ -1852,6 +1858,32 @@ window.addEventListener('DOMContentLoaded', () => {
     if (e.code === 'Space') {
       e.preventDefault();
       game.startNextWave();
+    } else if (['1', '2', '3', '4', '5', '6'].includes(e.key)) {
+      // 需求2: 建造砲塔時，點到各種標籤選單，各砲塔的快捷鍵都是從 1 開始 (1, 2, 3, 4, 5, 6)
+      if (game && (game.selectedPad || game.selectedBuildPos)) {
+        const num = parseInt(e.key, 10);
+        const activeList = document.querySelector('.build-options-list:not(.hidden)');
+        if (activeList) {
+          const cards = activeList.querySelectorAll('.build-option-card');
+          const targetCard = cards[num - 1];
+          if (targetCard) {
+            e.preventDefault();
+            if (targetCard.disabled) {
+              sound.playResist();
+            } else {
+              targetCard.click();
+            }
+          }
+        }
+      }
+    } else if (e.key === 'Tab') {
+      // 建造面板開啟時，支援 Tab 鍵循環切換選單標籤 (質數 -> 代數力場 -> 複合神塔)
+      if (game && (game.selectedPad || game.selectedBuildPos)) {
+        e.preventDefault();
+        const tabs = ['prime', 'special', 'fusion'];
+        const nextIdx = (tabs.indexOf(currentBuildTab) + 1) % tabs.length;
+        switchBuildTab(tabs[nextIdx]);
+      }
     } else if (e.key === 's' || e.key === 'S') {
       // 需求4: 快速鍵：s 賣掉砲塔
       if (game.selectedTower) {
