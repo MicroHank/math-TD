@@ -251,9 +251,7 @@ window.addEventListener('DOMContentLoaded', () => {
     switchBuildTab(targetTab);
 
     buildOptionCards.forEach(card => {
-      const isTarget = req === 'TRIANGLE_PRIMES'
-        ? ['PRIME_2', 'PRIME_3', 'PRIME_5', 'PRIME_7'].includes(card.dataset.towerType)
-        : (card.dataset.towerType === req);
+      const isTarget = card.dataset.towerType === req;
       if (isTarget) {
         card.classList.add('tutorial-target');
         const info = card.querySelector('.option-info');
@@ -997,40 +995,6 @@ window.addEventListener('DOMContentLoaded', () => {
       ctx.beginPath();
       ctx.ellipse(0, 0, 44, 20, 0, 0, Math.PI * 2);
       ctx.stroke();
-    } else if (type === 'RESONANCE_TRIANGLE') {
-      // 幾何共鳴結界：旋轉三角結界光環與質數頂點
-      ctx.rotate(t * 0.9);
-      ctx.strokeStyle = '#c084fc';
-      ctx.shadowColor = '#c084fc';
-      ctx.shadowBlur = 18;
-      ctx.lineWidth = 3;
-      const r = 40;
-      ctx.beginPath();
-      for (let i = 0; i < 3; i++) {
-        const ang = (i * Math.PI * 2) / 3 - Math.PI / 2;
-        const x = Math.cos(ang) * r;
-        const y = Math.sin(ang) * r;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(168, 85, 247, 0.22)';
-      ctx.fill();
-
-      // 頂點質數能量節點
-      const nodeColors = ['#38bdf8', '#fbbf24', '#34d399'];
-      for (let i = 0; i < 3; i++) {
-        const ang = (i * Math.PI * 2) / 3 - Math.PI / 2;
-        const x = Math.cos(ang) * r;
-        const y = Math.sin(ang) * r;
-        ctx.beginPath();
-        ctx.arc(x, y, 7, 0, Math.PI * 2);
-        ctx.fillStyle = nodeColors[i];
-        ctx.shadowColor = nodeColors[i];
-        ctx.shadowBlur = 10;
-        ctx.fill();
-      }
     } else {
       // 結業考核 / 預設
       ctx.rotate(t * 1.2);

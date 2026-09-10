@@ -223,21 +223,6 @@ export const TUTORIAL_LESSONS = [
     icon: 'n!',
     color: '#ec4899',
     description: '終極神域禁忌之塔！每關限建 1 座且不可升級。發射貫穿整條路徑的階乘波，負數怪瞬間轉正，並連續執行 7, 5, 3, 2 因數極限削弱！'
-  },
-  {
-    id: 'tutorial_triangle',
-    lessonNum: 15,
-    towerType: 'RESONANCE_TRIANGLE',
-    requiredTower: 'TRIANGLE_PRIMES',
-    requiredTowerName: '2, 3, 5 及 3, 5, 7 質數砲',
-    title: '第十五課：📐 幾何共鳴三角結界',
-    subtitle: '建造 [2, 3, 5] 或 [3, 5, 7] 質數聖環，啟動共振三角結界！',
-    badge: '幾何結界',
-    reward: '✔ 掌握技巧',
-    wavesCount: 1,
-    icon: '📐',
-    color: '#a855f7',
-    description: '在相鄰三個基座建造 2, 3, 5 號砲可啟動【🔮 質數三相聖環 (Π30)】；建造 3, 5, 7 號砲可啟動【✨ 七曜三聯聖環 (Π105)】！光弦能減速切割怪物，頂點塔攻速射程大增！'
   }
 ];
 
@@ -496,27 +481,9 @@ export const TUTORIAL_MASTER_STEPS = {
     }
   },
   15: {
-    title: '第十五課：📐 幾何共鳴三角結界 (2-3-5 / 3-5-7)',
-    formula: '[2,3,5] 質數三相聖環 (Π30) ｜ [3,5,7] 七曜三聯聖環 (Π105)',
-    keyPoint: '✨ 在相距 <= 220px 的三座基座分別建造 2, 3, 5 或 3, 5, 7 質數砲，自動連接共鳴激光弦並張開神聖三角結界！',
-    recommendedTower: 'TRIANGLE_PRIMES',
-    targetEnemies: '多因數強敵 [30, 60, 105, 210]',
-    actionPrompt: '在三基座分別建造 2、3、5 號砲或 3、5、7 號砲，啟動三角共振結界！',
-    spotlight: {
-      towerType: 'RESONANCE_TRIANGLE',
-      name: '📐 幾何共鳴三角結界',
-      category: '數論幾何矩陣',
-      icon: '📐',
-      color: '#a855f7',
-      formula: '2-3-5 (Π30) ＆ 3-5-7 (Π105)',
-      desc: '數論結界奧義！在相鄰 3 基座建造 2, 3, 5 號砲（或 3, 5, 7 號砲），系統自動串聯激光弦並張開神聖三角結界！邊界激光減速切割敵軍，頂點防禦塔攻速射程大幅提升，並持續回充算力能量！',
-      targets: '多因數複合怪獸與大軍'
-    }
-  },
-  16: {
-    title: '🎓 第十六課：學院畢業總驗收（大聯防實戰）',
-    formula: '絕對值淨化 + 運算子微調 + 根號重壓 + 質數重砲 + 幾何共鳴 + 複合神塔 + 指揮官秘術',
-    keyPoint: '🏆 綜合運用前線絕對值、運算子微調、開方重力、後方質數重砲、幾何三角結界與複合神塔，守住最後波次完成大師結業！',
+    title: '🎓 第十五課：學院畢業總驗收（大聯防實戰）',
+    formula: '絕對值淨化 + 運算子微調 + 根號重壓 + 質數重砲 + 複合神塔 + 指揮官秘術',
+    keyPoint: '🏆 綜合運用前線絕對值、運算子微調、開方重力、後方質數重砲與複合神塔，守住最後波次完成大師結業！',
     recommendedTower: null,
     targetEnemies: '全種類混合大軍 [-36, 17, 49, 60, 23, 81, 120]',
     actionPrompt: '調動全部防線資源，守住防守核心，順利自數論學院畢業！',
@@ -526,8 +493,8 @@ export const TUTORIAL_MASTER_STEPS = {
       category: '實戰結業考核',
       icon: '🏆',
       color: '#38bdf8',
-      formula: '全塔佈陣 × 幾何共鳴 × QWE 秘術',
-      desc: '檢驗你在數論學院所學到的一切！綜合運用除法、淨化、開方、微調、減速、升級變賣、幾何三角結界、複合神塔與指揮官秘術，完成大師結業！',
+      formula: '全塔佈陣 × 策略升級 × QWE 秘術',
+      desc: '檢驗你在數論學院所學到的一切！綜合運用除法、淨化、開方、微調、減速、升級變賣、複合神塔與指揮官秘術，完成大師結業！',
       targets: '全類型數論軍團混合壓境'
     }
   }

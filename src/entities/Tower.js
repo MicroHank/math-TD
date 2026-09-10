@@ -205,13 +205,13 @@ export class Tower {
       if (game && game.coinFloats) {
         game.coinFloats.push(new CoinFloat({ x: this.x, y: this.y - 24, text: '💥 砲塔已損毀！按 [R] 修復', color: '#ef4444' }));
       }
-      if (game && game.resonanceManager) game.resonanceManager.recalculate();
     }
     if (game && game.syncUI) game.syncUI();
   }
 
   getRepairCost() {
-    return Math.max(15, Math.round(this.cost * 0.3));
+    const discount = techTree.getRepairCostDiscount ? techTree.getRepairCostDiscount() : 1.0;
+    return Math.max(10, Math.round(this.cost * 0.3 * discount));
   }
 
   repair(game) {
@@ -232,7 +232,6 @@ export class Tower {
     if (game && game.coinFloats) {
       game.coinFloats.push(new CoinFloat({ x: this.x, y: this.y - 20, text: '🔧 砲塔已修復！', color: '#22c55e' }));
     }
-    if (game && game.resonanceManager) game.resonanceManager.recalculate();
     game.syncUI();
     return true;
   }
@@ -267,7 +266,8 @@ export class Tower {
 
   get effectiveRange() {
     const techPrimeMult = this.type === 'prime' ? techTree.getPrimeRangeMultiplier() : 1.0;
-    return Math.round(this.range * (this.geometricRangeBonus ? (1 + this.geometricRangeBonus) : 1.0) * techPrimeMult);
+    const primeBonusRange = (this.type === 'prime' && techTree.getPrimeBonusRange) ? techTree.getPrimeBonusRange() : 0;
+    return Math.round(this.range * techPrimeMult) + primeBonusRange;
   }
 
   findTarget(monsters) {
@@ -606,9 +606,8 @@ export class Tower {
 
     if (this.cooldown > 0) {
       const overdriveMult = game && game.spellManager && game.spellManager.isOverdriveActive ? 1.618 : 1.0;
-      const matrixSpeedMult = this.geometricSpeedBonus ? (1 + this.geometricSpeedBonus) : 1.0;
       const slowMult = this.slowTimer > 0 ? 0.5 : 1.0; // 攻速干擾 (-50%)
-      this.cooldown -= dt * overdriveMult * matrixSpeedMult * slowMult;
+      this.cooldown -= dt * overdriveMult * slowMult;
     }
 
     // 絕對零度力場塔 (Zero Freeze Field)：持續範圍減速光環

@@ -52,7 +52,7 @@ export class EndlessManager {
         mapBase: '3-4',
         difficulty: '高危無盡',
         difficultyStars: '⭐⭐⭐⭐',
-        desc: '四路沿斷崖連續之字形折返攀升至右上山頂核心，54 處依山基座，重力井與幾何共鳴大考驗！',
+        desc: '四路沿斷崖連續之字形折返攀升至右上山頂核心，54 處依山基座，重力井與多路防守大考驗！',
         gold: 1500,
         icon: '🏔️',
         tag: '盤山天梯 · 54 基座'

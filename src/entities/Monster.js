@@ -1,6 +1,7 @@
 // Monster Entity for Math Tower Defense
 import { sound } from '../engine/Audio.js';
 import { MonsterProjectile } from './Projectile.js';
+import { techTree } from '../engine/TechTreeManager.js';
 
 export class Monster {
   constructor({
@@ -609,7 +610,8 @@ export class Monster {
     this.isDead = true;
     sound.playEliminate();
     const lcmBountyBonus = this.isLcmMerged ? 1.5 : 1.0;
-    const baseBounty = Math.max(10, Math.floor(Math.abs(this.originalValue) * 0.58 * lcmBountyBonus));
+    const killMult = techTree && techTree.getKillGoldMultiplier ? techTree.getKillGoldMultiplier() : 1.0;
+    const baseBounty = Math.max(10, Math.floor(Math.abs(this.originalValue) * 0.58 * lcmBountyBonus * killMult));
     const reward = this.isBoss ? Math.max(80, Math.floor(baseBounty * 2.2)) : baseBounty;
     if (game) {
       if (game.addGold) game.addGold(reward, this.x, this.y);

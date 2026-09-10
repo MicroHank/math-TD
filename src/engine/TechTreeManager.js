@@ -21,10 +21,10 @@ export const TECH_BRANCHES = [
   },
   {
     id: 'geometry_economy',
-    name: '幾何與經濟系',
-    icon: '📐',
+    name: '戰略與經濟系',
+    icon: '🪙',
     color: '#c084fc',
-    desc: '增加開局金幣、擴展幾何共鳴光弦、強化三角結界與公倍數賞金'
+    desc: '增加開局金幣、提升擊殺賞金、擴充全塔射程與提供維修補貼'
   }
 ];
 
@@ -150,9 +150,9 @@ export const TECH_NODES = {
     tier: 2,
     cost: 2,
     reqId: 'ge_1',
-    icon: '🔗',
-    name: '幾何共鳴擴展',
-    desc: '三角聖環最大成型範圍由 380px 擴大至 500px',
+    icon: '💰',
+    name: '質因數開採',
+    desc: '擊殺所有怪物時獲得的基礎金幣獎勵提升 +20%',
   },
   ge_3: {
     id: 'ge_3',
@@ -160,9 +160,9 @@ export const TECH_NODES = {
     tier: 3,
     cost: 3,
     reqId: 'ge_2',
-    icon: '🔺',
-    name: '三角聖域強化',
-    desc: '共鳴三角結界攻速加成升至 +18%，怪物減速升至 22%',
+    icon: '🎯',
+    name: '砲塔射程校準',
+    desc: '所有質數砲塔 (2, 3, 5, 7) 的基礎攻擊範圍提升 +15px',
   },
   ge_4: {
     id: 'ge_4',
@@ -170,9 +170,9 @@ export const TECH_NODES = {
     tier: 4,
     cost: 4,
     reqId: 'ge_3',
-    icon: '✨',
-    name: '三聯聖光矩陣',
-    desc: '3-5-7 七曜聖光打擊傷害提升至 50 且發動間隔縮短至 2.0s',
+    icon: '🛡️',
+    name: '戰略維修補貼',
+    desc: '砲塔受損維修與摧毀重建費用降低 50%',
   },
   ge_5: {
     id: 'ge_5',
@@ -305,28 +305,16 @@ export class TechTreeManager {
     return this.isUnlocked('ge_1') ? 80 : 0;
   }
 
-  getMaxTriangleDistance() {
-    return this.isUnlocked('ge_2') ? 500 : 380;
+  getKillGoldMultiplier() {
+    return this.isUnlocked('ge_2') ? 1.20 : 1.0;
   }
 
-  getMaxLinkDistance() {
-    return this.getMaxTriangleDistance();
+  getPrimeBonusRange() {
+    return this.isUnlocked('ge_3') ? 15 : 0;
   }
 
-  getTriangleSpeedBonus() {
-    return this.isUnlocked('ge_3') ? 0.18 : 0.12;
-  }
-
-  getTriangleSlowRatio() {
-    return this.isUnlocked('ge_3') ? 0.78 : 0.85;
-  }
-
-  getPythagoreanPulseDamage() {
-    return this.isUnlocked('ge_4') ? 50 : 28;
-  }
-
-  getPythagoreanInterval() {
-    return this.isUnlocked('ge_4') ? 2.0 : 2.5;
+  getRepairCostDiscount() {
+    return this.isUnlocked('ge_4') ? 0.50 : 1.0;
   }
 
   getLcmGoldBonus() {

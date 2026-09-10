@@ -2821,7 +2821,7 @@ export const LEVELS = {
     name: '🎓 💥 n! 階乘坍縮衝擊波',
     subtitle: '貫穿整條路徑，使全場因數階層連環坍縮',
     tip: '💡 本課指定【n! 階乘坍縮衝擊波】！極限神域禁忌之塔，發射貫穿全路徑的因數坍縮衝擊波！',
-    nextLevelId: 'tutorial_triangle',
+    nextLevelId: 'tutorial_master',
     initialGold: 1600,
     initialLives: 15,
     lanes: [[{ x: 30, y: 280 }, { x: 930, y: 280 }]],
@@ -2840,43 +2840,5 @@ export const LEVELS = {
         ]
       }
     ]
-  },
-
-  'tutorial_triangle': {
-    id: 'tutorial_triangle',
-    chapterId: 'tutorial',
-    isTutorial: true,
-    requiredTower: 'TRIANGLE_PRIMES',
-    requiredTowerName: '2, 3, 5 及 3, 5, 7 質數砲',
-    name: '第十五課：幾何共鳴三角結界',
-    subtitle: '建造 2,3,5 或 3,5,7 啟動共振三角結界',
-    tip: '💡 本課指引【三角結界】！在三基座建造 2, 3, 5 (Π30) 或 3, 5, 7 (Π105) 啟動幾何共鳴結界！',
-    nextLevelId: 'tutorial_master',
-    initialGold: 1200,
-    initialLives: 20,
-    lanes: [[{ x: 30, y: 280 }, { x: 930, y: 280 }]],
-    buildPads: [
-      { id: 'p_tri1_top', x: 320, y: 190 },
-      { id: 'p_tri1_bl', x: 230, y: 365 },
-      { id: 'p_tri1_br', x: 410, y: 365 },
-      { id: 'p_tri2_top', x: 640, y: 190 },
-      { id: 'p_tri2_bl', x: 550, y: 365 },
-      { id: 'p_tri2_br', x: 730, y: 365 }
-    ],
-    waves: [
-      {
-        title: '第十五課：📐 幾何共鳴三角結界',
-        tip: '💡 在相鄰 3 基座建造 2、3、5 啟動【質數三相聖環(Π30)】，或 3、5、7 啟動【七曜三聯聖環(Π105)】！',
-        noShuffle: true,
-        enemies: [
-          { val: 30, speed: 30, delay: 1.2, noShuffle: true },
-          { val: 60, speed: 30, delay: 1.5, noShuffle: true },
-          { val: 105, speed: 28, delay: 1.8, noShuffle: true },
-          { val: 42, speed: 30, delay: 2.0, noShuffle: true },
-          { val: 210, speed: 26, delay: 2.2, noShuffle: true }
-        ]
-      }
-    ]
   }
 };
-
