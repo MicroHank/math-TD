@@ -566,7 +566,7 @@ export const LEVELS = {
     chapterId: 'world-2',
     name: '2-1 負向沼澤（折疊泥沼）',
     subtitle: '負數幽靈與前線淨化陣地',
-    tip: '💡 17 處沼澤基座！紫色負數怪帶有護盾，需以「絕對值稜鏡」擊碎護盾轉正後方可除法！',
+    tip: '💡 進入第二大關！「公倍數融合 (LCM)」危機機制正式啟動：相遇的合數將合體為公倍數巨獸！同時紫色負數怪需以「絕對值稜鏡」淨化轉正。',
     nextLevelId: '2-2',
     initialGold: 480,
     initialLives: 10,

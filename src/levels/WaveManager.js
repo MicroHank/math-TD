@@ -123,6 +123,23 @@ export class WaveManager {
     return twins.includes(v);
   }
 
+  // 判定當前關卡/波次是否允許觸發孿生質數雙子鏈接機制
+  // 循序漸進：僅在第四章（4-1~4-4）、第五章、無盡模式第 15 波起、或魔王連戰 Stage 4+ 開啟
+  isTwinPrimeAllowed() {
+    if (this.isEndlessMode) {
+      return this.currentWaveIndex >= 14; // Wave 15+ (0-indexed 14)
+    }
+    const levelId = this.levelData ? String(this.levelData.id || '') : '';
+    if (levelId.startsWith('4-') || levelId.startsWith('5-')) {
+      return true;
+    }
+    if (levelId.startsWith('boss_rush')) {
+      const stageIdx = parseInt(levelId.replace('boss_rush_', ''), 10) || 1;
+      return stageIdx >= 4;
+    }
+    return false;
+  }
+
   update(dt, game) {
     if (!this.waveInProgress) return;
 
@@ -156,13 +173,15 @@ export class WaveManager {
           isPalindromic: !!enemyConfig.isPalindromic,
           isMersenne: !!enemyConfig.isMersenne,
           isRiemann: !!enemyConfig.isRiemann,
+          isFibonacci: !!enemyConfig.isFibonacci,
+          isPerfect: !!enemyConfig.isPerfect,
           affixes: enemyConfig.affixes || [],
           congruenceMod: enemyConfig.congruenceMod,
           congruenceRem: enemyConfig.congruenceRem
         });
 
-        // 孿生質數雙子自動配對機制
-        if (this.isTwinPrimeValue(monster.value)) {
+        // 孿生質數雙子自動配對機制 (僅在第四章及以後循序漸進解鎖)
+        if (this.isTwinPrimeAllowed() && this.isTwinPrimeValue(monster.value)) {
           if (this.recentTwinSpawn && !this.recentTwinSpawn.isDead && Math.abs(this.recentTwinSpawn.value - monster.value) === 2) {
             monster.twinPartner = this.recentTwinSpawn;
             this.recentTwinSpawn.twinPartner = monster;

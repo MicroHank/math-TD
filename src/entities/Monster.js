@@ -25,6 +25,8 @@ export class Monster {
     isPalindromic = false,
     isMersenne = false,
     isRiemann = false,
+    isFibonacci = false,
+    isPerfect = false,
     affixes = [],
     congruenceMod = null,
     congruenceRem = null
@@ -43,8 +45,9 @@ export class Monster {
     this.mobiusReverseTimer = 0;
 
     // 質數冪·俄羅斯套娃怪 (Prime Power Matryoshka - p^k)
-    const matryoshkaInfo = Monster.checkMatryoshka(value);
-    this.isMatryoshka = !!isMatryoshka || !!matryoshkaInfo;
+    // 僅在明確標記為 isMatryoshka 時啟用，避免普通合數（如 4, 8, 9）過早觸發破殼加速
+    this.isMatryoshka = !!isMatryoshka;
+    const matryoshkaInfo = this.isMatryoshka ? Monster.checkMatryoshka(value) : null;
     this.matryoshkaBase = matryoshkaInfo ? matryoshkaInfo.base : 2;
     this.matryoshkaPower = matryoshkaInfo ? matryoshkaInfo.power : 2;
 
@@ -59,7 +62,7 @@ export class Monster {
     this.detLabel = ['a', 'b', 'c', 'd'][detIndex] || 'a';
 
     // 考拉茲奇異怪 (Collatz 3n+1 Conqueror)
-    this.isCollatz = !!isCollatz || Monster.checkCollatz(value);
+    this.isCollatz = !!isCollatz;
     this.collatzSurgeTimer = 0;
 
     // 康托爾三分塵埃怪 (Cantor Dust Swarm)
@@ -67,10 +70,10 @@ export class Monster {
     this.cantorDepth = cantorDepth || 0;
 
     // 迴文對稱聖盾怪 (Palindromic Mirror Sentinel)
-    this.isPalindromic = !!isPalindromic || Monster.checkPalindromic(value);
+    this.isPalindromic = !!isPalindromic;
 
     // 梅森狂暴巨擘 (Mersenne Titan - 2^p - 1)
-    this.isMersenne = !!isMersenne || Monster.checkMersenne(value);
+    this.isMersenne = !!isMersenne;
     this.mersenneAuraTimer = 0;
 
     // 黎曼零點幽靈 (Riemann Zero Phantom - zeta(s))
@@ -140,8 +143,8 @@ export class Monster {
     this.y = waypoints[0].y;
     this.progress = 0;
 
-    // 費波那契衝鋒隊加速
-    this.isFibonacci = this.checkFibonacci(value);
+    // 費波那契衝鋒隊加速 (僅在明確標記為 isFibonacci 時啟用)
+    this.isFibonacci = !!isFibonacci;
     const speedBonus = this.isFibonacci ? 1.38 : (this.isRecurring ? 1.15 : (this.isCantor ? 1.25 : 1.0));
     this.baseSpeed = speed * speedBonus;
     this.speed = this.baseSpeed;
@@ -178,7 +181,7 @@ export class Monster {
     // 特殊數論怪屬性
     this.twinPartner = null;        // 孿生質數雙子夥伴引用
     this.isRaging = false;          // 雙子狂暴狀態
-    this.hasPerfectShield = this.isPerfectNumber; // 完全數聖靈護盾 (70% 減傷，需 ±1 破盾)
+    this.hasPerfectShield = !!isPerfect; // 完全數聖靈護盾 (僅在第4章及無盡後期由關卡指派，需 ±1 破盾)
     this.isProcessingResonance = false; // 防重入遞迴保護鎖
   }
 
@@ -1418,8 +1421,8 @@ export class Monster {
       ctx.restore();
     }
 
-    // 幾何方塊怪 (完全平方數)：金色旋轉幾何外框
-    if (this.isSquare && !this.isBoss) {
+    // 幾何方塊怪 (完全平方數)：金色旋轉幾何外框 (數值 >= 16 時顯現幾何外框，避免 4 或 9 過早混淆)
+    if (this.isSquare && this.value >= 16 && !this.isBoss) {
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.rotate(this.pulseAngle * 0.4);

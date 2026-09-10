@@ -29,6 +29,34 @@ export class LcmMergeManager {
     this.mergeDist = 28;   // 碰撞觸發距離 (px)
   }
 
+  isMergeAllowed() {
+    if (!this.game) return false;
+    const mode = this.game.gameMode;
+    const levelId = String(this.game.currentLevelId || '');
+
+    // 教學學院模式：嚴格關閉合併
+    if (mode === 'tutorial' || levelId.startsWith('tutorial')) return false;
+
+    // 冒險模式：嚴格限制第二大關（World 2：2-1 起）及以上才開啟！
+    if (mode === 'adventure' || levelId.includes('-')) {
+      const chapter = parseInt(levelId.split('-')[0], 10) || 1;
+      return chapter >= 2;
+    }
+
+    // 無盡算力模式：第 6 波（相當於第二章難度起步）才開啟合併機制
+    if (mode === 'endless' || levelId === 'endless') {
+      const wave = this.game.waveManager ? (this.game.waveManager.currentWaveIndex + 1) : 1;
+      return wave >= 6;
+    }
+
+    // 魔王連戰：Stage 2 起開啟合併機制
+    if (mode === 'boss_rush' || levelId.startsWith('boss_rush')) {
+      return (this.game.bossRushStageIndex || 1) >= 2;
+    }
+
+    return false;
+  }
+
   update(dt) {
     // 1. 更新融合特效與震波
     for (let i = this.fusionRings.length - 1; i >= 0; i--) {
@@ -48,6 +76,9 @@ export class LcmMergeManager {
         this.shockwaves.splice(i, 1);
       }
     }
+
+    // 檢查當前關卡是否允許怪獸公倍數合體
+    if (!this.isMergeAllowed()) return;
 
     const monsters = this.game.monsters || [];
     const n = monsters.length;

@@ -40,12 +40,19 @@ export class EndlessManager {
 
     const enemies = [];
 
-    // 精英詞綴池
-    const possibleAffixes = ['congruence', 'berserk', 'entropy', 'delta_speed'];
-    const getAffixes = (prob = 0.25) => {
-      if (waveNumber < 3 || Math.random() > prob) return [];
-      const count = (waveNumber >= 12 && Math.random() < 0.35) ? 2 : 1;
-      const shuffled = [...possibleAffixes].sort(() => Math.random() - 0.5);
+    // 精英詞綴池（循序漸進解鎖：Wave 1-5 無詞綴，Wave 6+ 速度，Wave 10+ 狂暴，Wave 15+ 同餘與熵增）
+    const getAffixes = (customProb) => {
+      if (waveNumber < 6) return []; // 第 1-5 波（第一大關範疇）完全無精英詞綴
+      
+      const availableAffixes = ['delta_speed'];
+      if (waveNumber >= 10) availableAffixes.push('berserk');
+      if (waveNumber >= 15) availableAffixes.push('congruence', 'entropy');
+
+      const prob = customProb !== undefined ? customProb : Math.min(0.48, 0.10 + (waveNumber - 6) * 0.025);
+      if (Math.random() > prob) return [];
+
+      const count = (waveNumber >= 16 && Math.random() < 0.35) ? 2 : 1;
+      const shuffled = [...availableAffixes].sort(() => Math.random() - 0.5);
       return shuffled.slice(0, count);
     };
 
@@ -103,79 +110,18 @@ export class EndlessManager {
       });
     }
 
-    // 2. 隨機生成精英與常規怪物陣容
+    // 2. 隨機生成精英與常規怪物陣容 (嚴格按波次階梯循序漸進)
     for (let i = 0; i < enemyCount; i++) {
       const roll = Math.random();
-      const affixProb = Math.min(0.55, 0.15 + waveNumber * 0.02);
 
-      // A. 考拉茲奇異怪 (Collatz 3n+1)
-      if (waveNumber >= 2 && roll < 0.10) {
-        const collatzPool = [27, 41, 47, 71, 87, 97, 123, 171];
-        const cVal = collatzPool[Math.floor(Math.random() * collatzPool.length)];
-        enemies.push({
-          val: cVal,
-          isCollatz: true,
-          affixes: getAffixes(affixProb),
-          delay: +(0.80 * delayScale).toFixed(2),
-          speed: Math.round(baseSpeed * 0.95),
-          hpMultiplier: hpMultiplier
-        });
-        continue;
-      }
-
-      // B. 康托爾三分塵埃怪 (Cantor Dust Swarm)
-      if (waveNumber >= 3 && roll < 0.18) {
-        const cantorPool = [27, 54, 81, 108, 162];
-        const cVal = cantorPool[Math.floor(Math.random() * cantorPool.length)];
-        enemies.push({
-          val: cVal,
-          isCantor: true,
-          cantorDepth: 0,
-          affixes: getAffixes(affixProb),
-          delay: +(0.75 * delayScale).toFixed(2),
-          speed: Math.round(baseSpeed * 0.90),
-          hpMultiplier: hpMultiplier
-        });
-        continue;
-      }
-
-      // C. 迴文對稱聖盾怪 (Palindromic Mirror Sentinel)
-      if (waveNumber >= 3 && roll < 0.26) {
-        const palPool = [121, 131, 242, 353, 373, 484, 585, 1331];
-        const pVal = palPool[Math.floor(Math.random() * palPool.length)];
-        enemies.push({
-          val: pVal,
-          isPalindromic: true,
-          affixes: getAffixes(affixProb),
-          delay: +(0.85 * delayScale).toFixed(2),
-          speed: Math.round(baseSpeed * 0.85),
-          hpMultiplier: hpMultiplier
-        });
-        continue;
-      }
-
-      // D. 梅森狂暴巨擘 (Mersenne Titan - 2^p - 1)
-      if (waveNumber >= 4 && roll < 0.34) {
-        const mersennePool = [31, 127];
-        const mVal = mersennePool[Math.floor(Math.random() * mersennePool.length)];
-        enemies.push({
-          val: mVal,
-          isMersenne: true,
-          affixes: getAffixes(affixProb),
-          delay: +(1.10 * delayScale).toFixed(2),
-          speed: Math.round(baseSpeed * 0.80),
-          hpMultiplier: +(hpMultiplier * 1.3).toFixed(2)
-        });
-        continue;
-      }
-
-      // E. 黎曼零點幽靈 (Riemann Zero Phantom - zeta(s))
-      if (waveNumber >= 5 && roll < 0.42) {
+      // ===== Tier 5 特殊怪 (Wave >= 20 終極篇：黎曼、莫比烏斯、虛數循環) =====
+      // A. 黎曼零點幽靈 (Riemann Zero Phantom - zeta(s))
+      if (waveNumber >= 20 && roll < 0.08) {
         const rVal = 36 + Math.floor(Math.random() * (waveNumber * 8));
         enemies.push({
           val: rVal,
           isRiemann: true,
-          affixes: getAffixes(affixProb),
+          affixes: getAffixes(),
           delay: +(0.90 * delayScale).toFixed(2),
           speed: Math.round(baseSpeed * 0.95),
           hpMultiplier: hpMultiplier
@@ -183,43 +129,14 @@ export class EndlessManager {
         continue;
       }
 
-      // F. 完全數 (6, 28, 496, 8128)
-      if (waveNumber >= 4 && roll < 0.48) {
-        const perfVal = waveNumber >= 20 && Math.random() < 0.25 ? 8128 : (waveNumber >= 12 && Math.random() < 0.4 ? 496 : (waveNumber >= 6 ? 28 : 6));
-        enemies.push({
-          val: perfVal,
-          affixes: getAffixes(affixProb),
-          delay: +(0.9 * delayScale).toFixed(2),
-          speed: Math.round(baseSpeed * 0.85),
-          hpMultiplier: hpMultiplier
-        });
-        continue;
-      }
-
-      // G. 循環小數幽靈 (0.3̇, 0.6̇, 0.142857, 0.9̇)
-      if (waveNumber >= 3 && roll < 0.54) {
-        const phantomPool = ['0.3', '0.6', '0.142857', '0.9'];
-        const rType = phantomPool[Math.floor(Math.random() * (waveNumber >= 6 ? phantomPool.length : 2))];
-        enemies.push({
-          val: rType,
-          isRecurring: true,
-          recurringType: rType,
-          affixes: getAffixes(affixProb),
-          delay: +(0.85 * delayScale).toFixed(2),
-          speed: Math.round(baseSpeed * 0.95),
-          hpMultiplier: hpMultiplier
-        });
-        continue;
-      }
-
-      // H. 莫比烏斯拓撲幽靈
-      if (waveNumber >= 3 && roll < 0.60) {
+      // B. 莫比烏斯拓撲幽靈 (Möbius Strip Shifter)
+      if (waveNumber >= 20 && roll < 0.16) {
         const mobiusPool = [18, 20, 45, 50, 72, 75, 98, 108, 150];
         const mVal = mobiusPool[Math.floor(Math.random() * mobiusPool.length)];
         enemies.push({
           val: mVal,
           isMobius: true,
-          affixes: getAffixes(affixProb),
+          affixes: getAffixes(),
           delay: +(0.85 * delayScale).toFixed(2),
           speed: Math.round(baseSpeed * 0.90),
           hpMultiplier: hpMultiplier
@@ -227,28 +144,13 @@ export class EndlessManager {
         continue;
       }
 
-      // I. 質數冪·俄羅斯套娃怪 (p^k)
-      if (waveNumber >= 2 && roll < 0.66) {
-        const matryoshkaPool = [16, 27, 32, 64, 81, 125, 243, 256];
-        const matVal = matryoshkaPool[Math.floor(Math.random() * matryoshkaPool.length)];
-        enemies.push({
-          val: matVal,
-          isMatryoshka: true,
-          affixes: getAffixes(affixProb),
-          delay: +(0.80 * delayScale).toFixed(2),
-          speed: Math.round(baseSpeed * 0.85),
-          hpMultiplier: hpMultiplier
-        });
-        continue;
-      }
-
-      // J. 虛數單位 i 四象限循環幽靈
-      if (waveNumber >= 4 && roll < 0.72) {
+      // C. 虛數單位 i 四象限循環幽靈 (Gaussian Cycler)
+      if (waveNumber >= 20 && roll < 0.24) {
         const gVal = 18 + Math.floor(Math.random() * (waveNumber * 6));
         enemies.push({
           val: gVal,
           isGaussianCycler: true,
-          affixes: getAffixes(affixProb),
+          affixes: getAffixes(),
           delay: +(0.85 * delayScale).toFixed(2),
           speed: Math.round(baseSpeed * 0.95),
           hpMultiplier: hpMultiplier
@@ -256,11 +158,71 @@ export class EndlessManager {
         continue;
       }
 
-      // K. 孿生質數雙子 (成對生成)
-      if (waveNumber >= 3 && roll < 0.78 && i < enemyCount - 1) {
+      // ===== Tier 4 特殊怪 (Wave >= 15 質數要塞篇：考拉茲、套娃、梅森、完全數、孿生質數) =====
+      // D. 考拉茲奇異怪 (Collatz 3n+1)
+      if (waveNumber >= 15 && roll < 0.32) {
+        const collatzPool = [27, 41, 47, 71, 87, 97, 123, 171];
+        const cVal = collatzPool[Math.floor(Math.random() * collatzPool.length)];
+        enemies.push({
+          val: cVal,
+          isCollatz: true,
+          affixes: getAffixes(),
+          delay: +(0.80 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.95),
+          hpMultiplier: hpMultiplier
+        });
+        continue;
+      }
+
+      // E. 質數冪·俄羅斯套娃怪 (p^k)
+      if (waveNumber >= 15 && roll < 0.40) {
+        const matryoshkaPool = [16, 27, 32, 64, 81, 125, 243, 256];
+        const matVal = matryoshkaPool[Math.floor(Math.random() * matryoshkaPool.length)];
+        enemies.push({
+          val: matVal,
+          isMatryoshka: true,
+          affixes: getAffixes(),
+          delay: +(0.80 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.85),
+          hpMultiplier: hpMultiplier
+        });
+        continue;
+      }
+
+      // F. 梅森狂暴巨擘 (Mersenne Titan - 2^p - 1)
+      if (waveNumber >= 15 && roll < 0.47) {
+        const mersennePool = [31, 127];
+        const mVal = mersennePool[Math.floor(Math.random() * mersennePool.length)];
+        enemies.push({
+          val: mVal,
+          isMersenne: true,
+          affixes: getAffixes(),
+          delay: +(1.10 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.80),
+          hpMultiplier: +(hpMultiplier * 1.3).toFixed(2)
+        });
+        continue;
+      }
+
+      // G. 完全數聖盾怪 (6, 28, 496, 8128)
+      if (waveNumber >= 15 && roll < 0.54) {
+        const perfVal = waveNumber >= 24 && Math.random() < 0.25 ? 8128 : (waveNumber >= 18 && Math.random() < 0.4 ? 496 : 28);
+        enemies.push({
+          val: perfVal,
+          isPerfect: true,
+          affixes: getAffixes(),
+          delay: +(0.9 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.85),
+          hpMultiplier: hpMultiplier
+        });
+        continue;
+      }
+
+      // H. 孿生質數雙子 (成對生成，Wave 15+ 自動觸發雙子鏈接)
+      if (waveNumber >= 15 && roll < 0.62 && i < enemyCount - 1) {
         const pairIdx = Math.min(twinPairs.length - 1, Math.floor(Math.random() * (1 + Math.floor(waveNumber / 3))));
         const pair = twinPairs[pairIdx];
-        const twinAffixes = getAffixes(affixProb);
+        const twinAffixes = getAffixes();
         enemies.push({
           val: pair[0],
           affixes: twinAffixes,
@@ -279,38 +241,16 @@ export class EndlessManager {
         continue;
       }
 
-      // L. 費波那契極速衝鋒隊
-      if (waveNumber >= 2 && roll < 0.84) {
-        const fibVal = fibs[Math.min(fibs.length - 1, Math.floor(Math.random() * (2 + Math.floor(waveNumber / 3))))];
+      // ===== Tier 3 特殊怪 (Wave >= 10 平方之峰篇：康托爾、迴文、費波那契、平方數) =====
+      // I. 康托爾三分塵埃怪 (Cantor Dust Swarm)
+      if (waveNumber >= 10 && roll < 0.68) {
+        const cantorPool = [27, 54, 81, 108, 162];
+        const cVal = cantorPool[Math.floor(Math.random() * cantorPool.length)];
         enemies.push({
-          val: fibVal,
-          affixes: getAffixes(affixProb),
-          delay: +(0.65 * delayScale).toFixed(2),
-          speed: Math.round(baseSpeed * 1.35),
-          hpMultiplier: hpMultiplier
-        });
-        continue;
-      }
-
-      // M. 負數護盾怪
-      if (waveNumber >= 3 && roll < 0.90) {
-        const negVal = -(Math.floor(Math.random() * (waveNumber * 12)) + 12);
-        enemies.push({
-          val: negVal,
-          affixes: getAffixes(affixProb),
-          delay: +(0.75 * delayScale).toFixed(2),
-          speed: Math.round(baseSpeed * 0.95),
-          hpMultiplier: hpMultiplier
-        });
-        continue;
-      }
-
-      // N. 完全平方數
-      if (waveNumber >= 2 && roll < 0.95) {
-        const sqVal = squares[Math.min(squares.length - 1, Math.floor(Math.random() * (3 + Math.floor(waveNumber / 3))))];
-        enemies.push({
-          val: sqVal,
-          affixes: getAffixes(affixProb),
+          val: cVal,
+          isCantor: true,
+          cantorDepth: 0,
+          affixes: getAffixes(),
           delay: +(0.75 * delayScale).toFixed(2),
           speed: Math.round(baseSpeed * 0.90),
           hpMultiplier: hpMultiplier
@@ -318,7 +258,79 @@ export class EndlessManager {
         continue;
       }
 
-      // O. 基礎高因數合數
+      // J. 迴文對稱聖盾怪 (Palindromic Mirror Sentinel)
+      if (waveNumber >= 10 && roll < 0.74) {
+        const palPool = [121, 131, 242, 353, 373, 484, 585, 1331];
+        const pVal = palPool[Math.floor(Math.random() * palPool.length)];
+        enemies.push({
+          val: pVal,
+          isPalindromic: true,
+          affixes: getAffixes(),
+          delay: +(0.85 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.85),
+          hpMultiplier: hpMultiplier
+        });
+        continue;
+      }
+
+      // K. 費波那契極速衝鋒隊
+      if (waveNumber >= 10 && roll < 0.80) {
+        const fibVal = fibs[Math.min(fibs.length - 1, Math.floor(Math.random() * (2 + Math.floor(waveNumber / 3))))];
+        enemies.push({
+          val: fibVal,
+          isFibonacci: true,
+          affixes: getAffixes(),
+          delay: +(0.65 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 1.35),
+          hpMultiplier: hpMultiplier
+        });
+        continue;
+      }
+
+      // L. 完全平方數 (幾何方塊怪)
+      if (waveNumber >= 10 && roll < 0.86) {
+        const sqVal = squares[Math.min(squares.length - 1, Math.floor(Math.random() * (3 + Math.floor(waveNumber / 3))))];
+        enemies.push({
+          val: sqVal,
+          affixes: getAffixes(),
+          delay: +(0.75 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.90),
+          hpMultiplier: hpMultiplier
+        });
+        continue;
+      }
+
+      // ===== Tier 2 特殊怪 (Wave >= 6 負數深淵篇：循環小數、負數怪，公倍數合體啟動) =====
+      // M. 循環小數幽靈 (0.3̇, 0.6̇, 0.142857, 0.9̇)
+      if (waveNumber >= 6 && roll < 0.91) {
+        const phantomPool = ['0.3', '0.6', '0.142857', '0.9'];
+        const rType = phantomPool[Math.floor(Math.random() * (waveNumber >= 10 ? phantomPool.length : 2))];
+        enemies.push({
+          val: rType,
+          isRecurring: true,
+          recurringType: rType,
+          affixes: getAffixes(),
+          delay: +(0.85 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.95),
+          hpMultiplier: hpMultiplier
+        });
+        continue;
+      }
+
+      // N. 負數護盾怪
+      if (waveNumber >= 6 && roll < 0.96) {
+        const negVal = -(Math.floor(Math.random() * (waveNumber * 12)) + 12);
+        enemies.push({
+          val: negVal,
+          affixes: getAffixes(),
+          delay: +(0.75 * delayScale).toFixed(2),
+          speed: Math.round(baseSpeed * 0.95),
+          hpMultiplier: hpMultiplier
+        });
+        continue;
+      }
+
+      // ===== Tier 1 基礎高因數合數與質數 (Wave 1+ 全時期基礎怪) =====
       const baseFactors = [2, 3, 5, 7];
       let composite = baseFactors[Math.floor(Math.random() * 3)];
       const depth = Math.min(6, 1 + Math.floor(waveNumber / 4));
@@ -328,7 +340,7 @@ export class EndlessManager {
 
       enemies.push({
         val: composite,
-        affixes: getAffixes(affixProb),
+        affixes: getAffixes(),
         delay: +(0.70 * delayScale).toFixed(2),
         speed: baseSpeed,
         hpMultiplier: hpMultiplier
