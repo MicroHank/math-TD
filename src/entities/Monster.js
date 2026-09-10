@@ -1177,8 +1177,8 @@ export class Monster {
       this.lcmMergeCooldown = Math.max(0, this.lcmMergeCooldown - dt);
     }
 
-    // 數論安全防線：正數怪數值若因任何原因縮減至 <= 1，直接因數歸一消滅
-    if (!this.isNegative && this.value <= 1) {
+    // 數論安全防線：正數怪數值若因任何原因縮減至 <= 1，直接因數歸一消滅 (排除小於 1 的循環小數幽靈)
+    if (!this.isNegative && !this.isRecurring && this.value <= 1) {
       this.onEliminated(null, game);
       return;
     }

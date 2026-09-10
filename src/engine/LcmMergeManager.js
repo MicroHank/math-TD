@@ -84,16 +84,16 @@ export class LcmMergeManager {
     const n = monsters.length;
     if (n < 2) return;
 
-    // 2. 搜尋同路徑碰撞並觸發公倍數合體
+    // 2. 搜尋同路徑碰撞並觸發公倍數合體 (需已出發一段距離且排除循環小數)
     for (let i = 0; i < n; i++) {
       const m1 = monsters[i];
-      if (m1.isDead || m1.isNegative || m1.isBoss || m1.value <= 1 || m1.lcmMergeCooldown > 0) {
+      if (m1.isDead || m1.isNegative || m1.isBoss || m1.isRecurring || m1.value <= 1 || m1.lcmMergeCooldown > 0 || m1.progress < 50) {
         continue;
       }
 
       for (let j = i + 1; j < n; j++) {
         const m2 = monsters[j];
-        if (m2.isDead || m2.isNegative || m2.isBoss || m2.value <= 1 || m2.lcmMergeCooldown > 0) {
+        if (m2.isDead || m2.isNegative || m2.isBoss || m2.isRecurring || m2.value <= 1 || m2.lcmMergeCooldown > 0 || m2.progress < 50) {
           continue;
         }
 
