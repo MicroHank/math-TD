@@ -174,10 +174,11 @@ export class Game {
       if (this.tutorialManager) {
         this.tutorialManager.startLesson(levelId);
       }
-    } else if (mode === 'endless' || levelId === 'endless') {
+    } else if (mode === 'endless' || (typeof levelId === 'string' && levelId.startsWith('endless'))) {
       this.gameMode = 'endless';
-      this.currentLevelId = 'endless';
-      levelData = endlessManager.getEndlessLevelConfig(1);
+      this.endlessMapId = (typeof stageIndex === 'string' ? stageIndex : (typeof levelId === 'string' && levelId !== 'endless' ? levelId : 'endless_delta'));
+      this.currentLevelId = this.endlessMapId;
+      levelData = endlessManager.getEndlessLevelConfig(1, this.endlessMapId);
       if (this.tutorialManager) this.tutorialManager.stopLesson();
     } else if (mode === 'boss_rush' || (typeof levelId === 'string' && levelId.startsWith('boss_rush'))) {
       this.gameMode = 'boss_rush';
@@ -995,7 +996,13 @@ export class Game {
   }
 
   restart() {
-    this.loadLevel(this.currentLevelId);
+    if (this.gameMode === 'endless') {
+      this.loadLevel(this.currentLevelId, 'endless', this.endlessMapId);
+    } else if (this.gameMode === 'boss_rush') {
+      this.loadLevel(this.currentLevelId, 'boss_rush', this.bossRushStageIndex);
+    } else {
+      this.loadLevel(this.currentLevelId, this.gameMode);
+    }
   }
 
   // 更新邏輯

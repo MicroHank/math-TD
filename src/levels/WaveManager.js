@@ -19,7 +19,7 @@ export class WaveManager {
     this.spawnTimer = 0;
     this.monstersCountThisWave = 0;
     this.monsterIdCounter = 1;
-    this.isEndlessMode = levelData.id === 'endless';
+    this.isEndlessMode = levelData.id === 'endless' || (typeof levelData.id === 'string' && levelData.id.startsWith('endless'));
     this.recentTwinSpawn = null;
   }
 
@@ -212,8 +212,8 @@ export class WaveManager {
       this.currentWaveIndex++;
 
       if (this.isEndlessMode) {
-        // 無盡模式：持續推進波次，更新最高紀錄
-        progressManager.updateEndlessRecord(this.currentWaveIndex);
+        // 無盡模式：持續推進波次，更新最高紀錄 (全域與單圖紀錄)
+        progressManager.updateEndlessRecord(this.currentWaveIndex, this.levelData.endlessMapId || this.levelData.id);
         if (this.currentWaveIndex % 5 === 0) {
           // 每 5 波贈送額外金幣獎勵 (無盡模式不給予科研研究點數)
           game.addGold(150, game.width / 2, game.height / 2);

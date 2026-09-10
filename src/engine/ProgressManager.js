@@ -125,15 +125,29 @@ export class ProgressManager {
     this.save();
   }
 
-  // 取得無盡試煉最高紀錄波次
-  getEndlessRecord() {
+  // 取得無盡試煉最高紀錄波次 (支援指定地圖或全域最高)
+  getEndlessRecord(mapId = null) {
+    if (mapId && this.data.endlessMapRecords && this.data.endlessMapRecords[mapId]) {
+      return this.data.endlessMapRecords[mapId];
+    }
     return this.data.endlessRecord || 0;
   }
 
-  // 更新無盡試煉紀錄
-  updateEndlessRecord(waveNumber) {
+  // 更新無盡試煉紀錄 (同時更新單圖與全域最高)
+  updateEndlessRecord(waveNumber, mapId = null) {
+    let changed = false;
     if (waveNumber > (this.data.endlessRecord || 0)) {
       this.data.endlessRecord = waveNumber;
+      changed = true;
+    }
+    if (mapId) {
+      if (!this.data.endlessMapRecords) this.data.endlessMapRecords = {};
+      if (waveNumber > (this.data.endlessMapRecords[mapId] || 0)) {
+        this.data.endlessMapRecords[mapId] = waveNumber;
+        changed = true;
+      }
+    }
+    if (changed) {
       this.save();
       return true;
     }

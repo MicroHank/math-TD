@@ -593,6 +593,28 @@
       </div>
     </div>
 
+    <!-- 專屬無盡試煉選圖 Modal (Dedicated Endless Map Selection Modal) -->
+    <div id="modal-endless-select" class="modal-overlay hidden">
+      <div class="modal-content map-modal-box">
+        <div class="modal-header">
+          <div class="rush-title-wrap">
+            <h2>♾️ 無盡算力試煉 - 戰略地圖選擇</h2>
+            <p class="modal-subtitle">自由挑選 8 大地形拓撲戰場！面對無窮無盡的數論洪流，挑戰生存極限！</p>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <div class="endless-record-tag">
+              全域最高：<span id="endless-global-record-text" class="record-val">第 0 波</span>
+            </div>
+            <button id="btn-close-endless-select" class="btn-close">✕</button>
+          </div>
+        </div>
+
+        <div id="endless-maps-grid" class="endless-maps-grid">
+          <!-- 動態由 main.js 渲染 8 大無盡地圖卡片 -->
+        </div>
+      </div>
+    </div>
+
     <!-- 數論研究院科技樹 Modal (Tech Tree Meta-Progression Modal) -->
     <div id="modal-tech-tree" class="modal-overlay hidden">
       <div class="modal-content tech-tree-modal-box">

@@ -40,6 +40,12 @@ window.addEventListener('DOMContentLoaded', () => {
   const cardTutorialMaster = document.getElementById('card-tutorial-master');
   const academyLessonsGrid = document.getElementById('academy-lessons-grid');
 
+  // 無盡模式選圖 DOM 元素
+  const modalEndlessSelect = document.getElementById('modal-endless-select');
+  const btnCloseEndlessSelect = document.getElementById('btn-close-endless-select');
+  const endlessMapsGrid = document.getElementById('endless-maps-grid');
+  const endlessGlobalRecordText = document.getElementById('endless-global-record-text');
+
   // 砲塔 / 秘術特寫 Spotlight DOM 元素
   const modalTowerSpotlight = document.getElementById('modal-tower-spotlight');
   const spotlightCanvas = document.getElementById('spotlight-canvas');
@@ -1219,8 +1225,15 @@ window.addEventListener('DOMContentLoaded', () => {
       const targetInstance = gameInstance || game;
       if (stats.lives <= 0 && targetInstance && !targetInstance.isGameOverReported) {
         targetInstance.isGameOverReported = true;
-        gameoverTitle.textContent = '💀 核心受損，防線崩潰！';
-        gameoverDesc.textContent = `你在【${stats.currentLevelName}】奮戰至最後。複習質因數、絕對值與運算子技巧，再來挑戰一次吧！`;
+        if (targetInstance.gameMode === 'endless') {
+          const reachedWave = targetInstance.waveManager.currentWaveIndex;
+          const bestWave = progress.getEndlessRecord(targetInstance.endlessMapId);
+          gameoverTitle.textContent = '♾️ 無盡試煉結算！';
+          gameoverDesc.textContent = `你在【${stats.currentLevelName}】成功防守至 第 ${reachedWave} 波！（本圖歷史最佳：第 ${bestWave} 波）`;
+        } else {
+          gameoverTitle.textContent = '💀 核心受損，防線崩潰！';
+          gameoverDesc.textContent = `你在【${stats.currentLevelName}】奮戰至最後。複習質因數、絕對值與運算子技巧，再來挑戰一次吧！`;
+        }
         modalGameOver.classList.remove('hidden');
       }
 
@@ -1495,9 +1508,73 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // 渲染無盡模式地圖選擇卡片清單
+  function renderEndlessMaps() {
+    if (!endlessMapsGrid) return;
+    endlessMapsGrid.innerHTML = '';
+
+    if (endlessGlobalRecordText) {
+      const globalRec = progress.getEndlessRecord();
+      endlessGlobalRecordText.textContent = globalRec > 0 ? `第 ${globalRec} 波` : '尚未挑戰';
+    }
+
+    const maps = endlessManager.getEndlessMaps();
+    maps.forEach(m => {
+      const record = progress.getEndlessRecord(m.id);
+      const card = document.createElement('div');
+      card.className = 'endless-map-card';
+
+      const isMythic = m.difficultyStars === '👑';
+      const badgeClass = isMythic ? 'endless-diff-badge mythic' : 'endless-diff-badge';
+      const recordText = record > 0 ? `🏆 最佳紀錄: 第 ${record} 波` : '尚未挑戰';
+      const recordBadgeClass = record > 0 ? 'endless-record-badge' : 'endless-record-badge no-record';
+
+      card.innerHTML = `
+        <div class="endless-card-header">
+          <span class="endless-map-icon">${m.icon}</span>
+          <span class="${badgeClass}">${m.difficultyStars} ${m.difficulty}</span>
+        </div>
+        <div class="endless-map-name">${m.name}</div>
+        <div class="endless-map-subtitle">${m.subtitle}</div>
+        <div class="endless-tag-row">
+          <span class="endless-tag">${m.tag}</span>
+          <span class="endless-gold-tag">${m.gold}🪙</span>
+        </div>
+        <div class="endless-map-desc">${m.desc}</div>
+        <div class="${recordBadgeClass}">
+          <span>${recordText}</span>
+          <span>▶</span>
+        </div>
+        <button class="btn-start-endless-map">進入挑戰 ➔</button>
+      `;
+
+      card.addEventListener('click', () => {
+        if (modalEndlessSelect) modalEndlessSelect.classList.add('hidden');
+        showBattleScreen(m.id, 'endless', m.id);
+      });
+
+      endlessMapsGrid.appendChild(card);
+    });
+  }
+
   if (btnHomeEndless) {
     btnHomeEndless.addEventListener('click', () => {
-      showBattleScreen('endless', 'endless');
+      renderEndlessMaps();
+      if (modalEndlessSelect) modalEndlessSelect.classList.remove('hidden');
+    });
+  }
+
+  if (btnCloseEndlessSelect) {
+    btnCloseEndlessSelect.addEventListener('click', () => {
+      if (modalEndlessSelect) modalEndlessSelect.classList.add('hidden');
+    });
+  }
+
+  if (modalEndlessSelect) {
+    modalEndlessSelect.addEventListener('click', (e) => {
+      if (e.target === modalEndlessSelect) {
+        modalEndlessSelect.classList.add('hidden');
+      }
     });
   }
 
@@ -1826,6 +1903,7 @@ window.addEventListener('DOMContentLoaded', () => {
       modalGuide.classList.add('hidden');
       modalStageMap.classList.add('hidden');
       if (modalBossRush) modalBossRush.classList.add('hidden');
+      if (modalEndlessSelect) modalEndlessSelect.classList.add('hidden');
       modalTechTree.classList.add('hidden');
       game.syncUI();
     }

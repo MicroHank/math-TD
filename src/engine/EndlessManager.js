@@ -3,18 +3,125 @@ import { LEVELS } from '../levels/LevelData.js';
 
 export class EndlessManager {
   constructor() {
-    this.defaultMapKey = '1-4'; // 雙流道交會地圖
+    this.defaultMapKey = 'endless_delta';
   }
 
-  // 取得無盡模式地圖配置
-  getEndlessLevelConfig(waveNumber = 1) {
-    const baseLevel = LEVELS['1-4'] || LEVELS['1-1'];
+  // 取得無盡模式可選戰略地圖列表 (8 大特色幾何戰場)
+  getEndlessMaps() {
+    return [
+      {
+        id: 'endless_delta',
+        name: '平原雙流交匯谷',
+        subtitle: '四道大河匯流平原要塞',
+        mapBase: '1-4',
+        difficulty: '入門無盡',
+        difficultyStars: '⭐',
+        desc: '四條大河自西向東緩緩推進，48 處沿線緊密基座，適合建立穩健的三角交叉火力。',
+        gold: 1200,
+        icon: '🌊',
+        tag: '4 航道 · 48 基座'
+      },
+      {
+        id: 'endless_cross',
+        name: '負極十字裂隙',
+        subtitle: '「X」型立交十字路口',
+        mapBase: '2-2',
+        difficulty: '進階無盡',
+        difficultyStars: '⭐⭐',
+        desc: '地圖中央為真正的 X 型立交十字路口，45 處沿線基座，正負數怪於中心交匯衝撞。',
+        gold: 1300,
+        icon: '⚔️',
+        tag: '十字路口 · 45 基座'
+      },
+      {
+        id: 'endless_helix',
+        name: '雙螺旋暗河深淵',
+        subtitle: '立體交錯雙螺旋暗流',
+        mapBase: '2-1',
+        difficulty: '險峻無盡',
+        difficultyStars: '⭐⭐⭐',
+        desc: '兩道負數暗流呈立體雙螺旋多次交織，42 處基座嚴密夾道，考驗絕對值與運算子靈活配置。',
+        gold: 1350,
+        icon: '🌀',
+        tag: '雙螺旋 · 42 基座'
+      },
+      {
+        id: 'endless_switchback',
+        name: '斷崖「之」字天梯',
+        subtitle: '高山之巔山頂神殿',
+        mapBase: '3-4',
+        difficulty: '高危無盡',
+        difficultyStars: '⭐⭐⭐⭐',
+        desc: '四路沿斷崖連續之字形折返攀升至右上山頂核心，54 處依山基座，重力井與幾何共鳴大考驗！',
+        gold: 1500,
+        icon: '🏔️',
+        tag: '盤山天梯 · 54 基座'
+      },
+      {
+        id: 'endless_sanctuary',
+        name: '質數之城四方圍城',
+        subtitle: '四角大街直衝正中央神殿',
+        mapBase: '4-4',
+        difficulty: '守護無盡',
+        difficultyStars: '⭐⭐⭐⭐',
+        desc: '防守核心座落於地圖正中心！四角大道怪物向心突圍，57 處基座緊隨大街夾道，考驗全方位防禦！',
+        gold: 1600,
+        icon: '🏛️',
+        tag: '中心神殿 · 57 基座'
+      },
+      {
+        id: 'endless_galaxy',
+        name: '雙重螺旋銀河漩渦',
+        subtitle: '阿基米德平滑雙旋臂',
+        mapBase: '5-1',
+        difficulty: '宇宙無盡',
+        difficultyStars: '⭐⭐⭐⭐⭐',
+        desc: '兩條壯麗長旋臂呈 180 度對稱向中心黑洞奇異點旋轉盤入，54 處基座沿雙臂夾道包覆，旋臂交疊共振！',
+        gold: 1800,
+        icon: '🌌',
+        tag: '雙螺旋星系 · 54 基座'
+      },
+      {
+        id: 'endless_trefoil',
+        name: '塞爾特三葉神環',
+        subtitle: '拓撲學三葉紐結無限迴圈',
+        mapBase: '5-2',
+        difficulty: '奇異無盡',
+        difficultyStars: '⭐⭐⭐⭐⭐',
+        desc: '頂葉、左下葉、右下葉三大能量環瓣於中心交織，怪物三次穿過中心十字交叉，54 處沿環基座！',
+        gold: 1800,
+        icon: '☘️',
+        tag: '三葉紐結 · 54 基座'
+      },
+      {
+        id: 'endless_hourglass',
+        name: '時空沙漏星門對撞機',
+        subtitle: '中央極限狹縫對撞與事件視界',
+        mapBase: '5-4',
+        difficulty: '終極神話',
+        difficultyStars: '👑',
+        desc: '雙漏斗沙漏結構！怪物自左右漏斗匯入中央極窄狹縫對撞，再旋入事件視界星環，63 處基座重砲絞殺！',
+        gold: 2000,
+        icon: '⏳',
+        tag: '對撞絞肉機 · 63 基座'
+      }
+    ];
+  }
+
+  // 取得無盡模式地圖配置 (支援玩家自選戰略地圖)
+  getEndlessLevelConfig(waveNumber = 1, mapId = 'endless_delta') {
+    const maps = this.getEndlessMaps();
+    const cleanId = (typeof mapId === 'string' && mapId.startsWith('endless_')) ? mapId : `endless_${mapId}`;
+    const selected = maps.find(m => m.id === cleanId || m.mapBase === mapId || m.id === mapId) || maps[0];
+    const baseLevel = LEVELS[selected.mapBase] || LEVELS['1-4'];
+
     return {
-      id: 'endless',
-      name: '♾️ 無盡算力試煉 (Endless Mode)',
-      difficulty: '難度隨波次無上限提升',
-      gold: 1200,
-      description: '面對無窮無盡的數論洪流！考拉茲、康托爾、迴文、梅森與黎曼零點群星來襲！每通關 5 波獲得 +5 顆科研星級！',
+      id: selected.id,
+      endlessMapId: selected.id,
+      name: `♾️ 無盡試煉 · ${selected.name}`,
+      difficulty: selected.difficulty,
+      gold: selected.gold,
+      description: selected.desc,
       worldWidth: baseLevel.worldWidth || 1920,
       worldHeight: baseLevel.worldHeight || 1080,
       lanes: baseLevel.lanes,
