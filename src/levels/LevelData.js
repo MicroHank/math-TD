@@ -3020,24 +3020,151 @@ export const LEVELS = {
     chapterId: 'tutorial',
     isTutorial: true,
     requiredTower: 'FUSION_6',
-    requiredTowerName: '⚛️ 複合神塔',
-    name: '🎓 ⚛️ 複合神塔融合',
-    subtitle: '進化複合神塔連除',
-    tip: '💡 本課指定【複合神塔】！建造砲塔升級後點擊「⚛️ 數論融合」進化為複合神塔！',
-    nextLevelId: 'tutorial_master',
+    requiredTowerName: '2×3 六芒雙曜塔',
+    name: '🎓 ⚛️ 2×3 六芒雙曜（雙質數連除）',
+    subtitle: '同時發射 2 與 3 質數光線，高速連環分解',
+    tip: '💡 本課指定【2×3 六芒雙曜】！點選中央基座在「⚛️ 複合神塔」建造，體驗雙質數連除威力！',
+    nextLevelId: 'tutorial_derivative',
     initialGold: 500,
     initialLives: 15,
     lanes: [[{ x: 30, y: 280 }, { x: 930, y: 280 }]],
     buildPads: [{ id: 'p_center', x: 480, y: 200 }],
     waves: [
       {
-        title: '第十一課：⚛️ 複合神塔融合',
-        tip: '💡 升級砲塔並點擊「⚛️ 數論融合」進化為 2×3 六芒雙曜！',
+        title: '第十一課：⚛️ 2×3 六芒雙曜（雙質數連除特訓）',
+        tip: '💡 建造【2×3 六芒雙曜】體驗同時進行 ÷2 與 ÷3 連除分解！',
         noShuffle: true,
         enemies: [
           { val: 6, speed: 35, delay: 1.2, noShuffle: true },
           { val: 12, speed: 35, delay: 1.4, noShuffle: true },
           { val: 24, speed: 35, delay: 1.6, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_derivative': {
+    id: 'tutorial_derivative',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    requiredTower: 'FUSION_DERIVATIVE',
+    requiredTowerName: 'd/dx 費馬導數天琴',
+    name: '🎓 🎻 d/dx 費馬導數天琴',
+    subtitle: '掌握切線斜率連環刀與 7 之倍數求導音爆',
+    tip: '💡 本課指定【d/dx 費馬導數天琴】！切線求導對大數值怪造成 1.4 倍傷害，並對 7 的倍數引爆破甲！',
+    nextLevelId: 'tutorial_monte_carlo',
+    initialGold: 600,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 930, y: 280 }]],
+    buildPads: [{ id: 'p_center', x: 480, y: 200 }],
+    waves: [
+      {
+        title: '第十二課：🎻 d/dx 費馬導數天琴（微分求導特訓）',
+        tip: '💡 點擊中央基座建造【d/dx 費馬導數天琴】，消滅 7 的倍數與大數值敵軍！',
+        noShuffle: true,
+        enemies: [
+          { val: 14, speed: 34, delay: 1.2, noShuffle: true },
+          { val: 21, speed: 34, delay: 1.4, noShuffle: true },
+          { val: 28, speed: 32, delay: 1.5, noShuffle: true },
+          { val: 49, speed: 30, delay: 1.6, noShuffle: true },
+          { val: 70, speed: 28, delay: 1.8, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_monte_carlo': {
+    id: 'tutorial_monte_carlo',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    requiredTower: 'FUSION_MONTE_CARLO',
+    requiredTowerName: '🎲 蒙地卡羅投擲機',
+    name: '🎓 🎲 蒙地卡羅投擲機',
+    subtitle: '量子機率骰：質數暴擊、開方重創與大數金幣',
+    tip: '💡 本課指定【🎲 蒙地卡羅投擲機】！投擲 1~12 骰子，觸發質數 250% 暴擊與完全平方開方！',
+    nextLevelId: 'tutorial_factorial',
+    initialGold: 600,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 930, y: 280 }]],
+    buildPads: [{ id: 'p_center', x: 480, y: 200 }],
+    waves: [
+      {
+        title: '第十三課：🎲 蒙地卡羅投擲機（機率特訓）',
+        tip: '💡 建造【🎲 蒙地卡羅投擲機】，觀察擲骰對不同怪獸的奇效！',
+        noShuffle: true,
+        enemies: [
+          { val: 16, speed: 34, delay: 1.2, noShuffle: true },
+          { val: 25, speed: 34, delay: 1.4, noShuffle: true },
+          { val: 36, speed: 32, delay: 1.5, noShuffle: true },
+          { val: 45, speed: 30, delay: 1.6, noShuffle: true },
+          { val: 60, speed: 28, delay: 1.8, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_factorial': {
+    id: 'tutorial_factorial',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    requiredTower: 'FUSION_FACTORIAL',
+    requiredTowerName: 'n! 階乘坍縮衝擊波',
+    name: '🎓 💥 n! 階乘坍縮衝擊波',
+    subtitle: '貫穿整條路徑，使全場因數階層連環坍縮',
+    tip: '💡 本課指定【n! 階乘坍縮衝擊波】！極限神域禁忌之塔，發射貫穿全路徑的因數坍縮衝擊波！',
+    nextLevelId: 'tutorial_triangle',
+    initialGold: 1200,
+    initialLives: 15,
+    lanes: [[{ x: 30, y: 280 }, { x: 930, y: 280 }]],
+    buildPads: [{ id: 'p_center', x: 480, y: 200 }],
+    waves: [
+      {
+        title: '第十四課：💥 n! 階乘坍縮衝擊波（全域坍縮特訓）',
+        tip: '💡 建造【n! 階乘坍縮衝擊波】，一擊重創路徑上所有敵軍！',
+        noShuffle: true,
+        enemies: [
+          { val: -30, speed: 34, delay: 1.2, noShuffle: true },
+          { val: 60, speed: 32, delay: 1.4, noShuffle: true },
+          { val: 120, speed: 30, delay: 1.6, noShuffle: true },
+          { val: 210, speed: 28, delay: 1.8, noShuffle: true },
+          { val: 420, speed: 26, delay: 2.0, noShuffle: true }
+        ]
+      }
+    ]
+  },
+
+  'tutorial_triangle': {
+    id: 'tutorial_triangle',
+    chapterId: 'tutorial',
+    isTutorial: true,
+    requiredTower: 'TRIANGLE_PRIMES',
+    requiredTowerName: '2, 3, 5 及 3, 5, 7 質數砲',
+    name: '第十五課：幾何共鳴三角結界',
+    subtitle: '建造 2,3,5 或 3,5,7 啟動共振三角結界',
+    tip: '💡 本課指引【三角結界】！在三基座建造 2, 3, 5 (Π30) 或 3, 5, 7 (Π105) 啟動幾何共鳴結界！',
+    nextLevelId: 'tutorial_master',
+    initialGold: 800,
+    initialLives: 20,
+    lanes: [[{ x: 30, y: 280 }, { x: 930, y: 280 }]],
+    buildPads: [
+      { id: 'p_tri1_top', x: 320, y: 190 },
+      { id: 'p_tri1_bl', x: 230, y: 365 },
+      { id: 'p_tri1_br', x: 410, y: 365 },
+      { id: 'p_tri2_top', x: 640, y: 190 },
+      { id: 'p_tri2_bl', x: 550, y: 365 },
+      { id: 'p_tri2_br', x: 730, y: 365 }
+    ],
+    waves: [
+      {
+        title: '第十五課：📐 幾何共鳴三角結界',
+        tip: '💡 在相鄰 3 基座建造 2、3、5 啟動【質數三相聖環(Π30)】，或 3、5、7 啟動【七曜三聯聖環(Π105)】！',
+        noShuffle: true,
+        enemies: [
+          { val: 30, speed: 30, delay: 1.2, noShuffle: true },
+          { val: 60, speed: 30, delay: 1.5, noShuffle: true },
+          { val: 105, speed: 28, delay: 1.8, noShuffle: true },
+          { val: 42, speed: 30, delay: 2.0, noShuffle: true },
+          { val: 210, speed: 26, delay: 2.2, noShuffle: true }
         ]
       }
     ]

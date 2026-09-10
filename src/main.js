@@ -238,7 +238,10 @@ window.addEventListener('DOMContentLoaded', () => {
     switchBuildTab(targetTab);
 
     buildOptionCards.forEach(card => {
-      if (card.dataset.towerType === req) {
+      const isTarget = req === 'TRIANGLE_PRIMES'
+        ? ['PRIME_2', 'PRIME_3', 'PRIME_5', 'PRIME_7'].includes(card.dataset.towerType)
+        : (card.dataset.towerType === req);
+      if (isTarget) {
         card.classList.add('tutorial-target');
         const info = card.querySelector('.option-info');
         if (info && !card.querySelector('.tut-target-chip')) {
@@ -915,8 +918,57 @@ window.addEventListener('DOMContentLoaded', () => {
       ctx.strokeStyle = '#fbbf24';
       ctx.shadowColor = '#fbbf24';
       ctx.beginPath(); ctx.arc(0, 0, 42, (Math.PI * 4) / 3, Math.PI * 2); ctx.stroke();
-    } else if (type === 'FUSION_6' || type === 'FUSION_15' || type === 'FUSION_ABS_SQRT' || type === 'FUSION_FACTORIAL') {
-      // 複合神塔：雙環陀螺儀
+    } else if (type === 'FUSION_DERIVATIVE') {
+      // 費馬導數天琴：微分求導音刃與切線光刀
+      ctx.rotate(t * 2.2);
+      ctx.strokeStyle = '#f43f5e';
+      ctx.shadowColor = '#f43f5e';
+      ctx.shadowBlur = 20;
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, 36, -Math.PI / 3, Math.PI / 3);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, 36, (2 * Math.PI) / 3, (4 * Math.PI) / 3);
+      ctx.stroke();
+      // 切線光刃
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-42, -20);
+      ctx.lineTo(42, 20);
+      ctx.stroke();
+    } else if (type === 'FUSION_MONTE_CARLO') {
+      // 蒙地卡羅機率投擲機：量子多面體骰子
+      ctx.rotate(t * 1.5);
+      ctx.strokeStyle = '#a855f7';
+      ctx.shadowColor = '#a855f7';
+      ctx.shadowBlur = 18;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(-24, -24, 48, 48);
+      ctx.rotate(Math.PI / 4);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.strokeRect(-18, -18, 36, 36);
+    } else if (type === 'FUSION_FACTORIAL') {
+      // n! 階乘坍縮波：三重同心因數擴散衝擊環
+      ctx.rotate(t * 1.8);
+      ctx.strokeStyle = '#ec4899';
+      ctx.shadowColor = '#ec4899';
+      ctx.shadowBlur = 22;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, 42, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, 26, 0, Math.PI * 2);
+      ctx.strokeStyle = '#f43f5e';
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, 14, 0, Math.PI * 2);
+      ctx.strokeStyle = '#fbbf24';
+      ctx.stroke();
+    } else if (type && type.startsWith('FUSION_')) {
+      // 複合神塔通用：雙環陀螺儀
       ctx.rotate(t * 2);
       ctx.strokeStyle = '#ec4899';
       ctx.shadowColor = '#ec4899';
@@ -930,6 +982,40 @@ window.addEventListener('DOMContentLoaded', () => {
       ctx.beginPath();
       ctx.ellipse(0, 0, 44, 20, 0, 0, Math.PI * 2);
       ctx.stroke();
+    } else if (type === 'RESONANCE_TRIANGLE') {
+      // 幾何共鳴結界：旋轉三角結界光環與質數頂點
+      ctx.rotate(t * 0.9);
+      ctx.strokeStyle = '#c084fc';
+      ctx.shadowColor = '#c084fc';
+      ctx.shadowBlur = 18;
+      ctx.lineWidth = 3;
+      const r = 40;
+      ctx.beginPath();
+      for (let i = 0; i < 3; i++) {
+        const ang = (i * Math.PI * 2) / 3 - Math.PI / 2;
+        const x = Math.cos(ang) * r;
+        const y = Math.sin(ang) * r;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(168, 85, 247, 0.22)';
+      ctx.fill();
+
+      // 頂點質數能量節點
+      const nodeColors = ['#38bdf8', '#fbbf24', '#34d399'];
+      for (let i = 0; i < 3; i++) {
+        const ang = (i * Math.PI * 2) / 3 - Math.PI / 2;
+        const x = Math.cos(ang) * r;
+        const y = Math.sin(ang) * r;
+        ctx.beginPath();
+        ctx.arc(x, y, 7, 0, Math.PI * 2);
+        ctx.fillStyle = nodeColors[i];
+        ctx.shadowColor = nodeColors[i];
+        ctx.shadowBlur = 10;
+        ctx.fill();
+      }
     } else {
       // 結業考核 / 預設
       ctx.rotate(t * 1.2);
@@ -963,8 +1049,17 @@ window.addEventListener('DOMContentLoaded', () => {
     const icon = sp.icon || 'TD';
     const type = sp.towerType || 'PRIME_2';
 
+    const activeLevelId = game ? game.currentLevelId : null;
+    const lesson = activeLevelId ? TUTORIAL_LESSONS.find(l => l.id === activeLevelId) : null;
+
     if (spotlightBadge) spotlightBadge.textContent = sp.category || '🌟 數論特訓';
-    if (spotlightStepTag) spotlightStepTag.textContent = `第 ${waveNum} / ${totalWaves} 課`;
+    if (spotlightStepTag) {
+      if (lesson && lesson.lessonNum) {
+        spotlightStepTag.textContent = `第 ${lesson.lessonNum} 課`;
+      } else {
+        spotlightStepTag.textContent = `第 ${waveNum} / ${totalWaves} 課`;
+      }
+    }
     if (spotlightTitle) spotlightTitle.textContent = sp.name || stepInfo.title;
     if (spotlightFormula) spotlightFormula.textContent = sp.formula || stepInfo.formula;
     if (spotlightTargets) spotlightTargets.textContent = sp.targets || stepInfo.targetEnemies;

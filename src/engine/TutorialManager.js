@@ -169,15 +169,75 @@ export const TUTORIAL_LESSONS = [
     lessonNum: 11,
     towerType: 'FUSION_6',
     requiredTower: 'FUSION_6',
-    requiredTowerName: '⚛️ 複合神塔 (數論融合)',
-    title: '第十一課：⚛️ 複合神塔融合與幾何共鳴',
-    subtitle: '進化 2×3, 3×5, |√x| 終極神塔',
+    requiredTowerName: '2×3 六芒雙曜塔',
+    title: '第十一課：⚛️ 2×3 六芒雙曜（雙質數連除）',
+    subtitle: '同時發射 2 與 3 質數光線，高速連環因數分解',
+    badge: '複合神塔',
+    reward: '✔ 掌握技巧',
+    wavesCount: 1,
+    icon: '2×3',
+    color: '#06b6d4',
+    description: '融合 2 號雙子砲與 3 號三元激光！能同時對目標進行 ÷2 與 ÷3 連環除法破甲！'
+  },
+  {
+    id: 'tutorial_derivative',
+    lessonNum: 12,
+    towerType: 'FUSION_DERIVATIVE',
+    requiredTower: 'FUSION_DERIVATIVE',
+    requiredTowerName: 'd/dx 費馬導數天琴',
+    title: '第十二課：🎻 d/dx 費馬導數天琴（微分求導破甲）',
+    subtitle: '切線斜率連環刀，高值怪物 1.4 倍傷害與 7 之倍數音爆',
+    badge: '複合神塔',
+    reward: '✔ 掌握技巧',
+    wavesCount: 1,
+    icon: 'd/dx',
+    color: '#f43f5e',
+    description: '7號天琴＋運算子微調神化！發射高頻求導音刃，對值大於 10 的怪物造成 1.4 倍切線傷害；若命中 7 之倍數直接引爆！'
+  },
+  {
+    id: 'tutorial_monte_carlo',
+    lessonNum: 13,
+    towerType: 'FUSION_MONTE_CARLO',
+    requiredTower: 'FUSION_MONTE_CARLO',
+    requiredTowerName: '🎲 蒙地卡羅投擲機',
+    title: '第十三課：🎲 蒙地卡羅投擲機（量子機率骰）',
+    subtitle: '3號＋根號融合，質數 250% 暴擊、完全平方開方與大數天火',
+    badge: '複合神塔',
+    reward: '✔ 掌握技巧',
+    wavesCount: 1,
+    icon: '🎲',
+    color: '#a855f7',
+    description: '投擲 1~12 點量子骰！骰出質數點(2,3,5,7,11)引發 250% 暴擊破甲；骰出平方數(4,9)直接將幾何怪開方；骰出大數點(>=10)噴發額外金幣！'
+  },
+  {
+    id: 'tutorial_factorial',
+    lessonNum: 14,
+    towerType: 'FUSION_FACTORIAL',
+    requiredTower: 'FUSION_FACTORIAL',
+    requiredTowerName: 'n! 階乘坍縮衝擊波',
+    title: '第十四課：💥 n! 階乘坍縮衝擊波（全域因數衰減）',
+    subtitle: '每關限建 1 座·不可升級，貫穿全路徑因數階層連環坍縮',
     badge: '終極神塔',
     reward: '✔ 掌握技巧',
     wavesCount: 1,
-    icon: '⚛️',
+    icon: 'n!',
     color: '#ec4899',
-    description: '當防禦塔升級後，可花費金幣點擊「⚛️ 數論融合」進化為複合神塔！'
+    description: '終極神域禁忌之塔！每關限建 1 座且不可升級。發射貫穿整條路徑的階乘波，負數怪瞬間轉正，並連續執行 7, 5, 3, 2 因數極限削弱！'
+  },
+  {
+    id: 'tutorial_triangle',
+    lessonNum: 15,
+    towerType: 'RESONANCE_TRIANGLE',
+    requiredTower: 'TRIANGLE_PRIMES',
+    requiredTowerName: '2, 3, 5 及 3, 5, 7 質數砲',
+    title: '第十五課：📐 幾何共鳴三角結界',
+    subtitle: '建造 [2, 3, 5] 或 [3, 5, 7] 質數聖環，啟動共振三角結界！',
+    badge: '幾何結界',
+    reward: '✔ 掌握技巧',
+    wavesCount: 1,
+    icon: '📐',
+    color: '#a855f7',
+    description: '在相鄰三個基座建造 2, 3, 5 號砲可啟動【🔮 質數三相聖環 (Π30)】；建造 3, 5, 7 號砲可啟動【✨ 七曜三聯聖環 (Π105)】！光弦能減速切割怪物，頂點塔攻速射程大增！'
   }
 ];
 
@@ -364,27 +424,99 @@ export const TUTORIAL_MASTER_STEPS = {
     }
   },
   11: {
-    title: '第十一課：⚛️ 複合神塔融合 & 幾何共鳴結界',
-    formula: '2×3 雙質數連除 | 3 塔連線構成幾何三角結界 (+25% 攻速)',
-    keyPoint: '✨ 點選砲塔點擊「⚛️ 數論融合」進化為複合神塔；3 座相距 <= 300px 的塔將自動構成三角結界！',
+    title: '第十一課：⚛️ 2×3 六芒雙曜 (FUSION_6)',
+    formula: '2×3 雙質數連除 | 同時發射 2 與 3 質數光線',
+    keyPoint: '✨ 融合 2 號雙子砲與 3 號三元激光，同時對目標進行 ÷2 與 ÷3 連環除法破甲！',
     recommendedTower: 'FUSION_6',
     targetEnemies: '高血量複合怪 [42, 60, -64, 70]',
-    actionPrompt: '嘗試建造【2×3 六芒雙曜】或【3×5 加農】，並讓 3 座塔相鄰共鳴！',
+    actionPrompt: '嘗試建造【2×3 六芒雙曜】，感受雙質數連除神威！',
     spotlight: {
       towerType: 'FUSION_6',
-      name: '⚛️ 複合神塔融合與幾何結界',
-      category: '終極數論矩陣',
-      icon: '⚛️',
-      color: '#ec4899',
-      formula: '2×3, 3×5, |√x|, n! ｜ 幾何三角共振',
-      desc: '砲塔可花費金幣融合蛻變為極限神塔（2×3雙質數連除、3×5產金幣、|√x|虛數引力、n!階乘波）；且 3 座相鄰塔相連可構成幾何三角結界 (+25% 攻速)！',
-      targets: '全維度極限複合怪獸'
+      name: '⚛️ 2×3 六芒雙曜神塔',
+      category: '複合神塔',
+      icon: '2×3',
+      color: '#06b6d4',
+      formula: '同時執行 ÷2 與 ÷3 連除',
+      desc: '融合 2 號雙子砲與 3 號三元激光！發射高頻雙星軌道，每次射擊同時進行 2 與 3 質數連除！',
+      targets: '雙質因數複合怪獸 (6, 12, 24, 48...)'
     }
   },
   12: {
-    title: '🎓 第十二課：學院畢業總驗收（大聯防實戰）',
-    formula: '絕對值淨化 + 運算子微調 + 根號重壓 + 質數重砲 + 指揮官秘術',
-    keyPoint: '🏆 綜合運用前線絕對值、運算子微調、開方重力、後方質數重砲與 QWE 秘術，守住最後波次完成大師結業！',
+    title: '第十二課：🎻 d/dx 費馬導數天琴 (FUSION_DERIVATIVE)',
+    formula: 'd/dx f(x) ｜ 切線斜率連環刀 ｜ 7之倍數求導音爆',
+    keyPoint: '✨ 7號天琴＋運算子微調神化！對值大於 10 的怪物造成 1.4 倍切線傷害；若命中 7 之倍數直接引爆！',
+    recommendedTower: 'FUSION_DERIVATIVE',
+    targetEnemies: '7之倍數與高階怪 [14, 21, 28, 49, 70]',
+    actionPrompt: '建造【d/dx 費馬導數天琴】，體驗微分切線求導音爆！',
+    spotlight: {
+      towerType: 'FUSION_DERIVATIVE',
+      name: '🎻 d/dx 費馬導數天琴',
+      category: '複合神塔',
+      icon: 'd/dx',
+      color: '#f43f5e',
+      formula: 'd/dx (切線求導) ＆ 7之倍數音爆',
+      desc: '全場限建 1 座！發射超音速求導飛刃，切線斜率對數值大於 10 的強敵造成 1.4 倍傷害；若怪物包含因數 7 則直接引發音爆分解！',
+      targets: '大數值強敵與 7 之倍數合數群'
+    }
+  },
+  13: {
+    title: '第十三課：🎲 蒙地卡羅機率投擲機 (FUSION_MONTE_CARLO)',
+    formula: '🎲 1~12 機率骰 ｜ 質數 250% 暴擊 ｜ 完全平方開方',
+    keyPoint: '✨ 每次投擲量子骰：質數點(2,3,5,7,11)觸發 250% 暴擊；平方點(4,9)直接開方；大數點(>=10)掉落大量金幣！',
+    recommendedTower: 'FUSION_MONTE_CARLO',
+    targetEnemies: '幾何平方怪與複合群 [16, 25, 36, 45, 60]',
+    actionPrompt: '建造【🎲 蒙地卡羅投擲機】，觀察機率投擲的奇效！',
+    spotlight: {
+      towerType: 'FUSION_MONTE_CARLO',
+      name: '🎲 蒙地卡羅機率投擲機',
+      category: '複合神塔',
+      icon: '🎲',
+      color: '#a855f7',
+      formula: '質數點(2,3,5,7,11) 2.5× 暴擊 ｜ 平方點(4,9) 開方',
+      desc: '全場限建 1 座！結合 3 號與根號的機率奇蹟：骰出質數造成 250% 破甲暴擊，骰出平方數直接執行開方，骰出大數奉送金幣天火！',
+      targets: '全類型敵軍與完全平方幾何怪'
+    }
+  },
+  14: {
+    title: '第十四課：💥 n! 階乘坍縮衝擊波 (FUSION_FACTORIAL)',
+    formula: 'n! = n×(n-1)×...×1 ｜ 負數轉正 ｜ 7, 5, 3, 2 因數連續削弱',
+    keyPoint: '✨ 終極神域禁忌之塔！發射貫穿全路徑的極限階乘衝擊波，淨化負數怪並對穿過的所有敵人連續執行因數坍縮！',
+    recommendedTower: 'FUSION_FACTORIAL',
+    targetEnemies: '負數與巨型複合怪 [-30, 60, 120, 210, 420]',
+    actionPrompt: '建造【n! 階乘坍縮衝擊波】，施放全路徑極限因數坍縮！',
+    spotlight: {
+      towerType: 'FUSION_FACTORIAL',
+      name: '💥 n! 階乘坍縮衝擊波',
+      category: '終極神塔',
+      icon: 'n!',
+      color: '#ec4899',
+      formula: '全路徑貫穿 ｜ 負數淨化 ｜ 階乘因數連環衰減',
+      desc: '每關限建 1 座且不可升級！發射震撼全場的階乘極光，負數怪遇光即淨化為正，並連續受到 7、5、3、2 質因數階乘連鎖削減！',
+      targets: '全路徑一切敵軍與深淵負數大軍'
+    }
+  },
+  15: {
+    title: '第十五課：📐 幾何共鳴三角結界 (2-3-5 / 3-5-7)',
+    formula: '[2,3,5] 質數三相聖環 (Π30) ｜ [3,5,7] 七曜三聯聖環 (Π105)',
+    keyPoint: '✨ 在相距 <= 220px 的三座基座分別建造 2, 3, 5 或 3, 5, 7 質數砲，自動連接共鳴激光弦並張開神聖三角結界！',
+    recommendedTower: 'TRIANGLE_PRIMES',
+    targetEnemies: '多因數強敵 [30, 60, 105, 210]',
+    actionPrompt: '在三基座分別建造 2、3、5 號砲或 3、5、7 號砲，啟動三角共振結界！',
+    spotlight: {
+      towerType: 'RESONANCE_TRIANGLE',
+      name: '📐 幾何共鳴三角結界',
+      category: '數論幾何矩陣',
+      icon: '📐',
+      color: '#a855f7',
+      formula: '2-3-5 (Π30) ＆ 3-5-7 (Π105)',
+      desc: '數論結界奧義！在相鄰 3 基座建造 2, 3, 5 號砲（或 3, 5, 7 號砲），系統自動串聯激光弦並張開神聖三角結界！邊界激光減速切割敵軍，頂點防禦塔攻速射程大幅提升，並持續回充算力能量！',
+      targets: '多因數複合怪獸與大軍'
+    }
+  },
+  16: {
+    title: '🎓 第十六課：學院畢業總驗收（大聯防實戰）',
+    formula: '絕對值淨化 + 運算子微調 + 根號重壓 + 質數重砲 + 幾何共鳴 + 複合神塔 + 指揮官秘術',
+    keyPoint: '🏆 綜合運用前線絕對值、運算子微調、開方重力、後方質數重砲、幾何三角結界與複合神塔，守住最後波次完成大師結業！',
     recommendedTower: null,
     targetEnemies: '全種類混合大軍 [-36, 17, 49, 60, 23, 81, 120]',
     actionPrompt: '調動全部防線資源，守住防守核心，順利自數論學院畢業！',
@@ -395,7 +527,7 @@ export const TUTORIAL_MASTER_STEPS = {
       icon: '🏆',
       color: '#38bdf8',
       formula: '全塔佈陣 × 幾何共鳴 × QWE 秘術',
-      desc: '檢驗你在數論學院所學到的一切！綜合運用除法、淨化、開方、微調、減速、升級變賣與指揮官秘術，守住防守核心完成大師結業！',
+      desc: '檢驗你在數論學院所學到的一切！綜合運用除法、淨化、開方、微調、減速、升級變賣、幾何三角結界、複合神塔與指揮官秘術，完成大師結業！',
       targets: '全類型數論軍團混合壓境'
     }
   }
