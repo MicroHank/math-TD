@@ -22,7 +22,7 @@ const p2Tower = new Tower({
 });
 const availableFusions = p2Tower.getAvailableFusions();
 console.assert(availableFusions.length > 0, 'PRIME_2 should have fusion options');
-console.log(`✓ PRIME_2 has available fusion: ${availableFusions[0].key} (cost: ${availableFusions[0].cost}🪙)`);
+console.log(`✓ PRIME_2 has available fusion: ${availableFusions[0].key} (cost: ${availableFusions[0].cost})`);
 
 p2Tower.fuseInto('FUSION_6');
 console.assert(p2Tower.type === 'fusion_6', 'Tower should now be fusion_6');
@@ -43,9 +43,9 @@ const initialStageHp = perfectMon.stageHp;
 
 // Regular prime attack (damage 50) -> should be reduced by 70% to 15
 const mockGame = {
-  createSparks: () => {},
-  createExplosion: () => {},
-  addGold: () => {},
+  createSparks: () => { },
+  createExplosion: () => { },
+  addGold: () => { },
   monsters: [perfectMon]
 };
 perfectMon.takePrimeHit(2, 50, mockGame);

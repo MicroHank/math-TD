@@ -130,9 +130,20 @@
           </div>
         </div>
 
-        <div class="wave-info">
+        <div class="wave-info" id="wave-info-wrap">
           <h2 id="wave-title">準備就緒：佈署你的防線</h2>
           <p id="wave-tip">💡 點選地圖基座（+）開啟建造面板，選擇合適的防禦塔抵禦怪物！</p>
+        </div>
+
+        <!-- 魔王專屬血條 HUD (移至頂部 HUD，絕不遮擋畫布上方的防禦塔) -->
+        <div id="boss-bar-container" class="boss-bar-header hidden">
+          <div class="boss-info">
+            <span id="boss-name">👑 魔王：合數泰坦【360】</span>
+            <span id="boss-hp-text">剩餘數值: 360 / 360</span>
+          </div>
+          <div class="boss-hp-track">
+            <div id="boss-hp-fill" style="width: 100%;"></div>
+          </div>
         </div>
 
         <!-- 戰鬥控制工具組：速度、暫停 -->
@@ -232,17 +243,6 @@
     <!-- 遊戲中央舞台 -->
     <main id="stage-wrapper">
       <div class="canvas-container">
-        <!-- 魔王專屬血條 HUD -->
-        <div id="boss-bar-container" class="hidden">
-          <div class="boss-info">
-            <span id="boss-name">👑 魔王：合數泰坦【360】</span>
-            <span id="boss-hp-text">剩餘數值: 360 / 360</span>
-          </div>
-          <div class="boss-hp-track">
-            <div id="boss-hp-fill" style="width: 100%;"></div>
-          </div>
-        </div>
-
         <canvas id="game-canvas"></canvas>
 
         <!-- 選中防禦塔時的懸浮控制面板 -->

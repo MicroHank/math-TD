@@ -78,6 +78,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const elEnemies = document.getElementById('hud-enemies');
   const elWaveTitle = document.getElementById('wave-title');
   const elWaveTip = document.getElementById('wave-tip');
+  const elWaveInfoWrap = document.getElementById('wave-info-wrap');
   const hudLevelName = document.getElementById('hud-level-name');
 
   const btnStartWave = document.getElementById('btn-start-wave');
@@ -220,12 +221,12 @@ window.addEventListener('DOMContentLoaded', () => {
           } else {
             card.disabled = (goldAmount < config.cost);
             card.classList.remove('limit-reached');
-            if (costEl) costEl.textContent = `${config.cost} 🪙`;
+            if (costEl) costEl.textContent = `${config.cost}`;
           }
         } else {
           card.disabled = (goldAmount < config.cost);
           card.classList.remove('limit-reached');
-          if (costEl) costEl.textContent = `${config.cost} 🪙`;
+          if (costEl) costEl.textContent = `${config.cost}`;
         }
       }
     });
@@ -1179,14 +1180,16 @@ window.addEventListener('DOMContentLoaded', () => {
         if (btnSpellOverdrive) btnSpellOverdrive.classList.remove('guided-highlight');
       }
 
-      // 魔王血條更新
+      // 魔王血條更新 (位於頂部 HUD，魔王在場時替換 wave-info，100% 絕不遮擋畫布上方的防禦塔)
       if (stats.activeBoss) {
         bossBarContainer.classList.remove('hidden');
         bossName.textContent = `👑 魔王：${stats.activeBoss.name}`;
         bossHpText.textContent = `剩餘數值: ${stats.activeBoss.value} / ${stats.activeBoss.originalValue}`;
         bossHpFill.style.width = `${stats.activeBoss.percent}%`;
+        if (elWaveInfoWrap) elWaveInfoWrap.classList.add('hidden');
       } else {
         bossBarContainer.classList.add('hidden');
+        if (elWaveInfoWrap) elWaveInfoWrap.classList.remove('hidden');
       }
 
       // 檢查遊戲結束
@@ -1420,7 +1423,7 @@ window.addEventListener('DOMContentLoaded', () => {
           btnFuseTower.textContent = `⚛️ ${fusion.targetType.label} 全場已建置 (1/1)`;
           btnFuseTower.disabled = true;
         } else {
-          btnFuseTower.textContent = `⚛️ 升級為 ${fusion.targetType.label} (${fusion.cost}🪙)`;
+          btnFuseTower.textContent = `⚛️ 升級為 ${fusion.targetType.label} (${fusion.cost})`;
           btnFuseTower.disabled = goldAmount < fusion.cost;
           btnFuseTower.onclick = () => {
             if (game.gold >= fusion.cost) {
@@ -1439,14 +1442,14 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     // 5. 變賣按鈕 (含快捷鍵提示 [S])
-    btnSell.textContent = `💰 變賣 (+${tower.sellValue}🪙) [S]`;
+    btnSell.textContent = `💰 變賣 (+${tower.sellValue}) [S]`;
 
     // 6. 損毀/受損修復按鈕 (快捷鍵 [R])
     if (btnRepairTower) {
       if (tower.isBroken || tower.hp < tower.maxHp) {
         btnRepairTower.classList.remove('hidden');
         const rCost = tower.getRepairCost ? tower.getRepairCost() : 20;
-        btnRepairTower.textContent = `🔧 修復 (${rCost}🪙) [R]`;
+        btnRepairTower.textContent = `🔧 修復 (${rCost}) [R]`;
         btnRepairTower.disabled = goldAmount < rCost;
       } else {
         btnRepairTower.classList.add('hidden');
@@ -1790,13 +1793,13 @@ window.addEventListener('DOMContentLoaded', () => {
   // 點擊外部空白處關閉選單 (若點到整個遊戲畫布容器之外，才關閉選單)
   document.addEventListener('click', (e) => {
     if (e.target.closest('.canvas-container') ||
-        e.target.closest('#game-canvas') ||
-        e.target.closest('#tower-details-panel') ||
-        e.target.closest('#pad-build-panel') ||
-        e.target.closest('.commander-spells-bar') ||
-        e.target.closest('.modal-content') ||
-        e.target.closest('.control-btn') ||
-        e.target.closest('#btn-start-wave')) {
+      e.target.closest('#game-canvas') ||
+      e.target.closest('#tower-details-panel') ||
+      e.target.closest('#pad-build-panel') ||
+      e.target.closest('.commander-spells-bar') ||
+      e.target.closest('.modal-content') ||
+      e.target.closest('.control-btn') ||
+      e.target.closest('#btn-start-wave')) {
       return;
     }
     if (game) {
