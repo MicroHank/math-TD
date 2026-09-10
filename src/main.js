@@ -39,7 +39,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const btnStartMasterTut = document.getElementById('btn-start-master-tut');
   const cardTutorialMaster = document.getElementById('card-tutorial-master');
   const academyLessonsGrid = document.getElementById('academy-lessons-grid');
-  const academyRecordText = document.getElementById('academy-record-text');
 
   // 砲塔 / 秘術特寫 Spotlight DOM 元素
   const modalTowerSpotlight = document.getElementById('modal-tower-spotlight');
@@ -61,7 +60,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const hudTutorialBanner = document.getElementById('hud-tutorial-banner');
   const tutStepTitle = document.getElementById('tut-step-title');
   const tutTargetTag = document.getElementById('tut-target-tag');
-  const tutInstructorMsg = document.getElementById('tut-instructor-msg');
   const tutFormulaText = document.getElementById('tut-formula-text');
   const tutActionPrompt = document.getElementById('tut-action-prompt');
 
@@ -228,6 +226,39 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // 教學關卡指定砲塔自動切換分頁與高亮
+  function applyTutorialTowerHighlight(levelId) {
+    document.querySelectorAll('.tut-target-chip').forEach(el => el.remove());
+    buildOptionCards.forEach(card => card.classList.remove('tutorial-target'));
+
+    if (!levelId || !levelId.startsWith('tutorial')) return;
+    const lesson = TUTORIAL_LESSONS.find(l => l.id === levelId);
+    if (!lesson || !lesson.requiredTower || lesson.requiredTower === 'ALL') return;
+
+    const req = lesson.requiredTower;
+    let targetTab = 'prime';
+    if (['ABSOLUTE', 'SQRT', 'OPERATOR', 'ZERO_FREEZE', 'TRIG'].includes(req)) {
+      targetTab = 'special';
+    } else if (req.startsWith('FUSION_')) {
+      targetTab = 'fusion';
+    }
+
+    switchBuildTab(targetTab);
+
+    buildOptionCards.forEach(card => {
+      if (card.dataset.towerType === req) {
+        card.classList.add('tutorial-target');
+        const info = card.querySelector('.option-info');
+        if (info && !card.querySelector('.tut-target-chip')) {
+          const chip = document.createElement('span');
+          chip.className = 'tut-target-chip';
+          chip.textContent = '🎯 本課指定';
+          info.appendChild(chip);
+        }
+      }
+    });
+  }
+
   // 依據目標在 Canvas 上的座標，動態將面板定位在砲塔/基座身旁 (而非固定在右側)
   function positionPanelNear(panelElement, targetX, targetY) {
     if (!panelElement || targetX === undefined || targetY === undefined) return;
@@ -276,8 +307,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (homeStatStars) homeStatStars.textContent = `${techTree.getAvailableStars()} ⭐ (${techTree.getTotalEarnedStars()} 總獲取)`;
 
     if (homeTutorialBadge) {
-      const masterDone = progress.isTutorialMasterCompleted();
-      homeTutorialBadge.textContent = masterDone ? '⭐ 已認證結業' : '進入學院 ➔';
+      homeTutorialBadge.textContent = '進入學院 ➔';
     }
 
     if (homeEndlessBadge) {
@@ -316,27 +346,22 @@ window.addEventListener('DOMContentLoaded', () => {
   // 渲染數論作戰學院選單
   function renderTutorialAcademy() {
     if (!academyLessonsGrid) return;
-    const masterDone = progress.isTutorialMasterCompleted();
-    if (academyRecordText) {
-      academyRecordText.textContent = masterDone ? '⭐ 榮譽結業認證' : '尚未完成';
-      academyRecordText.style.color = masterDone ? '#4ade80' : '#38bdf8';
-    }
 
     academyLessonsGrid.innerHTML = '';
     TUTORIAL_LESSONS.filter(l => l.lessonNum > 0).forEach(lesson => {
-      const isCleared = progress.isTutorialLessonCompleted(lesson.id);
       const card = document.createElement('div');
-      card.className = `academy-lesson-card ${isCleared ? 'cleared' : ''}`;
+      card.className = 'academy-lesson-card';
       card.innerHTML = `
         <div class="lesson-card-top">
           <div class="lesson-card-icon" style="background: ${lesson.color}22; color: ${lesson.color}; border: 1px solid ${lesson.color}66;">${lesson.icon}</div>
           <span class="lesson-badge">${lesson.badge}</span>
         </div>
         <div class="lesson-card-title">${lesson.title}</div>
+        <div class="lesson-tower-pill"><span class="pill-icon">🎯</span> 指定砲塔：<strong>${lesson.requiredTowerName || '全防禦塔'}</strong></div>
         <div class="lesson-card-desc">${lesson.description}</div>
         <div class="lesson-card-footer">
-          <span class="lesson-waves">波次: ${lesson.wavesCount} 波</span>
-          <span class="${isCleared ? 'lesson-cleared-tag' : 'lesson-reward'}">${isCleared ? '✔ 已掌握' : lesson.reward}</span>
+          <span class="lesson-waves">波次: 1 波</span>
+          <span class="lesson-reward">開始特訓 ➔</span>
         </div>
       `;
 
@@ -445,18 +470,18 @@ window.addEventListener('DOMContentLoaded', () => {
       TUTORIAL_LESSONS.forEach(tut => {
         const lvl = LEVELS[tut.id];
         if (!lvl) return;
-        const isCleared = tut.id === 'tutorial_master' ? progress.isTutorialMasterCompleted() : progress.isTutorialLessonCompleted(tut.id);
 
         const card = document.createElement('div');
-        card.className = `stage-card ${isCleared ? 'cleared' : ''}`;
+        card.className = 'stage-card';
         card.innerHTML = `
           <div class="stage-header-row">
             <span class="stage-name">${lvl.name}</span>
-            <span class="stage-stars" style="color: ${isCleared ? '#4ade80' : '#94a3b8'}; font-size: 13px;">${isCleared ? '✔ 結業認證' : '📚 專項特訓'}</span>
+            <span class="stage-stars" style="color: #38bdf8; font-size: 13px;">📚 專項特訓</span>
           </div>
+          <div class="stage-tower-pill"><span class="pill-icon">🎯</span> 指定砲塔：<strong>${tut.requiredTowerName || '全防禦塔'}</strong></div>
           <div class="stage-desc">${lvl.subtitle}</div>
           <span class="stage-badge badge-normal">
-            波次: ${lvl.waves.length} ｜ ${isCleared ? '✔ 已掌握' : tut.reward}
+            波次: 1 波 ｜ 核心免傷
           </span>
         `;
 
@@ -1075,7 +1100,7 @@ window.addEventListener('DOMContentLoaded', () => {
     onStatsChange: (stats, gameInstance) => {
       currentGold = stats.gold;
       elGold.textContent = stats.gold;
-      elLives.textContent = `${stats.lives} / ${stats.maxLives}`;
+      elLives.textContent = stats.isTutorial ? `🛡️ ∞ (核心免傷)` : `${stats.lives} / ${stats.maxLives}`;
       hudLevelName.textContent = stats.currentLevelName;
 
       const currentWave = stats.isLevelFinished ? stats.totalWaves : Math.min(Math.max(1, stats.displayWaveNumber), stats.totalWaves === '∞' ? 999 : stats.totalWaves);
@@ -1105,7 +1130,6 @@ window.addEventListener('DOMContentLoaded', () => {
           hudTutorialBanner.classList.remove('hidden');
           if (tutStepTitle) tutStepTitle.textContent = stats.tutorialStep.title;
           if (tutTargetTag) tutTargetTag.textContent = stats.tutorialStep.targetEnemies;
-          if (tutInstructorMsg) tutInstructorMsg.textContent = stats.tutorialStep.instructor;
           if (tutFormulaText) tutFormulaText.textContent = stats.tutorialStep.formula;
           if (tutActionPrompt) tutActionPrompt.textContent = stats.tutorialStep.actionPrompt;
         }
@@ -1206,6 +1230,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (panelPadBuild) panelPadBuild.classList.remove('hidden');
         panelTower.classList.add('hidden');
         updateBuildOptions(currentGold);
+        applyTutorialTowerHighlight(game.currentLevelId);
         positionPanelNear(panelPadBuild, pad.x, pad.y);
         requestAnimationFrame(() => {
           positionPanelNear(panelPadBuild, pad.x, pad.y);

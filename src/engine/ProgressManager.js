@@ -14,6 +14,14 @@ export class ProgressManager {
         if (typeof parsed.techPoints !== 'number') {
           parsed.techPoints = 0;
         }
+        // 清理任何曾記錄過的教學關卡完成紀錄
+        if (parsed.levelStars) {
+          Object.keys(parsed.levelStars).forEach(k => {
+            if (k.startsWith('tutorial')) {
+              delete parsed.levelStars[k];
+            }
+          });
+        }
         return parsed;
       }
     } catch (e) {
@@ -100,6 +108,11 @@ export class ProgressManager {
   }
 
   completeLevel(levelId, stars, nextLevelId = null) {
+    // 教學關卡不記錄通關進度
+    if (!levelId || levelId.startsWith('tutorial')) {
+      return;
+    }
+
     const prevStars = this.data.levelStars[levelId] || 0;
     if (stars > prevStars) {
       this.data.levelStars[levelId] = stars;
@@ -140,15 +153,6 @@ export class ProgressManager {
       return true;
     }
     return false;
-  }
-
-  // 教學學院通關狀態
-  isTutorialMasterCompleted() {
-    return (this.data.levelStars && this.data.levelStars['tutorial_master'] > 0);
-  }
-
-  isTutorialLessonCompleted(lessonId) {
-    return (this.data.levelStars && this.data.levelStars[lessonId] > 0);
   }
 
   // 重置遊戲所有進度與 LocalStorage，恢復最初狀態

@@ -551,6 +551,11 @@ export class Game {
   }
 
   damageBase(amount = 1) {
+    // 教學關卡不計算核心被破壞的數量
+    const isTutorial = this.gameMode === 'tutorial' || (this.currentLevelId && this.currentLevelId.startsWith('tutorial'));
+    if (isTutorial) {
+      return;
+    }
     this.lives = Math.max(0, this.lives - amount);
     this.syncUI();
     if (this.lives <= 0) {
@@ -622,10 +627,7 @@ export class Game {
     // 教學學院模式勝利結算 (無科研獎勵)
     if (this.gameMode === 'tutorial' || (this.currentLevelId && this.currentLevelId.startsWith('tutorial'))) {
       const isMaster = this.currentLevelId === 'tutorial_master';
-      if (this.tutorialManager) {
-        this.tutorialManager.onTutorialCompleted(this.currentLevelId);
-      }
-      const rewardText = isMaster ? '🎓 學院畢業！已掌握全塔功用！' : '🎓 課堂特訓通關！已掌握該塔克制技巧！';
+      const rewardText = isMaster ? '🎓 特訓通關！已掌握全塔功用！' : '🎓 課堂特訓通關！已掌握該塔克制技巧！';
       this.coinFloats.push(new CoinFloat({ x: 480, y: 230, text: rewardText, color: '#38bdf8' }));
       if (this.ui.onLevelVictory) {
         this.ui.onLevelVictory({
@@ -974,7 +976,8 @@ export class Game {
     ctx.fillStyle = coreColor;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`🛡️ ${this.lives}/${this.maxLives}`, pEnd.x, badgeY - 1);
+    const isTutorialLevel = this.gameMode === 'tutorial' || (this.currentLevelId && this.currentLevelId.startsWith('tutorial'));
+    ctx.fillText(isTutorialLevel ? '🛡️ ∞ (教學)' : `🛡️ ${this.lives}/${this.maxLives}`, pEnd.x, badgeY - 1);
 
     // 徽章底部的迷你生命進度條
     const barW = badgeW - 10;

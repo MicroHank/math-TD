@@ -1,161 +1,183 @@
 // Tutorial & Academy Manager for Math Tower Defense
-import { progress } from './ProgressManager.js';
-import { sound } from './Audio.js';
 
 export const TUTORIAL_LESSONS = [
   {
     id: 'tutorial_master',
     lessonNum: 0,
-    title: '🎓 數論作戰學院：全塔與秘術通關特訓課',
-    subtitle: '12 波次完整掌握 8 大基礎塔、升級變賣、QWE 秘術與 4 大複合神塔',
-    badge: '👑 完整大主線',
-    reward: '🎓 大師結業認證',
-    wavesCount: 12,
+    requiredTower: 'ALL',
+    requiredTowerName: '自由選建全防禦塔',
+    title: '🎓 數論作戰學院：全塔通關實戰特訓',
+    subtitle: '一直線單波實戰，自由體驗 8 大基礎塔與複合神塔',
+    badge: '👑 綜合實戰',
+    reward: '🎓 掌握全塔技巧',
+    wavesCount: 1,
     icon: '🏛️',
-    description: '從 2、3、5、7 質數砲，到絕對值、運算子、開方、零度減速、砲塔升級變賣、QWE 主動秘術及複合神塔全面特訓！'
+    description: '直線地圖、中央單一基座！自由體驗 2、3、5、7 質數砲與代數功能塔除法！'
   },
   {
     id: 'tutorial_p2',
     lessonNum: 1,
     towerType: 'PRIME_2',
+    requiredTower: 'PRIME_2',
+    requiredTowerName: '2號 雙子砲',
     title: '第一課：2號 雙子砲（偶數除法）',
-    subtitle: '掌握偶數除法 $N \\div 2$，怪物數值變 1 即消滅',
+    subtitle: '掌握偶數除法 N ÷ 2，消滅 2, 4, 6, 8, 12',
     badge: '基礎質數',
     reward: '✔ 掌握技巧',
-    wavesCount: 2,
+    wavesCount: 1,
     icon: '2',
     color: '#38bdf8',
-    description: '偶數怪物（尾數 0, 2, 4, 6, 8）是戰場最常見敵軍。'
+    description: '偶數怪物（尾數 0, 2, 4, 6, 8）是戰場最常見敵軍。建造 2 號砲進行除法！'
   },
   {
     id: 'tutorial_p3',
     lessonNum: 2,
     towerType: 'PRIME_3',
-    title: '第二課：3號 三元激光（數字和判別）',
-    subtitle: '數字各位數相加為 3 的倍數，發動 $N \\div 3$',
+    requiredTower: 'PRIME_3',
+    requiredTowerName: '3號 三元激光',
+    title: '第二課：3號 三元激光（3的倍數）',
+    subtitle: '數字各位數相加為 3 的倍數，發動 N ÷ 3',
     badge: '基礎質數',
     reward: '✔ 掌握技巧',
-    wavesCount: 2,
+    wavesCount: 1,
     icon: '3',
     color: '#fbbf24',
-    description: '判別 3 的倍數密技：若一個數的所有數位之和能被 3 整除，則該數必可被 3 號砲除法分解！'
+    description: '判別 3 的倍數密技：若數位之和能被 3 整除，建造 3 號砲除法分解！'
   },
   {
     id: 'tutorial_p5',
     lessonNum: 3,
     towerType: 'PRIME_5',
+    requiredTower: 'PRIME_5',
+    requiredTowerName: '5號 五芒衝擊',
     title: '第三課：5號 五芒衝擊（尾數 0 或 5）',
-    subtitle: '個位數為 0 或 5 的剋星',
+    subtitle: '個位數為 0 或 5 的剋星，發動 N ÷ 5',
     badge: '基礎質數',
     reward: '✔ 掌握技巧',
-    wavesCount: 2,
+    wavesCount: 1,
     icon: '5',
     color: '#34d399',
-    description: '5 號砲射程寬廣且單發威力高。凡個位數是 0 或 5 的敵軍（如 10, 15, 25, 35, 50），均能被其一發化解！'
+    description: '5 號砲射程寬廣且威力高。凡個位數是 0 或 5 的敵軍，均能一發化解！'
   },
   {
     id: 'tutorial_p7',
     lessonNum: 4,
     towerType: 'PRIME_7',
-    title: '第四課：7號 七曜天琴（難纏倍數）',
-    subtitle: '高階質數重砲，粉碎 7 的倍數強敵',
+    requiredTower: 'PRIME_7',
+    requiredTowerName: '7號 七曜天琴',
+    title: '第四課：7號 七曜天琴（7的倍數）',
+    subtitle: '高階質數重砲，粉碎 7 的倍數強敵 (7, 14, 21, 28, 49)',
     badge: '基礎質數',
     reward: '✔ 掌握技巧',
-    wavesCount: 2,
+    wavesCount: 1,
     icon: '7',
     color: '#8b5cf6',
-    description: '7 號砲具備極遠射程與超高破壞力，專門對付 14, 21, 28, 35, 49 等 7 之倍數！'
+    description: '7 號砲具備極遠射程與超高破壞力，專門對付 7 之倍數！'
   },
   {
     id: 'tutorial_abs',
     lessonNum: 5,
     towerType: 'ABSOLUTE',
+    requiredTower: 'ABSOLUTE',
+    requiredTowerName: '|x| 絕對值稜鏡',
     title: '第五課：|x| 絕對值稜鏡（負數淨化）',
-    subtitle: '破除負數幽靈免疫護盾 |-n| -> +n',
+    subtitle: '破除負數幽靈護盾 |-n| ➔ +n',
     badge: '代數功能',
     reward: '✔ 掌握技巧',
-    wavesCount: 2,
+    wavesCount: 1,
     icon: '|x|',
     color: '#c084fc',
-    description: '負數怪獸（如 -6, -10, -20）對所有質數砲免疫！必須在前線佈署絕對值稜鏡，將其淨化為正數後方可除法！'
+    description: '負數怪獸對質數砲免疫！在中央基座佈署絕對值稜鏡，將其淨化為正數！'
   },
   {
     id: 'tutorial_op',
     lessonNum: 6,
     towerType: 'OPERATOR',
+    requiredTower: 'OPERATOR',
+    requiredTowerName: '[+/-] 運算子調整塔',
     title: '第六課：[+/-] 運算子調整塔（化質為合）',
-    subtitle: '量子微調 ±1，化解孤傲質數刺客',
+    subtitle: '量子微調 ±1，化解孤傲質數刺客 (11, 13, 17, 19)',
     badge: '代數功能',
     reward: '✔ 掌握技巧',
-    wavesCount: 2,
+    wavesCount: 1,
     icon: '±1',
     color: '#14b8a6',
-    description: '遇到 11, 13, 17, 19, 23 等質數怪時，質數砲無法整除！運算子塔發射 1 脈衝（如 11-1=10, 13-1=12），使其成為可除合數！'
+    description: '遇到質數怪無法整除時，運算子塔發射 1 脈衝使其成為可除合數！'
   },
   {
     id: 'tutorial_sqrt',
     lessonNum: 7,
     towerType: 'SQRT',
+    requiredTower: 'SQRT',
+    requiredTowerName: '√x 根號方根重力井',
     title: '第七課：√x 根號方根重力井（完全平方）',
-    subtitle: '完全平方怪重壓剋星，直接開方 √x',
+    subtitle: '完全平方怪重壓剋星，直接開方 √x (4, 9, 16, 25, 36)',
     badge: '代數功能',
     reward: '✔ 掌握技巧',
-    wavesCount: 2,
+    wavesCount: 1,
     icon: '√x',
     color: '#f59e0b',
-    description: '針對 4, 9, 16, 25, 36, 49, 64, 81, 100 等完全平方幾何方塊怪，根號塔可暴擊並直接執行開方！'
+    description: '針對完全平方幾何方塊怪，根號塔可暴擊並直接執行開方！'
   },
   {
     id: 'tutorial_zero',
     lessonNum: 8,
     towerType: 'ZERO_FREEZE',
+    requiredTower: 'ZERO_FREEZE',
+    requiredTowerName: '×0 絕對零度力場塔',
     title: '第八課：×0 絕對零度力場塔（極限減速）',
     subtitle: '乘零歸零光環，大範圍牽制高速怪物',
     badge: '控制力場',
     reward: '✔ 掌握技巧',
-    wavesCount: 2,
+    wavesCount: 1,
     icon: '×0',
     color: '#06b6d4',
-    description: '零度力場塔不需發射實體砲彈，其常駐「乘零力場」能使範圍內所有快速衝鋒怪（如斐波那契怪）減速 50% 以上！'
+    description: '零度力場塔常駐「乘零力場」使範圍內所有快速衝鋒怪減速 50% 以上！'
   },
   {
     id: 'tutorial_upgrade_sell',
     lessonNum: 9,
     towerType: 'UPGRADE_SELL',
+    requiredTower: 'PRIME_2',
+    requiredTowerName: '2號 雙子砲 (升級/變賣)',
     title: '第九課：🔧 砲塔三向升級與變賣操作',
     subtitle: '獨立提升 射程/威力/攻速，或變賣回收 70% 軍費',
     badge: '戰術操作',
     reward: '✔ 掌握技巧',
-    wavesCount: 2,
+    wavesCount: 1,
     icon: '🔼',
     color: '#f59e0b',
-    description: '點選已建造砲塔可獨立升級「🎯 射程、💥 威力、⚡ 攻速」三種屬性！亦可隨時點擊「💰 變賣」回收 70% 金幣調整布陣！'
+    description: '點選已建造砲塔可獨立升級屬性，亦可點擊變賣回收金幣！'
   },
   {
     id: 'tutorial_spells',
     lessonNum: 10,
     towerType: 'SPELLS',
+    requiredTower: 'SPELLS',
+    requiredTowerName: '指揮官秘術 (Q / W / E)',
     title: '第十課：⚡ 指揮官主動秘術 (Q / W / E)',
     subtitle: '施放 GCD 引爆、同餘黑洞 mod 5 與黃金超頻',
     badge: '指揮官秘術',
     reward: '✔ 掌握技巧',
-    wavesCount: 3,
+    wavesCount: 1,
     icon: '⚡',
     color: '#fbbf24',
-    description: '善用算力能量發動三大戰略秘術：[Q] 圈內最大公因數引爆、[W] 同餘黑洞湮滅與減速、[E] 全場攻速 +60% 超頻！'
+    description: '善用算力能量發動三大戰略秘術：[Q] GCD引爆、[W] 同餘黑洞、[E] 全場超頻！'
   },
   {
     id: 'tutorial_fusion',
     lessonNum: 11,
     towerType: 'FUSION_6',
+    requiredTower: 'FUSION_6',
+    requiredTowerName: '⚛️ 複合神塔 (數論融合)',
     title: '第十一課：⚛️ 複合神塔融合與幾何共鳴',
-    subtitle: '進化 2×3, 3×5, |√x|, n! 與 3 塔三角結界',
+    subtitle: '進化 2×3, 3×5, |√x| 終極神塔',
     badge: '終極神塔',
     reward: '✔ 掌握技巧',
-    wavesCount: 2,
+    wavesCount: 1,
     icon: '⚛️',
     color: '#ec4899',
-    description: '當防禦塔等級提升，可花費金幣融合蛻變為「複合神塔」；且相距小於 300 px 的 3 座塔將自動構成「幾何三角結界」提升 25% 攻速！'
+    description: '當防禦塔升級後，可花費金幣點擊「⚛️ 數論融合」進化為複合神塔！'
   }
 ];
 
@@ -163,7 +185,6 @@ export const TUTORIAL_LESSONS = [
 export const TUTORIAL_MASTER_STEPS = {
   1: {
     title: '第一課：2號 雙子砲 (PRIME_2)',
-    instructor: '🤖 數論教官：歡迎來到數論學院！首先認識偶數的剋星【2號 雙子砲】。',
     formula: 'N ÷ 2 ➔ 1 (擊破消除)',
     keyPoint: '💡 偶數怪（2, 4, 6, 8, 12）是 2 的倍數。點擊路徑旁的基座（+），建造【2號 雙子砲】！',
     recommendedTower: 'PRIME_2',
@@ -182,7 +203,6 @@ export const TUTORIAL_MASTER_STEPS = {
   },
   2: {
     title: '第二課：3號 三元激光 (PRIME_3)',
-    instructor: '🤖 數論教官：現在出現了 3 的倍數！請認識【3號 三元激光】。',
     formula: '27 ➔ 2+7=9 ➔ 27 ÷ 3 = 9',
     keyPoint: '💡 數字和為 3 的倍數（如 9, 15, 27）會被 3 號砲除法分解。2 號砲對奇數合數無法整除！',
     recommendedTower: 'PRIME_3',
@@ -201,7 +221,6 @@ export const TUTORIAL_MASTER_STEPS = {
   },
   3: {
     title: '第三課：5號 五芒衝擊 (PRIME_5)',
-    instructor: '🤖 數論教官：尾數是 0 或 5 的怪物來襲！部署【5號 五芒衝擊】。',
     formula: '25 ÷ 5 = 5 ➔ 5 ÷ 5 = 1 (消滅)',
     keyPoint: '💡 個位數為 0 或 5 的數（5, 10, 15, 25, 50）是 5 的倍數。5 號砲能造成強烈衝擊！',
     recommendedTower: 'PRIME_5',
@@ -220,7 +239,6 @@ export const TUTORIAL_MASTER_STEPS = {
   },
   4: {
     title: '第四課：7號 七曜天琴 (PRIME_7)',
-    instructor: '🤖 數論教官：高階質數倍數怪登場！請建造【7號 七曜天琴】。',
     formula: '49 ÷ 7 = 7 ➔ 7 ÷ 7 = 1',
     keyPoint: '💡 7 號砲擁有超遠射程與重傷害，是 7, 14, 21, 28, 35, 49 等怪物的終極剋星！',
     recommendedTower: 'PRIME_7',
@@ -239,7 +257,6 @@ export const TUTORIAL_MASTER_STEPS = {
   },
   5: {
     title: '第五課：|x| 絕對值稜鏡 (ABSOLUTE)',
-    instructor: '🤖 數論教官：注意！前方出現帶負號的反向護盾【負數幽靈】！',
     formula: '|-12| ➔ +12 (淨化為正數後方可被質數砲除法)',
     keyPoint: '⚠️ 負數怪（-6, -10, -20, -35）質數砲無法直接傷害！務必在路徑最前線放置【|x| 絕對值稜鏡】！',
     recommendedTower: 'ABSOLUTE',
@@ -258,7 +275,6 @@ export const TUTORIAL_MASTER_STEPS = {
   },
   6: {
     title: '第六課：[+/-] 運算子調整塔 (OPERATOR)',
-    instructor: '🤖 數論教官：無法被 2, 3, 5, 7 整除的【孤傲質數刺客】來了！',
     formula: '11 - 1 = 10 (可被 2、5 號砲消滅), 13 - 1 = 12',
     keyPoint: '💡 質數怪（11, 13, 17, 19）無法整除。運算子塔發動 ±1 量子微調，化質數為合數！',
     recommendedTower: 'OPERATOR',
@@ -277,7 +293,6 @@ export const TUTORIAL_MASTER_STEPS = {
   },
   7: {
     title: '第七課：√x 根號方根重力井 (SQRT)',
-    instructor: '🤖 數論教官：巨型幾何方塊怪逼近！啟用【√x 根號重力井】。',
     formula: '√36 ➔ 6, √100 ➔ 10 (直接開方重創)',
     keyPoint: '💡 完全平方數（16, 25, 36, 49, 64, 81, 100）受根號重力打擊將直接開方數值驟降！',
     recommendedTower: 'SQRT',
@@ -296,7 +311,6 @@ export const TUTORIAL_MASTER_STEPS = {
   },
   8: {
     title: '第八課：×0 絕對零度力場塔 (ZERO_FREEZE)',
-    instructor: '🤖 數論教官：高速衝鋒怪高速逼近！部署【×0 絕對零度力場】。',
     formula: 'N × 0 ➔ 大範圍極限減速 50%+',
     keyPoint: '💡 絕對零度塔發散持續乘零減速光環，能牽制斐波那契高速衝鋒怪，為防禦塔爭取輸出時間！',
     recommendedTower: 'ZERO_FREEZE',
@@ -315,7 +329,6 @@ export const TUTORIAL_MASTER_STEPS = {
   },
   9: {
     title: '第九課：🔧 砲塔三向升級與變賣操作',
-    instructor: '🤖 數論教官：學習關鍵戰術！點選戰場上的砲塔，可進行三向升級或變賣回收金幣。',
     formula: '射程 Lv+1 ｜ 威力 Lv+1 ｜ 攻速 Lv+1 ｜ 變賣返還 70%',
     keyPoint: '💡 點擊已建砲塔開啟升級面板：可分別提升【射程 🎯】、【威力 💥】、【攻速 ⚡】；若不需要可點擊【💰 變賣 (+70% 金幣)】！',
     recommendedTower: null,
@@ -334,7 +347,6 @@ export const TUTORIAL_MASTER_STEPS = {
   },
   10: {
     title: '第十課：⚡ 指揮官主動秘術 (Q / W / E 鍵)',
-    instructor: '🤖 數論教官：指揮官必殺奧義！點擊下方秘術列或按鍵盤 Q / W / E 發動戰略秘術！',
     formula: '[Q] GCD引爆 (50⚡) ｜ [W] 同餘黑洞 (85⚡) ｜ [E] 黃金超頻 (50⚡)',
     keyPoint: '✨ [Q鍵] 圈內怪全部除以公因數！[W鍵] 召喚黑洞餘數0/1瞬間湮滅！[E鍵] 全場攻速 +60%！',
     recommendedTower: null,
@@ -353,7 +365,6 @@ export const TUTORIAL_MASTER_STEPS = {
   },
   11: {
     title: '第十一課：⚛️ 複合神塔融合 & 幾何共鳴結界',
-    instructor: '🤖 數論教官：現在學習終極奧義！點擊已建造的砲塔進行【數論融合】或連線共鳴。',
     formula: '2×3 雙質數連除 | 3 塔連線構成幾何三角結界 (+25% 攻速)',
     keyPoint: '✨ 點選砲塔點擊「⚛️ 數論融合」進化為複合神塔；3 座相距 <= 300px 的塔將自動構成三角結界！',
     recommendedTower: 'FUSION_6',
@@ -372,7 +383,6 @@ export const TUTORIAL_MASTER_STEPS = {
   },
   12: {
     title: '🎓 第十二課：學院畢業總驗收（大聯防實戰）',
-    instructor: '🤖 數論教官：最後考驗！所有數論怪獸混合進攻，展現你的全方位防禦體系！',
     formula: '絕對值淨化 + 運算子微調 + 根號重壓 + 質數重砲 + 指揮官秘術',
     keyPoint: '🏆 綜合運用前線絕對值、運算子微調、開方重力、後方質數重砲與 QWE 秘術，守住最後波次完成大師結業！',
     recommendedTower: null,
@@ -415,8 +425,17 @@ export class TutorialManager {
     if (!this.isTutorialActive) return null;
 
     if (this.currentLessonId === 'tutorial_master') {
-      const stepNum = waveIndex + 1;
-      return TUTORIAL_MASTER_STEPS[stepNum] || TUTORIAL_MASTER_STEPS[12];
+      return {
+        title: '全塔實戰通關特訓',
+        formula: '直線地圖 ｜ 中央單一基座 ｜ 自由建造任意防禦塔',
+        keyPoint: '💡 只要一直線、一波怪、一個中央基座！點擊基座自由建造防禦塔體驗！',
+        requiredTower: 'ALL',
+        requiredTowerName: '自由選建全防禦塔',
+        recommendedTower: null,
+        targetEnemies: '🎯 指定砲塔：自由選建全防禦塔',
+        actionPrompt: '💡 請在中央基座建造任意防禦塔，擊退訓練怪獸！',
+        spotlight: null
+      };
     }
 
     // 單塔特訓關卡
@@ -425,12 +444,13 @@ export class TutorialManager {
 
     return {
       title: lesson.title,
-      instructor: `🤖 數論教官：正在進行【${lesson.title}】專項特訓。`,
       formula: lesson.subtitle,
       keyPoint: lesson.description,
+      requiredTower: lesson.requiredTower,
+      requiredTowerName: lesson.requiredTowerName,
       recommendedTower: lesson.towerType || null,
-      targetEnemies: `目標特訓怪獸 (波次 ${waveIndex + 1}/${lesson.wavesCount})`,
-      actionPrompt: `請建造推薦的【${lesson.title}】防禦塔，擊退訓練怪獸！`,
+      targetEnemies: `🎯 指定砲塔：${lesson.requiredTowerName}`,
+      actionPrompt: `💡 本課指定【${lesson.requiredTowerName}】！請點擊中央基座進行建造！`,
       spotlight: {
         towerType: lesson.towerType,
         name: lesson.title,
@@ -442,15 +462,6 @@ export class TutorialManager {
         targets: '特訓目標怪物'
       }
     };
-  }
-
-  onTutorialCompleted(lessonId) {
-    if (sound && sound.playWaveComplete) sound.playWaveComplete();
-    if (lessonId === 'tutorial_master') {
-      progress.completeLevel('tutorial_master', 3);
-    } else {
-      progress.completeLevel(lessonId, 3);
-    }
   }
 }
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>數論防線：質數與絕對值塔防 (Math Tower Defense)</title>
+  <title>數學符號塔防遊戲 (Math Symbol TD)</title>
   <meta name="description" content="寓教於樂的休閒數學塔防遊戲！運用質因數分解砲塔、絕對值稜鏡與運算子調整塔，化解數字異獸的進攻，挑戰大魔王！">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,31 +19,28 @@
         <div class="home-hero-brand">
           <div class="home-brand-badge">🧮</div>
           <div class="home-brand-text">
-            <h1 class="home-title">數論防線 <span class="tag">Prime Matrix</span></h1>
-            <p class="home-subtitle">數論 × 質因數分解 × 幾何共鳴 × 複合神塔</p>
+            <h1 class="home-title">數學塔防 <span class="tag">Prime Matrix</span></h1>
+            <p class="home-subtitle">質因數分解 × 絕對值淨化 × 幾何共鳴 × 複合神塔</p>
           </div>
         </div>
-        <p class="home-intro-text">
-          運用 2、3、5、7 質數重砲連環分解合數，以絕對值稜鏡淨化負數幽靈，構建幾何三角結界，並融合極限神塔抵禦大魔王侵襲！
-        </p>
+
         <div class="home-features-chips">
           <span class="home-chip">✨ 質因數分解</span>
           <span class="home-chip">🔮 絕對值淨化</span>
           <span class="home-chip">📐 幾何共鳴結界</span>
           <span class="home-chip">⚛️ 複合神塔融合</span>
-          <span class="home-chip">🌊 肉鴿定理天賦</span>
         </div>
       </div>
 
       <!-- 主選單核心按鈕導航組 -->
       <div class="home-menu-grid">
-        <!-- 0. 數論作戰學院 (新手教學) -->
+        <!-- 0. 認識砲塔 (新手教學) -->
         <button id="btn-home-tutorial" class="home-menu-card mode-tutorial" title="認識 8 大防禦塔與 4 大複合神塔功用，學習數論克制機制">
           <div class="menu-card-icon">🎓</div>
           <div class="menu-card-body">
-            <div class="menu-card-title">數論作戰學院 (教學關卡)</div>
+            <div class="menu-card-title">認識砲塔 (新手教學)</div>
           </div>
-          <span class="menu-card-action" id="home-tutorial-badge">進入學院 ➔</span>
+          <span class="menu-card-action" id="home-tutorial-badge">進入教學 ➔</span>
         </button>
 
         <!-- 1. 開始冒險 -->
@@ -226,7 +223,6 @@
               <span id="tut-step-title" class="tut-step-title">第一課：2號 雙子砲 (PRIME_2)</span>
               <span id="tut-target-tag" class="tut-target-tag">目標：偶數怪 [2, 4, 6, 8]</span>
             </div>
-            <div id="tut-instructor-msg" class="tut-instructor-msg">🤖 數論教官：歡迎來到數論學院！點選基座建造【2號 雙子砲】。</div>
             <div class="tut-formula-row">
               <span class="tut-formula-icon">📐 核心公式：</span>
               <code id="tut-formula-text" class="tut-formula-text">N ÷ 2 ➔ 1 (擊破消除)</code>
@@ -531,31 +527,21 @@
       </div>
     </div>
 
-    <!-- 數論作戰學院 (Tutorial Academy Modal) -->
+    <!-- 認識砲塔 (Tutorial Academy Modal) -->
     <div id="modal-tutorial-academy" class="modal-overlay hidden">
       <div class="modal-content academy-modal-box">
         <div class="modal-header">
           <div class="academy-title-wrap">
-            <h2>🎓 數論作戰學院（防禦塔實戰教學）</h2>
+            <h2>🎓 認識砲塔（防禦塔實戰教學）</h2>
             <p class="modal-subtitle">掌握 8 大基礎防禦塔與 4 大複合神塔功用，學習數論除法、淨化、開方與減速！</p>
           </div>
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <div class="academy-record-tag">
-              學院認證：<span id="academy-record-text" class="record-val">未完成</span>
-            </div>
-            <button id="btn-close-academy" class="btn-close">✕</button>
-          </div>
+          <button id="btn-close-academy" class="btn-close">✕</button>
         </div>
 
-        <!-- 學院主打推薦：12 波完整主線大課堂 -->
+        <!-- 學院主打推薦：全塔實戰特訓課 -->
         <div class="academy-master-banner" id="card-tutorial-master">
           <div class="master-banner-left">
-            <span class="master-badge">👑 學院推薦主線</span>
             <h3 class="master-title">🏛️ 全塔實戰通關特訓課</h3>
-            <div class="master-meta-row">
-              <span class="meta-chip reward">結業認證: 🎓 掌握全防禦塔與秘術課程</span>
-              <span class="meta-chip diff">難度: 循序漸進</span>
-            </div>
           </div>
           <button class="btn-action pulse btn-start-master-tut" id="btn-start-master-tut">進入全塔課堂 ➔</button>
         </div>
