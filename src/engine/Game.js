@@ -200,9 +200,26 @@ export class Game {
     this.lanes = levelData.lanes;
     this.buildPads = levelData.buildPads ? levelData.buildPads.map(p => ({ ...p, tower: null })) : [];
 
-    // 世界維度與攝影機初始化 (隨關卡循序漸進)
-    this.worldWidth = levelData.worldWidth || 960;
-    this.worldHeight = levelData.worldHeight || 560;
+    // 世界維度與攝影機初始化 (隨關卡循序漸進，並自動偵測基座與路徑極限座標作為防呆保護)
+    let autoMaxX = 960;
+    let autoMaxY = 560;
+    if (this.lanes) {
+      for (const lane of this.lanes) {
+        for (const pt of lane) {
+          if (pt.x > autoMaxX) autoMaxX = Math.round(pt.x + 80);
+          if (pt.y > autoMaxY) autoMaxY = Math.round(pt.y + 80);
+        }
+      }
+    }
+    if (this.buildPads) {
+      for (const pad of this.buildPads) {
+        if (pad.x > autoMaxX) autoMaxX = Math.round(pad.x + 80);
+        if (pad.y > autoMaxY) autoMaxY = Math.round(pad.y + 80);
+      }
+    }
+
+    this.worldWidth = levelData.worldWidth || autoMaxX;
+    this.worldHeight = levelData.worldHeight || autoMaxY;
 
     if (this.lanes && this.lanes.length > 0 && this.lanes[0].length > 0) {
       const pStart = this.lanes[0][0];
@@ -442,7 +459,6 @@ export class Game {
   }
 
   selectTower(tower) {
-    console.log('[DEBUG] selectTower called with:', tower ? tower.label : 'null', new Error().stack);
     this.selectedTower = tower;
     if (this.ui.onTowerSelect) {
       this.ui.onTowerSelect(tower);
