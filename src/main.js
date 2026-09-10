@@ -51,8 +51,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const spotlightFormula = document.getElementById('spotlight-formula');
   const spotlightTargets = document.getElementById('spotlight-targets');
   const spotlightDesc = document.getElementById('spotlight-desc');
-  const spotlightTimerBar = document.getElementById('spotlight-timer-bar');
-  const spotlightCountdown = document.getElementById('spotlight-countdown');
   const btnCloseSpotlight = document.getElementById('btn-close-spotlight');
   const btnSpotlightX = document.getElementById('btn-spotlight-x');
 
@@ -747,12 +745,9 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================
-  // 砲塔 / 秘術放大特寫 Spotlight 動態渲染與計時控制
+  // 砲塔 / 秘術放大特寫 Spotlight 動態渲染控制
   // ==========================================================
   let spotlightAnimFrame = null;
-  let spotlightTimerInterval = null;
-  let spotlightStartTime = 0;
-  const SPOTLIGHT_DURATION = 4000;
 
   function drawSpotlightCanvas(ctx, type, icon, color, timestamp) {
     if (!ctx) return;
@@ -1036,36 +1031,9 @@ window.addEventListener('DOMContentLoaded', () => {
       };
       spotlightAnimFrame = requestAnimationFrame(loop);
     }
-
-    // 4 秒自動倒數進度條
-    spotlightStartTime = Date.now();
-    if (spotlightTimerInterval) clearInterval(spotlightTimerInterval);
-
-    const updateCountdown = () => {
-      const elapsed = Date.now() - spotlightStartTime;
-      const remaining = Math.max(0, SPOTLIGHT_DURATION - elapsed);
-      const secondsLeft = Math.ceil(remaining / 1000);
-
-      if (spotlightCountdown) spotlightCountdown.textContent = secondsLeft;
-      if (spotlightTimerBar) {
-        const percent = (remaining / SPOTLIGHT_DURATION) * 100;
-        spotlightTimerBar.style.width = `${percent}%`;
-      }
-
-      if (remaining <= 0) {
-        closeTowerSpotlight();
-      }
-    };
-
-    updateCountdown();
-    spotlightTimerInterval = setInterval(updateCountdown, 100);
   }
 
   function closeTowerSpotlight() {
-    if (spotlightTimerInterval) {
-      clearInterval(spotlightTimerInterval);
-      spotlightTimerInterval = null;
-    }
     if (spotlightAnimFrame) {
       cancelAnimationFrame(spotlightAnimFrame);
       spotlightAnimFrame = null;
