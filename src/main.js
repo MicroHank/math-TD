@@ -206,7 +206,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if (config) {
         const costEl = card.querySelector('.option-cost');
         const isLimited = config.category === 'special' || config.category === 'fusion' ||
-          ['ABSOLUTE', 'SQRT', 'OPERATOR', 'ZERO_FREEZE', 'LOG', 'TRIG', 'FUSION_6', 'FUSION_15', 'FUSION_ABS_SQRT', 'FUSION_FACTORIAL', 'FUSION_DERIVATIVE', 'FUSION_MONTE_CARLO'].includes(typeKey);
+          ['ABSOLUTE', 'SQRT', 'OPERATOR', 'ZERO_FREEZE', 'TRIG', 'FUSION_6', 'FUSION_15', 'FUSION_ABS_SQRT', 'FUSION_FACTORIAL', 'FUSION_DERIVATIVE', 'FUSION_MONTE_CARLO'].includes(typeKey);
 
         if (isLimited) {
           const isCapped = game ? !game.canBuildTowerType(typeKey, game.selectedPad) : false;
@@ -1617,7 +1617,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 數論作戰指南 Modal
+  // 遊戲手冊 Modal
   if (btnGuide) {
     btnGuide.addEventListener('click', () => {
       modalGuide.classList.remove('hidden');

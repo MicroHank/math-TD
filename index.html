@@ -82,11 +82,11 @@
           <span class="menu-card-action" id="home-tech-tree-badge">🔒 需通關任意關卡</span>
         </button>
 
-        <!-- 5. 數論作戰指南 -->
-        <button id="btn-home-guide" class="home-menu-card mode-guide" title="速查質數砲、運算子、負數幽靈與魔王技能">
+        <!-- 5. 遊戲手冊 -->
+        <button id="btn-home-guide" class="home-menu-card mode-guide" title="查閱防禦塔、怪物能力、指揮官技能與遊戲規則">
           <div class="menu-card-icon">📖</div>
           <div class="menu-card-body">
-            <div class="menu-card-title">數論作戰指南</div>
+            <div class="menu-card-title">遊戲手冊</div>
           </div>
           <span class="menu-card-action">查看手冊 ➔</span>
         </button>
@@ -412,15 +412,6 @@
               <div class="option-cost">110 🪙</div>
             </button>
 
-            <button class="build-option-card" data-tower-type="LOG">
-              <div class="option-icon log-compressor">log</div>
-              <div class="option-info">
-                <div class="option-title">log₂(x) 對數壓縮井</div>
-                <div class="option-desc">對數光束 ｜ 壓縮數值至 log₂(v)</div>
-              </div>
-              <div class="option-cost">160 🪙</div>
-            </button>
-
             <button class="build-option-card" data-tower-type="TRIG">
               <div class="option-icon fourier-tower">sin</div>
               <div class="option-info">
@@ -694,166 +685,204 @@
       </div>
     </div>
 
-    <!-- 數論作戰指南 Modal (青少年數感輔助手冊) -->
+    <!-- 遊戲手冊 Modal -->
     <div id="modal-guide" class="modal-overlay hidden">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>📚 數論作戰速查手冊</h2>
+          <h2>📖 遊戲手冊</h2>
           <button id="btn-close-guide" class="btn-close">✕</button>
         </div>
         <div class="modal-body">
-          <!-- 全防禦塔詳細圖鑑與功用一覽 -->
+          <!-- 1. 防禦塔功能一覽 -->
           <div class="guide-card">
-            <h3>🏛️ 數論防線：全防禦塔功能圖鑑與克制矩陣</h3>
-            <p>戰場上共有 8 種基礎防禦塔與 4 種進化複合神塔，各司其職克制不同類型的數字怪獸：</p>
+            <h3>🏰 防禦塔功能一覽</h3>
+            <p>使用對應因數的防禦塔對怪物進行除法分解，數值除至 1 即消滅：</p>
             
             <div class="tower-codex-grid">
               <div class="codex-item" style="border-left-color: #38bdf8;">
                 <div class="codex-title"><span class="codex-badge" style="background: rgba(56,189,248,0.2); color: #38bdf8;">2</span> 2號 雙子砲 (PRIME_2)</div>
-                <div class="codex-desc">偶數剋星！凡尾數為 0, 2, 4, 6, 8 均可被其持續除以 2，直到縮減為 1 擊破。</div>
+                <div class="codex-desc">除以 2。攻擊偶數怪物（尾數 0, 2, 4, 6, 8）。</div>
               </div>
 
               <div class="codex-item" style="border-left-color: #fbbf24;">
                 <div class="codex-title"><span class="codex-badge" style="background: rgba(251,191,36,0.2); color: #fbbf24;">3</span> 3號 三元激光 (PRIME_3)</div>
-                <div class="codex-desc">3的倍數剋星！若數字各位數相加為 3 的倍數，立即進行除以 3 分解。</div>
+                <div class="codex-desc">除以 3。攻擊 3 的倍數（各數位和為 3 的倍數）。</div>
               </div>
 
               <div class="codex-item" style="border-left-color: #34d399;">
                 <div class="codex-title"><span class="codex-badge" style="background: rgba(52,211,153,0.2); color: #34d399;">5</span> 5號 五芒衝擊 (PRIME_5)</div>
-                <div class="codex-desc">尾數 0 或 5 剋星！單發威力強大且射程廣，對 10, 15, 25, 35, 50 造成巨額除法破壞。</div>
+                <div class="codex-desc">除以 5。攻擊尾數為 0 或 5 的倍數。</div>
               </div>
 
               <div class="codex-item" style="border-left-color: #8b5cf6;">
                 <div class="codex-title"><span class="codex-badge" style="background: rgba(139,92,246,0.2); color: #a78bfa;">7</span> 7號 七曜天琴 (PRIME_7)</div>
-                <div class="codex-desc">高階 7 倍數重砲！超遠射程，專門壓制 14, 21, 28, 35, 49 等無法被 2, 3, 5 除盡的強敵。</div>
+                <div class="codex-desc">除以 7。射程極遠，專門攻擊 7 的倍數。</div>
               </div>
 
               <div class="codex-item" style="border-left-color: #c084fc;">
                 <div class="codex-title"><span class="codex-badge" style="background: rgba(192,132,252,0.2); color: #c084fc;">|x|</span> |x| 絕對值稜鏡 (ABSOLUTE)</div>
-                <div class="codex-desc">負數幽靈剋星！負數怪免疫質數砲，必須在起點前線建造稜鏡，將其淨化為正數後方能消滅。</div>
+                <div class="codex-desc">將負數轉為正數（如 -12 變 12），破除負數護盾。</div>
               </div>
 
               <div class="codex-item" style="border-left-color: #14b8a6;">
                 <div class="codex-title"><span class="codex-badge" style="background: rgba(20,184,166,0.2); color: #2dd4bf;">±1</span> [+/-] 運算子調整塔 (OPERATOR)</div>
-                <div class="codex-desc">孤傲質數刺客剋星！針對 11, 13, 17, 19 等質數怪發動量子微調，化質為合讓質數砲整除。</div>
+                <div class="codex-desc">數值 +1 或 -1。將無法整除的質數調整為合數，也能破除完全數護盾。</div>
               </div>
 
               <div class="codex-item" style="border-left-color: #f59e0b;">
-                <div class="codex-title"><span class="codex-badge" style="background: rgba(245,158,11,0.2); color: #fbbf24;">√x</span> √x 根號方根重力井 (SQRT)</div>
-                <div class="codex-desc">完全平方數剋星！對 16, 25, 36, 49, 64, 81, 100 等幾何方塊怪直接開方，數值大幅縮小。</div>
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(245,158,11,0.2); color: #fbbf24;">√x</span> √x 根號重力井 (SQRT)</div>
+                <div class="codex-desc">對完全平方數直接開平方（如 16 變 4、36 變 6）。</div>
               </div>
 
               <div class="codex-item" style="border-left-color: #06b6d4;">
-                <div class="codex-title"><span class="codex-badge" style="background: rgba(6,182,212,0.2); color: #22d3ee;">×0</span> ×0 絕對零度力場塔 (ZERO_FREEZE)</div>
-                <div class="codex-desc">高速怪極限控場！不需單體瞄準，常駐範圍乘零力場使所有高速衝鋒怪急遽減速。</div>
-              </div>
-
-              <div class="codex-item" style="border-left-color: #eab308;">
-                <div class="codex-title"><span class="codex-badge" style="background: rgba(234,179,8,0.2); color: #facc15;">log</span> log₂(x) 對數壓縮重力井 (LOG)</div>
-                <div class="codex-desc">高數值巨獸剋星！發射金色對數光束，將巨型怪物數值急速降維壓縮至 ⌊log₂(v)⌋！</div>
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(6,182,212,0.2); color: #22d3ee;">×0</span> ×0 乘零力場塔 (ZERO_FREEZE)</div>
+                <div class="codex-desc">範圍光環減速。使進入光環範圍的所有怪物移動速度大幅降低。</div>
               </div>
 
               <div class="codex-item" style="border-left-color: #06b6d4;">
                 <div class="codex-title"><span class="codex-badge" style="background: rgba(6,182,212,0.2); color: #38bdf8;">sin</span> sin/cos 傅立葉諧波塔 (TRIG)</div>
-                <div class="codex-desc">密集怪物潮壓制！射出正餘弦振盪干涉波，波峰強效減速 55%，波谷爆發高頻諧波傷害。</div>
+                <div class="codex-desc">發射振盪波，波峰造成 55% 減速，波谷造成高頻群體傷害。</div>
               </div>
 
               <div class="codex-item" style="border-left-color: #f43f5e;">
-                <div class="codex-title"><span class="codex-badge" style="background: rgba(244,63,94,0.2); color: #fb7185;">d/dx</span> d/dx 費馬導數天琴 (FUSION_DERIVATIVE)</div>
-                <div class="codex-desc">7號＋運算子融合神塔！高速連續發射微積分音刃，依據速度斜率附加額外割線破甲重擊。</div>
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(244,63,94,0.2); color: #fb7185;">d/dx</span> d/dx 導數天琴 (7號+運算子)</div>
+                <div class="codex-desc">微積分音刃。依據目標當前移動速度附加破甲額外傷害。</div>
               </div>
 
               <div class="codex-item" style="border-left-color: #a855f7;">
-                <div class="codex-title"><span class="codex-badge" style="background: rgba(168,85,247,0.2); color: #c084fc;">🎲</span> 🎲 蒙地卡羅投擲機 (FUSION_MONTE_CARLO)</div>
-                <div class="codex-desc">3號＋根號融合神塔！投擲數論多面體骰子（質數點觸發 300% 暴擊，平方點開方衝擊，大數掉落金幣雨）。</div>
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(168,85,247,0.2); color: #c084fc;">🎲</span> 🎲 蒙地卡羅機 (3號+根號)</div>
+                <div class="codex-desc">投擲數論骰子：質數點 300% 暴擊、平方點開方衝擊、高點數掉落金幣。</div>
               </div>
 
               <div class="codex-item" style="border-left-color: #ec4899; grid-column: 1 / -1;">
-                <div class="codex-title"><span class="codex-badge" style="background: rgba(236,72,153,0.2); color: #ec4899;">⚛️</span> 複合神塔融合系列（各型號全場限建 1 座）</div>
-                <div class="codex-formula">包含：2×3 六芒雙曜、3×5 聚財加農、|√x| 虛數引力、d/dx 導數天琴、🎲 蒙地卡羅投擲機、n! 階乘坍縮波</div>
-                <div class="codex-desc">當防禦塔等級提升後可點選執行「數論融合」，兼具多重質數打擊與強大附帶異能！【戰略平衡】：全場「代數與力場塔」與「複合神塔」所有型號最多各只能買一座，不可重複建造同型號。</div>
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(236,72,153,0.2); color: #ec4899;">⚛️</span> 複合神塔系列（每種全場限建 1 座）</div>
+                <div class="codex-formula">2×3 六芒雙曜、3×5 聚財加農、|√x| 虛數引力、n! 階乘坍縮波</div>
+                <div class="codex-desc">由基礎塔升級融合而成，兼具兩種質數打擊與強力被動技能。代數塔、力場塔與複合神塔各型號全場限建 1 座。</div>
               </div>
             </div>
           </div>
 
+          <!-- 2. 怪物能力一覽 -->
           <div class="guide-card">
-            <h3>👾 特殊數論怪獸生態圖鑑（全新進化）</h3>
+            <h3>👾 怪物能力一覽</h3>
+            <p>怪物特性與應對方式介紹：</p>
+            
+            <div class="tower-codex-grid">
+              <div class="codex-item" style="border-left-color: #38bdf8;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(56,189,248,0.2); color: #38bdf8;">合數</span> 普通合數怪</div>
+                <div class="codex-desc">基礎怪物。需用能整除該數值的質數砲打擊，數值除至 1 時消滅。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #c084fc;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(192,132,252,0.2); color: #c084fc;">-x</span> 負數怪 (-x)</div>
+                <div class="codex-desc">帶有負數護盾，質數砲無法造成傷害。需經過「|x| 絕對值稜鏡」轉為正數後才能攻擊。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #f472b6;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(244,114,182,0.2); color: #f472b6;">LCM</span> 公倍數合體怪 (LCM)</div>
+                <div class="codex-desc">第二大關起生效。兩隻怪物碰撞時合體為最小公倍數（若為倍數關係則再乘 2）；遭受質數砲除法時釋放裂變震波。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #fbbf24;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(251,191,36,0.2); color: #fbbf24;">x²</span> 完全平方數怪 (4, 9, 16...)</div>
+                <div class="codex-desc">可被「√x 根號塔」直接開平方（例如 36 變 6）。數值 ≥ 16 時帶有金色外框。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #a855f7;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(168,85,247,0.2); color: #c084fc;">質數</span> 質數怪 (11, 13, 31, 37...)</div>
+                <div class="codex-desc">無法被 2、3、5 整除。需用「±1 運算子」加減 1 轉為合數後消滅。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #38bdf8;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(56,189,248,0.2); color: #38bdf8;">Twin</span> 孿生質數雙子 (11與13, 17與19...)</div>
+                <div class="codex-desc">第四大關起生效。成對生成並互相鏈接分攤傷害；若其中一隻陣亡，另一隻會進入狂暴加速狀態。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #ec4899;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(236,72,153,0.2); color: #ec4899;">pᵏ</span> 質數套娃怪 (pᵏ)</div>
+                <div class="codex-desc">第四大關起生效。純質數冪（如 16, 27, 32, 81）。每被除法分解一次，體積縮小 15%、移速提升 20%。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #facc15;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(250,204,21,0.2); color: #facc15;">完全數</span> 完全數聖盾怪 (6, 28, 496)</div>
+                <div class="codex-desc">第四大關起生效。自帶 70% 減傷護盾，需由「±1 運算子」擊中破除護盾。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #ef4444;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(239,68,68,0.2); color: #f87171;">3n+1</span> 考拉茲怪 (Collatz 3n+1)</div>
+                <div class="codex-desc">奇數時若受到無法整除的攻擊，數值變為 3n+1 並大幅加速。需用 2 號砲持續除以 2 迫使其縮小。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #06b6d4;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(6,182,212,0.2); color: #22d3ee;">𝒞</span> 康托爾三分怪 (Cantor Dust)</div>
+                <div class="codex-desc">陣亡時沿三分區間分裂為 2 隻數值為原數值 1/3 的高速微型怪。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #2dd4bf;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(45,212,191,0.2); color: #2dd4bf;">迴文</span> 迴文怪 (121, 373, 1331)</div>
+                <div class="codex-desc">自帶 35% 傷害減免，陣亡時使周圍防禦塔冷卻延遲。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #f97316;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(249,115,22,0.2); color: #fb923c;">Mp</span> 梅森怪 (2ᵖ - 1)</div>
+                <div class="codex-desc">如 31, 127。免疫 2 號砲，提供周圍怪物 +25% 移速光環；需用 ±1 運算子破除形態。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #8b5cf6;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(139,92,246,0.2); color: #a78bfa;">0.3̇</span> 循環小數怪</div>
+                <div class="codex-desc">0.3̇ (1/3) 被 3 號砲擊中直接消滅；0.6̇ (2/3) 被 3 號砲擊中轉為整數 2；0.142857 (1/7) 被 7 號砲消滅；0.9̇ 被 ±1 運算子消滅。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #6366f1;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(99,102,241,0.2); color: #818cf8;">μ</span> 莫比烏斯怪</div>
+                <div class="codex-desc">數值含有平方因數（如 18, 50）遭受攻擊時，沿路徑倒退 1.2 秒。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #a855f7;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(168,85,247,0.2); color: #c084fc;">i</span> 虛數單位 i 循環怪</div>
+                <div class="codex-desc">每隔 3.5 秒循環切換相態：+i (50% 迴避)、-1 (轉為負數護盾)、-i (免疫減速)、+1 (承受 2.5 倍傷害)。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #e11d48;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(225,29,72,0.2); color: #fb7185;">ζ</span> 黎曼零點怪 (ζ)</div>
+                <div class="codex-desc">定期沿路徑瞬移一段距離，並使自身與周圍怪物進入 1.5 秒無敵狀態。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #10b981;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(16,185,129,0.2); color: #34d399;">det</span> 行列式方陣 (2×2)</div>
+                <div class="codex-desc">四隻怪分別帶有 a, b, c, d 標籤，當 ad - bc = 0 時觸發連鎖自爆。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #f59e0b;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(245,158,11,0.2); color: #fbbf24;">詞綴</span> 數論精英詞綴</div>
+                <div class="codex-desc">[同餘聖甲] 特定除數外減傷 55%；[指數狂暴] 殘血移速 +60%；[負熵力場] 免疫前 2 次打擊；[極限加速] 越靠近終點越快。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #f43f5e; grid-column: 1 / -1;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(244,63,94,0.2); color: #fb7185;">Boss</span> 魔王專屬領域技能</div>
+                <div class="codex-desc">黎曼風暴 (半徑內砲塔沉默停火 2.5 秒)；考拉茲浪潮 (全場奇數怪 3n+1、偶數怪除以 2)；維度躍遷 (全體存活怪向前瞬移 45px)；極性反轉 (小怪轉負數)；乘倍光環 (周圍小怪數值翻倍)；分裂侍從 (受創時召喚小怪)。</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. 指揮官秘術 -->
+          <div class="guide-card">
+            <h3>⚡ 指揮官秘術 (快捷鍵 Q / W / E)</h3>
+            <p>消耗算力能量發動主動技能（能量隨時間與擊殺自動回充）：</p>
             <ul>
-              <li><strong>🌀 考拉茲奇異怪 (Collatz 3n+1)</strong>：頭頂帶有 <code>3n+1</code> 渦流。當其為奇數遭遇未匹配打擊時，觸發 $3n+1$ 暴漲激怒（數值變大、耐受度回滿且移速 +45%）！需以 2 號砲或偶數砲將其持續除以 2 迫使其坍縮！</li>
-              <li><strong>🪓 康托爾三分塵埃怪 (Cantor Dust Swarm)</strong>：標記為 <code>𝒞</code>。被擊毀時會沿三分區間發生碎形分裂，分裂為 2 隻帶有 1/3 數值的極速微型塵埃怪！</li>
-              <li><strong>🪞 迴文對稱聖盾怪 (Palindromic Mirror Sentinel)</strong>：如 121, 373, 1331。正面自帶 35% 鏡面減傷，陣亡時釋放「鏡面對稱反動波」使周圍砲塔短暫延遲冷卻！</li>
-              <li><strong>⚡ 梅森狂暴巨擘 ($M_p = 2^p - 1$)</strong>：標記為 <code>Mp</code>。二進制奇數狂暴態，免疫常規除 2，並為周圍所有質數怪提供 +25% 移速光環；需以 ±1 運算子破除梅森形態！</li>
-              <li><strong>🌌 黎曼零點幽靈 ($\zeta(s)$)</strong>：紫金光環 <code>ζ(s)</code>。沿臨界線震盪前行，每隔數秒發動虛數躍遷瞬移，並使自身與周圍怪物進入 1.5 秒半透明無敵狀態！</li>
-              <li><strong>🛡️ 數論精英詞綴系統</strong>：怪物有機率攜帶 <code>[同餘聖甲]</code>（特定除數外減傷 55%）、<code>[指數狂暴]</code>（殘血移速 +60%）、<code>[負熵力場]</code>（吸收前 2 次打擊）、<code>[極限加速]</code>（越近終點越快）。</li>
-              <li><strong>🌀 莫比烏斯拓撲幽靈</strong>：頭頂帶有 <code>μ</code> 標記。當其數值含有平方因數（如 18、50）遭受攻擊時，會引發拓撲逆流，沿路徑倒退 1.2 秒！</li>
-              <li><strong>🪆 質數冪·俄羅斯套娃怪 ($p^k$)</strong>：純質數冪（如 16, 27, 32, 64, 81）。每完成一次除法分解便剝落一層外殼，體積縮小 15% 且速度狂增 +20%！</li>
-              <li><strong>🌌 虛數單位 $i$ 四象限循環幽靈</strong>：每隔 3.5 秒在複數平面四象限循環相移 (+i, -1, -i, +1)。</li>
-              <li><strong>🔢 行列式方陣共鳴組 ($2 \times 2$)</strong>：四隻一組行進，分別帶有 <code>[a]</code>、<code>[b]</code>、<code>[c]</code>、<code>[d]</code> 標籤。當 $\det = ad - bc = 0$ 時觸發奇異矩陣連鎖爆炸！</li>
+              <li><strong>[Q 鍵] 最大公因數引爆 (消耗 50 ⚡)</strong>：點擊目標區域，圈內所有怪物數值直接整除其彼此的最大公因數 (GCD)。</li>
+              <li><strong>[W 鍵] 同餘黑洞 mod 5 (消耗 85 ⚡)</strong>：召喚持續 6 秒的黑洞。進入怪物執行 mod 5；餘數 0 或 1 立即消滅，餘數 2~4 數值變為該餘數並減速 40%。</li>
+              <li><strong>[E 鍵] 黃金分割超頻 (消耗 50 ⚡)</strong>：全場所有防禦塔攻擊速度提升 60%，持續 6 秒。</li>
             </ul>
           </div>
 
+          <!-- 4. 特殊機制規則 -->
           <div class="guide-card">
-            <h3>⚡ 運算子調整塔（+1 / -1）</h3>
-            <p>遇到無法被 2、3、5 整除的質數怪（如 <code>7</code>、<code>11</code>、<code>13</code>）時，運算子調整塔會發動量子脈衝：</p>
+            <h3>📐 特殊機制規則</h3>
             <ul>
-              <li>7 - 1 = 6（隨即能被 2 與 3 號砲除法消滅！）</li>
-              <li>11 + 1 = 12 或 11 - 1 = 10（化質數為合數！）</li>
-            </ul>
-          </div>
-
-          <div class="guide-card">
-            <h3>🔮 負數幽靈與絕對值（|x|）</h3>
-            <p>帶有負號的怪（如 <code>-12</code>、<code>-30</code>）帶有反向護盾，質數砲無法直接傷害！請在路徑前線建造 <strong>「|x| 絕對值稜鏡」</strong>，將 -n 轉為 +n。</p>
-          </div>
-
-          <div class="guide-card">
-            <h3>👻 循環小數幽靈（Recurring Decimal）與倒數破除</h3>
-            <p>漂浮於數軸虛空的純循環小數怪獸，身後拖曳無窮小數軌跡（如 <code>...333</code> 或 <code>...666</code>），頭頂帶有 <code>∞</code> 符號，受到除不盡的質數砲攻擊時會產生抗性（「循環除不盡！」）：</p>
-            <ul>
-              <li><strong>0.3̇ (即 1/3)</strong>：需使用 <strong>3 號 三生砲</strong> 或 <strong>2×3 六芒雙曜塔</strong> 打擊，觸發 ×3 = 1 直接破除歸一消除！</li>
-              <li><strong>0.6̇ (即 2/3)</strong>：需使用 <strong>3 號 三生砲</strong> 連續打擊，觸發 ×3 = 2 破除循環<strong>轉化為整數 2</strong>，隨後可由 2 號雙子砲除法清空！</li>
-              <li><strong>0.142857 (即 1/7)</strong>：需使用 <strong>7 號 七曜天琴砲</strong> 打擊，觸發 ×7 = 1 分數倒數瞬間破除消除！</li>
-              <li><strong>0.9̇ (極限 1)</strong>：由 <strong>±1 運算子微調塔</strong> 發射極限坍縮脈衝，觸發 0.9̇ = 1 極限崩塌瞬間消滅！</li>
-              <li><strong>🌀 W 鍵同餘黑洞</strong>：吸入循環小數幽靈時會觸發「實數截斷」，將循環小數強制截斷轉化為整數！</li>
-            </ul>
-          </div>
-
-          <div class="guide-card">
-            <h3>⚡ 指揮官算力能量與主動秘術 (Q / W / E)</h3>
-            <p>指揮官擁有專屬的 <strong>算力能量池（預設 100 ⚡）</strong>，能量會隨時間與擊殺怪物自動回充。按下鍵盤對應快捷鍵或點擊下方秘術列發動：</p>
-            <ul>
-              <li>
-                <strong>👑 [Q 鍵] GCD 最大公因數引爆 (消耗 50 ⚡)</strong>：
-                在戰場上點擊施放範圍。系統將計算圈內全部怪物的最大公因數 gcd(a, b, c, ...)。全體怪物數值瞬間<strong>整除該公因數</strong>並引發連鎖金色雷電衝擊！
-              </li>
-              <li>
-                <strong>🌀 [W 鍵] 同餘黑洞 mod 5 (消耗 85 ⚡)</strong>：
-                在路徑上召喚持續 6 秒的重力黑洞。怪物進入後數值強制執行 mod(x, 5)。若餘數為 <strong>0 或 1</strong> 則瞬間<strong>整除湮滅</strong>！餘數為 2、3、4 則數值直接縮減為餘數並減速 40%！
-              </li>
-              <li>
-                <strong>⚡ [E 鍵] 黃金分割超頻 (消耗 50 ⚡)</strong>：
-                全場瞬間啟動！依循黃金比例 φ ≈ 1.618，使<strong>全場所有防禦塔攻擊速度暴增 +60%</strong>，持續 6 秒，粉碎任何強敵進攻！
-              </li>
-            </ul>
-          </div>
-
-          <div class="guide-card">
-            <h3>📐 幾何共鳴矩陣與複合神塔</h3>
-            <ul>
-              <li><strong>幾何光弦與三角結界</strong>：當防禦塔間距小於 300 px 時自動相連形成共鳴光弦；只有特定的<strong>質數聖環組合（2, 3, 5 或 3, 5, 7）</strong>才能構成共振三角結界（獲得攻速加成、減速光環與持續神聖傷害，其餘組合皆無法形成三角結界）！</li>
-              <li><strong>⚛️ 複合神塔融合</strong>：建造或升級 <code>2×3 六芒雙曜塔</code>（雙質數連除）、<code>3×5 星軌聚財加農</code>（命中產金幣）、<code>|√x| 虛數引力稜鏡</code>（負數直開根號＋強引力）與 <code>n! 階乘坍縮波</code>（代數與力場塔、複合神塔所有型號全場各限建 1 座）！</li>
-            </ul>
-          </div>
-
-          <div class="guide-card">
-            <h3>👑 大魔王（Boss）專屬領域神技</h3>
-            <ul>
-              <li><strong>🌌 黎曼澤塔風暴 (Zeta Storm)</strong>：釋放複數振盪風暴，使全場半徑 260px 內的防禦塔陷入 2.5 秒沉默停火！</li>
-              <li><strong>🔥 考拉茲混沌浪潮 (Collatz Surge)</strong>：使全屏怪物激變（奇數執行 $3n+1$ 暴漲、偶數執行 $n/2$ 坍縮），瞬間重構防線壓力！</li>
-              <li><strong>🌀 維度折疊躍遷 (Dimension Rift)</strong>：強制扭曲空間，將所有存活敵軍沿路徑瞬間前移 45px！</li>
-              <li><strong>⚡ 極性反轉 (±)</strong>：將範圍內正數小怪逆轉為負數幽靈護盾怪！</li>
-              <li><strong>🔥 乘倍光環 (×2)</strong>：魔王發動激怒波時，周圍小怪數值瞬間翻倍！</li>
-              <li><strong>🛡️ 因數侍從</strong>：魔王遭受除法重創時分裂出小型護衛侍從。</li>
+              <li><strong>質數三角結界</strong>：防禦塔間距小於 300px 自動相連；當三個頂點為特定質數組合（2, 3, 5 或 3, 5, 7）時，構成三角結界，提供攻速加成、減速光環與持續傷害。</li>
+              <li><strong>公倍數融合危機 (LCM)</strong>：第 2 大關起生效。同路徑相撞的怪物會合體為最小公倍數巨獸。</li>
+              <li><strong>建造數量限制</strong>：代數塔 (|x|、±1、√x)、力場塔 (×0、sin) 與所有複合神塔，每種型號全場最多建造 1 座。</li>
             </ul>
           </div>
         </div>

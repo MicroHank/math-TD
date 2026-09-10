@@ -268,7 +268,7 @@ export class Game {
 
     // 質數重砲不受限制；代數與力場以及複合神塔，所有型號全場最多各只能建造 1 座
     const isLimited = category === 'special' || category === 'fusion' ||
-      ['absolute', 'sqrt', 'operator', 'zero', 'log', 'trig', 'fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial', 'fusion_derivative', 'fusion_monte_carlo'].includes(targetType);
+      ['absolute', 'sqrt', 'operator', 'zero', 'trig', 'fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial', 'fusion_derivative', 'fusion_monte_carlo'].includes(targetType);
 
     if (!isLimited) return true;
 
@@ -280,7 +280,7 @@ export class Game {
   }
 
   getSpecialTowerCount() {
-    return this.towers.filter(t => (t.isSpecialTower ? t.isSpecialTower() : ['absolute', 'sqrt', 'operator', 'zero', 'log', 'trig'].includes(t.type))).length;
+    return this.towers.filter(t => (t.isSpecialTower ? t.isSpecialTower() : ['absolute', 'sqrt', 'operator', 'zero', 'trig'].includes(t.type))).length;
   }
 
   getFusionTowerCount() {

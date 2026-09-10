@@ -8,7 +8,6 @@ import {
   DualPrimeProjectile,
   ImaginaryPrismBeam,
   FactorialDecayWave,
-  LogCompressionBeam,
   FourierTrigWave,
   DerivativeBladeProjectile,
   MonteCarloDiceProjectile,
@@ -22,7 +21,7 @@ export class Tower {
     this.id = id;
     this.x = x;
     this.y = y;
-    this.type = type; // 'prime', 'absolute', 'operator', 'sqrt', 'zero', 'log', 'trig'
+    this.type = type; // 'prime', 'absolute', 'operator', 'sqrt', 'zero', 'trig'
     this.factor = factor; // 2, 3, 5, 7 or null
     this.category = category || (TOWER_TYPES[type] && TOWER_TYPES[type].category) || this.deriveCategory(type);
     // 基礎與當前屬性
@@ -59,13 +58,13 @@ export class Tower {
   }
 
   deriveCategory(type) {
-    if (['absolute', 'sqrt', 'operator', 'zero', 'log', 'trig'].includes(type)) return 'special';
+    if (['absolute', 'sqrt', 'operator', 'zero', 'trig'].includes(type)) return 'special';
     if (['fusion_6', 'fusion_15', 'fusion_abs_sqrt', 'fusion_factorial', 'fusion_derivative', 'fusion_monte_carlo'].includes(type)) return 'fusion';
     return 'prime';
   }
 
   isSpecialTower() {
-    return this.category === 'special' || ['absolute', 'sqrt', 'operator', 'zero', 'log', 'trig'].includes(this.type);
+    return this.category === 'special' || ['absolute', 'sqrt', 'operator', 'zero', 'trig'].includes(this.type);
   }
 
   isFusionTower() {
@@ -378,30 +377,6 @@ export class Tower {
       return bestHighVal;
     }
 
-    if (this.type === 'log') {
-      // 對數壓縮重力井：鎖定數值最大的怪（特別是 >= 8 的高危怪物），或進度最前者
-      let bestHighVal = null;
-      let maxVal = -1;
-      let fallbackFirst = null;
-      let maxAnyDist = -1;
-      for (const m of monsters) {
-        if (m.isDead) continue;
-        const dist = Math.hypot(m.x - this.x, m.y - this.y);
-        if (dist <= currentRange) {
-          const val = Math.abs(typeof m.value === 'number' ? m.value : 1);
-          if (val > maxVal) {
-            maxVal = val;
-            bestHighVal = m;
-          }
-          if (m.progress > maxAnyDist) {
-            maxAnyDist = m.progress;
-            fallbackFirst = m;
-          }
-        }
-      }
-      return (maxVal >= 8 ? bestHighVal : fallbackFirst) || bestHighVal;
-    }
-
     if (this.type === 'trig') {
       // 傅立葉諧波共振塔：鎖定最前線怪物發射橫向震盪波
       let bestTarget = null;
@@ -626,14 +601,6 @@ export class Tower {
       game.addProjectile(new SqrtProjectile({
         x: this.x,
         y: this.y,
-        target: target,
-        damage: this.damage
-      }));
-    } else if (this.type === 'log') {
-      sound.playShoot(3);
-      game.addBeam(new LogCompressionBeam({
-        sourceX: this.x,
-        sourceY: this.y,
         target: target,
         damage: this.damage
       }));
@@ -899,24 +866,6 @@ export class Tower {
       ctx.moveTo(-7, -7); ctx.lineTo(7, 7);
       ctx.moveTo(-7, 7); ctx.lineTo(7, -7);
       ctx.stroke();
-    } else if (this.type === 'log') {
-      // 對數螺旋金色透鏡
-      ctx.fillStyle = '#eab308';
-      ctx.fillRect(6, -4, 16, 8);
-
-      ctx.beginPath();
-      ctx.arc(0, 0, 14, 0, Math.PI * 2);
-      ctx.fillStyle = '#422006';
-      ctx.fill();
-      ctx.strokeStyle = '#facc15';
-      ctx.lineWidth = 2.2;
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(16, 0, 5, 0, Math.PI * 2);
-      ctx.strokeStyle = '#fef08a';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
     } else if (this.type === 'trig') {
       // 雙波振盪器
       ctx.fillStyle = '#06b6d4';
@@ -1012,7 +961,7 @@ export const TOWER_TYPES = {
     category: 'prime',
     name: '2號 雙子砲',
     subtitle: '對付偶數 / 2的倍數',
-    cost: 50,
+    cost: 60,
     range: 140,
     fireRate: 1.8,
     damage: 25,
@@ -1025,7 +974,7 @@ export const TOWER_TYPES = {
     category: 'prime',
     name: '3號 三元激光',
     subtitle: '對付數字和為3的倍數',
-    cost: 75,
+    cost: 60,
     range: 165,
     fireRate: 1.3,
     damage: 32,
@@ -1038,12 +987,25 @@ export const TOWER_TYPES = {
     category: 'prime',
     name: '5號 五芒衝擊',
     subtitle: '對付尾數 0 或 5',
-    cost: 100,
+    cost: 60,
     range: 150,
     fireRate: 0.9,
     damage: 45,
     color: '#34d399',
     label: '5'
+  },
+  PRIME_7: {
+    type: 'prime',
+    factor: 7,
+    category: 'prime',
+    name: '7號 七曜天琴',
+    subtitle: '除以 7 ｜ 難纏倍數剋星',
+    cost: 60,
+    range: 175,
+    fireRate: 0.95,
+    damage: 55,
+    color: '#8b5cf6',
+    label: '7'
   },
   ABSOLUTE: {
     type: 'absolute',
@@ -1071,26 +1033,13 @@ export const TOWER_TYPES = {
     color: '#14b8a6',
     label: '±1'
   },
-  PRIME_7: {
-    type: 'prime',
-    factor: 7,
-    category: 'prime',
-    name: '7號 七曜天琴',
-    subtitle: '除以 7 ｜ 難纏倍數剋星',
-    cost: 100,
-    range: 175,
-    fireRate: 0.95,
-    damage: 55,
-    color: '#8b5cf6',
-    label: '7'
-  },
   SQRT: {
     type: 'sqrt',
     factor: null,
     category: 'special',
     name: '√x 根號方根重力井',
     subtitle: '全場限建 1 座 ｜ 暴擊平方怪並直接開方',
-    cost: 150,
+    cost: 200,
     range: 160,
     fireRate: 0.85,
     damage: 50,
@@ -1110,26 +1059,13 @@ export const TOWER_TYPES = {
     color: '#06b6d4',
     label: '×0'
   },
-  LOG: {
-    type: 'log',
-    factor: null,
-    category: 'special',
-    name: 'log₂(x) 對數壓縮重力井',
-    subtitle: '全場限建 1 座 ｜ 對數光束壓縮巨大數值至 log₂(v)',
-    cost: 250,
-    range: 165,
-    fireRate: 0.8,
-    damage: 40,
-    color: '#eab308',
-    label: 'log'
-  },
   TRIG: {
     type: 'trig',
     factor: null,
     category: 'special',
     name: 'sin/cos 傅立葉諧波共振塔',
     subtitle: '全場限建 1 座 ｜ 波峰減速55%＋波谷諧波衝擊',
-    cost: 250,
+    cost: 300,
     range: 170,
     fireRate: 1.1,
     damage: 48,
@@ -1196,7 +1132,7 @@ export const TOWER_TYPES = {
     category: 'fusion',
     name: '🎲 蒙地卡羅機率投擲機',
     subtitle: '全場限建 1 座 ｜ 3號＋根號融合·擲骰質數300%暴擊',
-    cost: 230,
+    cost: 300,
     range: 180,
     fireRate: 1.0,
     damage: 55,

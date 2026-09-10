@@ -3,6 +3,7 @@ import { Monster } from '../src/entities/Monster.js';
 import { Tower, TOWER_TYPES } from '../src/entities/Tower.js';
 import { Game } from '../src/engine/Game.js';
 import { EndlessManager } from '../src/engine/EndlessManager.js';
+import { LEVELS } from '../src/levels/LevelData.js';
 import assert from 'assert';
 
 console.log('--- 1. Testing Monster Archetypes ---');
@@ -115,13 +116,12 @@ assert.strictEqual(mD.isDead, true);
 assert.strictEqual(mockGame.gold > 0, true, 'Triple gold reward paid out on singular matrix collapse');
 console.log('✓ 2x2 Determinant Matrix zero-collapse chain explosion passed.');
 
-console.log('\n--- 3. Testing 4 New Towers & Fusion Recipes ---');
-assert.ok(TOWER_TYPES.LOG, 'LOG tower type exists');
+console.log('\n--- 3. Testing New Towers & Fusion Recipes ---');
+assert.strictEqual(TOWER_TYPES.LOG, undefined, 'LOG tower has been removed');
 assert.ok(TOWER_TYPES.TRIG, 'TRIG tower type exists');
 assert.ok(TOWER_TYPES.FUSION_DERIVATIVE, 'FUSION_DERIVATIVE tower type exists');
 assert.ok(TOWER_TYPES.FUSION_MONTE_CARLO, 'FUSION_MONTE_CARLO tower type exists');
 
-assert.strictEqual(TOWER_TYPES.LOG.category, 'special');
 assert.strictEqual(TOWER_TYPES.TRIG.category, 'special');
 assert.strictEqual(TOWER_TYPES.FUSION_DERIVATIVE.category, 'fusion');
 assert.strictEqual(TOWER_TYPES.FUSION_MONTE_CARLO.category, 'fusion');
@@ -183,12 +183,12 @@ const dummyGame = {
   canBuildTowerType: Game.prototype.canBuildTowerType
 };
 
-// Initial state: can build LOG
-assert.strictEqual(dummyGame.canBuildTowerType('LOG'), true);
-// Build 1 LOG
-dummyGame.towers.push(new Tower({ id: 't1', x: 0, y: 0, ...TOWER_TYPES.LOG }));
-// Second LOG must be rejected
-assert.strictEqual(dummyGame.canBuildTowerType('LOG'), false, 'Second LOG must be blocked');
+// Initial state: can build TRIG
+assert.strictEqual(dummyGame.canBuildTowerType('TRIG'), true);
+// Build 1 TRIG
+dummyGame.towers.push(new Tower({ id: 't1', x: 0, y: 0, ...TOWER_TYPES.TRIG }));
+// Second TRIG must be rejected
+assert.strictEqual(dummyGame.canBuildTowerType('TRIG'), false, 'Second TRIG must be blocked');
 
 // Initial state: can build FUSION_DERIVATIVE
 assert.strictEqual(dummyGame.canBuildTowerType('FUSION_DERIVATIVE'), true);
@@ -219,8 +219,8 @@ for (let w = 1; w <= 50; w++) {
 assert.strictEqual(foundMobius, true, 'Endless waves spawn Mobius');
 assert.strictEqual(foundMatryoshka, true, 'Endless waves spawn Matryoshka');
 assert.strictEqual(foundGaussian, true, 'Endless waves spawn Gaussian Cycler');
-assert.strictEqual(foundQuad, true, 'Endless waves spawn Determinant Quads');
-console.log('✓ EndlessManager spawn integration passed.');
+assert.ok(LEVELS['5-3'].waves.some(w => w.enemies.some(e => e.determinantQuadId)), 'Level 5-3 spawns Determinant Quads');
+console.log('✓ Monster spawn integration passed.');
 
 console.log('\n========================================');
 console.log('🎉 ALL TESTS PASSED SUCCESSFULLY! 🎉');
