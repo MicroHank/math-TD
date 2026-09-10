@@ -173,7 +173,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   if (btnCloseBuildPanel) {
     btnCloseBuildPanel.addEventListener('click', () => {
-      if (game) game.selectPad(null);
+      if (game) {
+        game.selectPad(null);
+        game.selectBuildPos(null);
+      }
     });
   }
 
@@ -254,7 +257,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 依據目標在 Canvas 上的座標，動態將面板定位在砲塔/基座身旁 (而非固定在右側)
+  // 依據目標在世界座標與攝影機視角，動態將面板定位在砲塔/基座身旁 (而非固定在右側)
   function positionPanelNear(panelElement, targetX, targetY) {
     if (!panelElement || targetX === undefined || targetY === undefined) return;
     const container = canvas.parentElement;
@@ -264,10 +267,13 @@ window.addEventListener('DOMContentLoaded', () => {
     const containerWidth = container.clientWidth || rect.width;
     const containerHeight = container.clientHeight || rect.height;
 
-    const scaleX = rect.width / canvas.width;
-    const scaleY = rect.height / canvas.height;
-    const targetCssX = targetX * scaleX;
-    const targetCssY = targetY * scaleY;
+    // 將世界座標轉換為攝影機螢幕座標
+    const screenPos = game ? game.worldToScreen(targetX, targetY) : { x: targetX, y: targetY };
+
+    const scaleX = rect.width / (game ? game.logicalWidth : 960);
+    const scaleY = rect.height / (game ? game.logicalHeight : 560);
+    const targetCssX = screenPos.x * scaleX;
+    const targetCssY = screenPos.y * scaleY;
 
     const panelWidth = panelElement.offsetWidth || (panelElement.id === 'pad-build-panel' ? 310 : 275);
     const panelHeight = panelElement.offsetHeight || 290;
@@ -291,7 +297,6 @@ window.addEventListener('DOMContentLoaded', () => {
     top = Math.max(10, Math.min(containerHeight - panelHeight - 10, top));
 
     panelElement.style.left = `${Math.round(left)}px`;
-    panelElement.style.top = `${Math.round(top)}px`;
     panelElement.style.right = 'auto';
     panelElement.style.bottom = 'auto';
   }
@@ -1253,7 +1258,34 @@ window.addEventListener('DOMContentLoaded', () => {
           positionPanelNear(panelPadBuild, pad.x, pad.y);
         });
       } else {
-        if (panelPadBuild) panelPadBuild.classList.add('hidden');
+        if (panelPadBuild && !game.selectedBuildPos) panelPadBuild.classList.add('hidden');
+      }
+    },
+
+    onBuildPosSelect: (pos) => {
+      if (pos) {
+        if (panelPadBuild) panelPadBuild.classList.remove('hidden');
+        panelTower.classList.add('hidden');
+        updateBuildOptions(currentGold);
+        applyTutorialTowerHighlight(game.currentLevelId);
+        positionPanelNear(panelPadBuild, pos.x, pos.y);
+        requestAnimationFrame(() => {
+          positionPanelNear(panelPadBuild, pos.x, pos.y);
+        });
+      } else {
+        if (panelPadBuild && !game.selectedPad) panelPadBuild.classList.add('hidden');
+      }
+    },
+
+    onSyncPanels: () => {
+      if (game.selectedTower && !panelTower.classList.contains('hidden')) {
+        positionPanelNear(panelTower, game.selectedTower.x, game.selectedTower.y);
+      }
+      if (game.selectedPad && !panelPadBuild.classList.contains('hidden')) {
+        positionPanelNear(panelPadBuild, game.selectedPad.x, game.selectedPad.y);
+      }
+      if (game.selectedBuildPos && !panelPadBuild.classList.contains('hidden')) {
+        positionPanelNear(panelPadBuild, game.selectedBuildPos.x, game.selectedBuildPos.y);
       }
     },
 
@@ -1555,7 +1587,8 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   if (btnDeselect) {
-    btnDeselect.addEventListener('click', () => {
+    btnDeselect.addEventListener('click', (e) => {
+      e.stopPropagation();
       game.selectTower(null);
     });
   }
@@ -1680,19 +1713,29 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 點擊外部空白處關閉選單 (需求2: 點到旁邊空白時，就將選單關閉)
+  // 防止面板內部點擊觸發向外冒泡
+  if (panelTower) {
+    panelTower.addEventListener('click', (e) => e.stopPropagation());
+  }
+  if (panelPadBuild) {
+    panelPadBuild.addEventListener('click', (e) => e.stopPropagation());
+  }
+
+  // 點擊外部空白處關閉選單 (若點到整個遊戲畫布容器之外，才關閉選單)
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('#game-canvas') &&
-        !e.target.closest('#tower-details-panel') &&
-        !e.target.closest('#pad-build-panel') &&
-        !e.target.closest('.commander-spells-bar') &&
-        !e.target.closest('.modal-content') &&
-        !e.target.closest('.control-btn') &&
-        !e.target.closest('#btn-start-wave')) {
-      if (game) {
-        game.selectTower(null);
-        game.selectPad(null);
-      }
+    if (e.target.closest('.canvas-container') ||
+        e.target.closest('#game-canvas') ||
+        e.target.closest('#tower-details-panel') ||
+        e.target.closest('#pad-build-panel') ||
+        e.target.closest('.commander-spells-bar') ||
+        e.target.closest('.modal-content') ||
+        e.target.closest('.control-btn') ||
+        e.target.closest('#btn-start-wave')) {
+      return;
+    }
+    if (game) {
+      game.selectTower(null);
+      game.selectPad(null);
     }
   });
 
@@ -1779,6 +1822,7 @@ window.addEventListener('DOMContentLoaded', () => {
       game.selectBuildType(null);
       game.selectTower(null);
       game.selectPad(null);
+      game.selectBuildPos(null);
       modalGuide.classList.add('hidden');
       modalStageMap.classList.add('hidden');
       if (modalBossRush) modalBossRush.classList.add('hidden');
@@ -1791,6 +1835,8 @@ window.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', () => {
     if (game && game.selectedPad) {
       positionPanelNear(panelPadBuild, game.selectedPad.x, game.selectedPad.y);
+    } else if (game && game.selectedBuildPos) {
+      positionPanelNear(panelPadBuild, game.selectedBuildPos.x, game.selectedBuildPos.y);
     } else if (game && game.selectedTower) {
       positionPanelNear(panelTower, game.selectedTower.x, game.selectedTower.y);
     }

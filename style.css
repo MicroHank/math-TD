@@ -827,7 +827,13 @@ body {
   height: auto;
   aspect-ratio: 960 / 560;
   display: block;
-  cursor: crosshair;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+#game-canvas:active {
+  cursor: grabbing;
 }
 
 /* 選中防禦塔浮動操作卡片 (動態出現在砲塔旁邊) */

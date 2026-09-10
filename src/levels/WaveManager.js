@@ -89,10 +89,13 @@ export class WaveManager {
     // 3. 路線分配與時間延遲/速度
     const numLanes = this.lanes ? this.lanes.length : 1;
 
-    this.spawnQueue = allEnemies.map(e => {
-      const chosenLane = (isDeterministic || e.lane !== undefined)
-        ? (e.lane !== undefined ? e.lane : 0)
-        : (numLanes > 1 ? Math.floor(Math.random() * numLanes) : 0);
+    this.spawnQueue = allEnemies.map((e, idx) => {
+      let chosenLane = 0;
+      if (e.lane !== undefined) {
+        chosenLane = e.lane % numLanes;
+      } else if (numLanes > 1) {
+        chosenLane = isDeterministic ? (idx % numLanes) : (Math.random() < 0.3 ? (idx % numLanes) : Math.floor(Math.random() * numLanes));
+      }
 
       const baseDelay = e.delay || 0.8;
       const finalDelay = isDeterministic ? baseDelay : +(baseDelay * (0.75 + Math.random() * 0.50)).toFixed(2);
