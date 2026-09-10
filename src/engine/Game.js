@@ -222,9 +222,18 @@ export class Game {
     this.worldHeight = levelData.worldHeight || autoMaxY;
 
     if (this.lanes && this.lanes.length > 0 && this.lanes[0].length > 0) {
+      const pEnd = this.lanes[0][this.lanes[0].length - 1];
       const pStart = this.lanes[0][0];
-      this.camera.x = Math.max(0, Math.min(this.worldWidth - this.camera.width, pStart.x - 150));
-      this.camera.y = Math.max(0, Math.min(this.worldHeight - this.camera.height, pStart.y - 200));
+      // 若核心位於地圖中央區域 (如 World 4 與 World 5)，開局鏡頭聚焦於中央守護核心
+      const isCenterCore = Math.abs(pEnd.x - this.worldWidth / 2) < this.worldWidth * 0.18 &&
+                           Math.abs(pEnd.y - this.worldHeight / 2) < this.worldHeight * 0.18;
+      if (isCenterCore) {
+        this.camera.x = Math.max(0, Math.min(this.worldWidth - this.camera.width, pEnd.x - this.camera.width / 2));
+        this.camera.y = Math.max(0, Math.min(this.worldHeight - this.camera.height, pEnd.y - this.camera.height / 2));
+      } else {
+        this.camera.x = Math.max(0, Math.min(this.worldWidth - this.camera.width, pStart.x - 150));
+        this.camera.y = Math.max(0, Math.min(this.worldHeight - this.camera.height, pStart.y - 200));
+      }
     } else {
       this.camera.x = 0;
       this.camera.y = 0;
