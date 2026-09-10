@@ -34,7 +34,7 @@ export const CHAPTERS = [
 ];
 
 export const LEVELS = {
-    '1-1': {
+  '1-1': {
     id: '1-1',
     chapterId: 'world-1',
     name: '1-1 偶數小徑（雙流迴旋谷）',
@@ -181,7 +181,7 @@ export const LEVELS = {
     ]
   },
 
-    '1-2': {
+  '1-2': {
     id: '1-2',
     chapterId: 'world-1',
     name: '1-2 三元迴廊（迷宮走廊）',
@@ -349,7 +349,7 @@ export const LEVELS = {
     ]
   },
 
-      '1-3': {
+  '1-3': {
     id: '1-3',
     chapterId: 'world-1',
     name: '1-3 質數森林（分岔三角洲）',
@@ -529,13 +529,13 @@ export const LEVELS = {
     ]
   },
 
-      '1-4': {
+  '1-4': {
     id: '1-4',
     chapterId: 'world-1',
     name: '1-4 【大魔王】合數泰坦【360】（平原大要塞）',
     subtitle: '第一章終局：合數泰坦大決戰',
     tip: '👑 16 組沿線三角共鳴群（48處陣地）！泰坦自四路大河推進，砲塔沿江夾擊形成鎖死火網！',
-    nextLevelId: 'world-2',
+    nextLevelId: '2-1',
     initialGold: 1000,
     initialLives: 10,
     worldWidth: 1850,
@@ -736,7 +736,7 @@ export const LEVELS = {
   },
 
   // ================= 第二章：負數深淵 =================
-      '2-1': {
+  '2-1': {
     id: '2-1',
     chapterId: 'world-2',
     name: '2-1 絕對值深淵（雙螺旋暗河）',
@@ -913,7 +913,7 @@ export const LEVELS = {
     ]
   },
 
-      '2-2': {
+  '2-2': {
     id: '2-2',
     chapterId: 'world-2',
     name: '2-2 符號之井（十字裂隙樞紐）',
@@ -1113,7 +1113,7 @@ export const LEVELS = {
     ]
   },
 
-      '2-3': {
+  '2-3': {
     id: '2-3',
     chapterId: 'world-2',
     name: '2-3 公倍數陷阱（多維交錯迴廊）',
@@ -1307,13 +1307,13 @@ export const LEVELS = {
     ]
   },
 
-      '2-4': {
+  '2-4': {
     id: '2-4',
     chapterId: 'world-2',
     name: '2-4 【大魔王】負極奇點皇【-480】（深淵裂谷王座）',
     subtitle: '第二章終局：奇點皇負數大逆轉',
     tip: '👑 18 組沿線三角共鳴群（54處陣地）！奇點皇親衛隊自四條深淵裂谷湧入，沿谷築起金色三角防線！',
-    nextLevelId: 'world-3',
+    nextLevelId: '3-1',
     initialGold: 1450,
     initialLives: 10,
     worldWidth: 2050,
@@ -1537,7 +1537,7 @@ export const LEVELS = {
   },
 
   // ================= 第三章：平方之峰 =================
-        '3-1': {
+  '3-1': {
     id: '3-1',
     chapterId: 'world-3',
     name: '3-1 開方石階（天梯盤旋坡）',
@@ -1688,7 +1688,7 @@ export const LEVELS = {
     ]
   },
 
-        '3-2': {
+  '3-2': {
     id: '3-2',
     chapterId: 'world-3',
     name: '3-2 七曜峰頂（開方共鳴陣）',
@@ -1849,7 +1849,7 @@ export const LEVELS = {
     ]
   },
 
-        '3-3': {
+  '3-3': {
     id: '3-3',
     chapterId: 'world-3',
     name: '3-3 循環與開方迷宮（重力折疊區）',
@@ -2028,13 +2028,13 @@ export const LEVELS = {
     ]
   },
 
-        '3-4': {
+  '3-4': {
     id: '3-4',
     chapterId: 'world-3',
     name: '3-4 【大魔王】開方巨像·泰坦【840】（指數天峰要塞）',
     subtitle: '第三章開方神殿天峰大決戰',
     tip: '👑 18 組天梯沿線三角群（54處陣地）！【山巔神殿核心 (2360, 260)】！泰坦四路沿斷崖之字盤旋登頂，砲塔依山夾道截殺！',
-    nextLevelId: 'world-4',
+    nextLevelId: '4-1',
     initialGold: 1800,
     initialLives: 10,
     worldWidth: 2480,
@@ -2218,7 +2218,7 @@ export const LEVELS = {
   },
 
   // ================= 第四章：質數之城 =================
-        '4-1': {
+  '4-1': {
     id: '4-1',
     chapterId: 'world-4',
     name: '4-1 質數之壁（棋盤街區向心戰）',
@@ -2377,7 +2377,7 @@ export const LEVELS = {
     ]
   },
 
-        '4-2': {
+  '4-2': {
     id: '4-2',
     chapterId: 'world-4',
     name: '4-2 同餘長廊（循環週期陣）',
@@ -2538,7 +2538,7 @@ export const LEVELS = {
     ]
   },
 
-        '4-3': {
+  '4-3': {
     id: '4-3',
     chapterId: 'world-4',
     name: '4-3 雙子質數隘口（疾風突襲）',
@@ -2701,13 +2701,13 @@ export const LEVELS = {
     ]
   },
 
-        '4-4': {
+  '4-4': {
     id: '4-4',
     chapterId: 'world-4',
     name: '4-4 【大魔王】質數要塞聖所：歐拉神話獸【1260】',
     subtitle: '第四章質數之都神話大決戰',
     tip: '👑 19 組大街沿線三角群（57處陣地）！【正中央歐拉聖所核心 (1440, 780)】！基座沿四方長廊延伸至中心，以密集夾道砲火迎擊神話獸！',
-    nextLevelId: 'world-5',
+    nextLevelId: '5-1',
     initialGold: 2300,
     initialLives: 10,
     worldWidth: 2880,
@@ -2882,7 +2882,7 @@ export const LEVELS = {
   },
 
   // ================= 第五章：極限終焉 =================
-        '5-1': {
+  '5-1': {
     id: '5-1',
     chapterId: 'world-5',
     name: '5-1 雙重螺旋銀河（阿基米德旋臂漩渦）',
@@ -3053,7 +3053,7 @@ export const LEVELS = {
     ]
   },
 
-        '5-2': {
+  '5-2': {
     id: '5-2',
     chapterId: 'world-5',
     name: '5-2 拓撲三葉紐結（塞爾特神聖三葉環）',
@@ -3225,7 +3225,7 @@ export const LEVELS = {
     ]
   },
 
-        '5-3': {
+  '5-3': {
     id: '5-3',
     chapterId: 'world-5',
     name: '5-3 希爾伯特分形折疊維度（碎形空間填充迷宮）',
@@ -3407,7 +3407,7 @@ export const LEVELS = {
     ]
   },
 
-        '5-4': {
+  '5-4': {
     id: '5-4',
     chapterId: 'world-5',
     name: '5-4 【全宇宙最終決戰】極限造物魔神【2520】（時空沙漏與星門對撞機）',
@@ -4077,5 +4077,6 @@ export const LEVELS = {
         ]
       }
     ]
-  }};
+  }
+};
 
