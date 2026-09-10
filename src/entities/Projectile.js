@@ -1035,3 +1035,156 @@ export class MonteCarloDiceProjectile {
   }
 }
 
+// 偶數重砲二進制電磁光彈 (Even Binary Projectile)
+export class EvenProjectile {
+  constructor({ x, y, target, damage = 28, speed = 360 }) {
+    this.x = x;
+    this.y = y;
+    this.target = target;
+    this.damage = damage;
+    this.speed = speed;
+    this.radius = 8;
+    this.isDead = false;
+    this.color = '#38bdf8';
+    this.trail = [];
+    this.angle = 0;
+  }
+
+  update(dt, game) {
+    if (this.isDead) return;
+    if (!this.target || this.target.isDead) {
+      this.isDead = true;
+      return;
+    }
+
+    this.angle += dt * 8;
+    this.trail.push({ x: this.x, y: this.y, life: 0.15 });
+    for (let i = this.trail.length - 1; i >= 0; i--) {
+      this.trail[i].life -= dt;
+      if (this.trail[i].life <= 0) this.trail.splice(i, 1);
+    }
+
+    const dx = this.target.x - this.x;
+    const dy = this.target.y - this.y;
+    const dist = Math.hypot(dx, dy);
+    const step = this.speed * dt;
+
+    if (dist <= step || dist < this.radius + this.target.radius) {
+      this.target.takeEvenHit(this.damage, game);
+      this.isDead = true;
+    } else {
+      this.x += (dx / dist) * step;
+      this.y += (dy / dist) * step;
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    this.trail.forEach(pt => {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, this.radius * 0.6, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = Math.max(0, pt.life / 0.15) * 0.4;
+      ctx.fill();
+    });
+
+    ctx.shadowColor = '#0284c7';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#0284c7';
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = '#bae6fd';
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 9px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('2k', this.x, this.y);
+    ctx.restore();
+  }
+}
+
+// 奇數裂解光錐 (Odd Disruption Projectile)
+export class OddProjectile {
+  constructor({ x, y, target, damage = 35, speed = 360 }) {
+    this.x = x;
+    this.y = y;
+    this.target = target;
+    this.damage = damage;
+    this.speed = speed;
+    this.radius = 8;
+    this.isDead = false;
+    this.color = '#f97316';
+    this.trail = [];
+    this.spin = 0;
+  }
+
+  update(dt, game) {
+    if (this.isDead) return;
+    if (!this.target || this.target.isDead) {
+      this.isDead = true;
+      return;
+    }
+
+    this.spin += dt * 10;
+    this.trail.push({ x: this.x, y: this.y, life: 0.15 });
+    for (let i = this.trail.length - 1; i >= 0; i--) {
+      this.trail[i].life -= dt;
+      if (this.trail[i].life <= 0) this.trail.splice(i, 1);
+    }
+
+    const dx = this.target.x - this.x;
+    const dy = this.target.y - this.y;
+    const dist = Math.hypot(dx, dy);
+    const step = this.speed * dt;
+
+    if (dist <= step || dist < this.radius + this.target.radius) {
+      this.target.takeOddHit(this.damage, game);
+      this.isDead = true;
+    } else {
+      this.x += (dx / dist) * step;
+      this.y += (dy / dist) * step;
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    this.trail.forEach(pt => {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, this.radius * 0.6, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = Math.max(0, pt.life / 0.15) * 0.4;
+      ctx.fill();
+    });
+
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.spin);
+
+    ctx.shadowColor = '#ea580c';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.moveTo(0, -this.radius - 2);
+    ctx.lineTo(this.radius + 1, this.radius);
+    ctx.lineTo(-this.radius - 1, this.radius);
+    ctx.closePath();
+    ctx.fillStyle = '#ea580c';
+    ctx.fill();
+    ctx.strokeStyle = '#fed7aa';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 8px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('2k+1', 0, 1);
+    ctx.restore();
+  }
+}
+
+

@@ -335,8 +335,26 @@
             <button class="build-tab-btn" data-build-tab="fusion" id="tab-build-fusion">⚛️複合神塔(0/6)</button>
           </div>
 
-          <!-- 質數組 -->
+          <!-- 質數與基礎重砲組 -->
           <div class="build-options-list active" id="build-list-prime">
+            <button class="build-option-card" data-tower-type="EVEN">
+              <div class="option-icon even-tower">2k</div>
+              <div class="option-info">
+                <div class="option-title">2k 雙偶重砲</div>
+                <div class="option-desc">專打偶數 ｜ 二進制連續除二半衰</div>
+              </div>
+              <div class="option-cost">60 🪙</div>
+            </button>
+
+            <button class="build-option-card" data-tower-type="ODD">
+              <div class="option-icon odd-tower">2k+1</div>
+              <div class="option-info">
+                <div class="option-title">2k+1 奇異裂解塔</div>
+                <div class="option-desc">專打奇數 ｜ 奇偶躍遷 n➔n-1 剝離</div>
+              </div>
+              <div class="option-cost">70 🪙</div>
+            </button>
+
             <button class="build-option-card" data-tower-type="PRIME_2">
               <div class="option-icon prime-2">2</div>
               <div class="option-info">
@@ -708,6 +726,16 @@
             <p>戰場上共有 8 種基礎防禦塔與 4 種進化複合神塔，各司其職克制不同類型的數字怪獸：</p>
             
             <div class="tower-codex-grid">
+              <div class="codex-item" style="border-left-color: #0284c7;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(2,132,199,0.2); color: #38bdf8;">2k</span> 2k 雙偶重砲 (EVEN)</div>
+                <div class="codex-desc">偶數特化基礎重砲！專門鎖定偶數怪物，耐受度耗盡時發動「二進制除二半衰」，配合奇數塔形成流水線連鎖。</div>
+              </div>
+
+              <div class="codex-item" style="border-left-color: #f97316;">
+                <div class="codex-title"><span class="codex-badge" style="background: rgba(249,115,22,0.2); color: #fb923c;">2k+1</span> 2k+1 奇異裂解塔 (ODD)</div>
+                <div class="codex-desc">奇數特化基礎重砲！專門鎖定棘手奇數與質數怪，耐受度耗盡時觸發「奇偶躍遷 $n \to n-1$」，轉化為偶數供偶數砲消滅。</div>
+              </div>
+
               <div class="codex-item" style="border-left-color: #38bdf8;">
                 <div class="codex-title"><span class="codex-badge" style="background: rgba(56,189,248,0.2); color: #38bdf8;">2</span> 2號 雙子砲 (PRIME_2)</div>
                 <div class="codex-desc">偶數剋星！凡尾數為 0, 2, 4, 6, 8 均可被其持續除以 2，直到縮減為 1 擊破。</div>

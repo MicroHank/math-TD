@@ -686,6 +686,137 @@ export class Monster {
     }
   }
 
+  // 受到 2k 雙偶重砲打擊 (Even Parity Hit)
+  takeEvenHit(damage = 28, game) {
+    if (this.isDead) return false;
+
+    if (this.isNegative) {
+      sound.playResist();
+      this.addFloatingText('負數護盾免疫!', '#f43f5e');
+      if (game && game.createSparks) game.createSparks(this.x, this.y, '#f43f5e', 6);
+      return false;
+    }
+
+    const isEven = !this.isRecurring && typeof this.value === 'number' && this.value % 2 === 0;
+
+    if (isEven) {
+      this.hitFlashTimer = 0.22;
+      this.prevStageHp = Math.max(this.prevStageHp, this.stageHp);
+      this.stageHp -= damage;
+
+      if (this.stageHp > 0) {
+        sound.playShoot(2);
+        const remainingHits = Math.ceil(this.stageHp / damage);
+        this.addFloatingText(`-${damage} (剩${remainingHits}下)`, '#38bdf8');
+        if (game && game.createSparks) game.createSparks(this.x, this.y, '#38bdf8', 6);
+        return true;
+      }
+
+      // 耐受值耗盡：發動偶數半衰除二！
+      sound.playDivide();
+      const oldVal = this.value;
+      const newVal = Math.floor(oldVal / 2);
+      this.addFloatingText(`${oldVal} ÷ 2 = ${newVal} (偶數半衰!)`, '#38bdf8');
+      if (game && game.createSparks) game.createSparks(this.x, this.y, '#0284c7', 20);
+
+      this.value = newVal;
+      this.hp = Math.max(0, Math.abs(newVal));
+
+      if (this.value <= 1) {
+        this.onEliminated(2, game);
+      } else {
+        this.maxStageHp = this.calcStageMaxHp(newVal, this.isBoss);
+        this.stageHp = this.maxStageHp;
+        this.prevStageHp = this.stageHp;
+      }
+      return true;
+    } else {
+      // 奇數怪或其他非偶數：受到抗性削減傷害
+      sound.playResist();
+      const reducedDmg = Math.max(1, Math.round(damage * 0.35));
+      this.hitFlashTimer = 0.15;
+      this.stageHp -= reducedDmg;
+      this.addFloatingText(`-${reducedDmg} (奇數抗性)`, '#94a3b8');
+      if (game && game.createSparks) game.createSparks(this.x, this.y, '#94a3b8', 4);
+      if (this.stageHp <= 0) {
+        if (this.value <= 1) {
+          this.onEliminated(null, game);
+        } else {
+          this.maxStageHp = this.calcStageMaxHp(this.value, this.isBoss);
+          this.stageHp = this.maxStageHp;
+          this.prevStageHp = this.stageHp;
+        }
+      }
+      return true;
+    }
+  }
+
+  // 受到 2k+1 奇異裂解塔打擊 (Odd Parity Hit)
+  takeOddHit(damage = 35, game) {
+    if (this.isDead) return false;
+
+    if (this.isNegative) {
+      sound.playResist();
+      this.addFloatingText('負數護盾免疫!', '#f43f5e');
+      if (game && game.createSparks) game.createSparks(this.x, this.y, '#f43f5e', 6);
+      return false;
+    }
+
+    const isOdd = !this.isRecurring && typeof this.value === 'number' && Math.abs(this.value) % 2 !== 0;
+
+    if (isOdd) {
+      this.hitFlashTimer = 0.22;
+      this.prevStageHp = Math.max(this.prevStageHp, this.stageHp);
+      this.stageHp -= damage;
+
+      if (this.stageHp > 0) {
+        sound.playShoot(3);
+        const remainingHits = Math.ceil(this.stageHp / damage);
+        this.addFloatingText(`-${damage} (剩${remainingHits}下)`, '#f97316');
+        if (game && game.createSparks) game.createSparks(this.x, this.y, '#fb923c', 6);
+        return true;
+      }
+
+      // 耐受值耗盡：發動奇偶躍遷 n -> n - 1 剝離！
+      sound.playDivide();
+      const oldVal = this.value;
+      if (oldVal <= 1) {
+        this.addFloatingText('1 ➔ 0 (奇數消滅!)', '#f97316');
+        this.onEliminated(null, game);
+        return true;
+      }
+
+      const newVal = oldVal - 1;
+      this.addFloatingText(`${oldVal} ➔ ${newVal} (奇偶躍遷!)`, '#f97316');
+      if (game && game.createSparks) game.createSparks(this.x, this.y, '#ea580c', 22);
+
+      this.value = newVal;
+      this.hp = Math.max(0, Math.abs(newVal));
+      this.maxStageHp = this.calcStageMaxHp(newVal, this.isBoss);
+      this.stageHp = this.maxStageHp;
+      this.prevStageHp = this.stageHp;
+      return true;
+    } else {
+      // 偶數怪：受到抗性削減傷害
+      sound.playResist();
+      const reducedDmg = Math.max(1, Math.round(damage * 0.35));
+      this.hitFlashTimer = 0.15;
+      this.stageHp -= reducedDmg;
+      this.addFloatingText(`-${reducedDmg} (偶數抗性)`, '#94a3b8');
+      if (game && game.createSparks) game.createSparks(this.x, this.y, '#94a3b8', 4);
+      if (this.stageHp <= 0) {
+        if (this.value <= 1) {
+          this.onEliminated(null, game);
+        } else {
+          this.maxStageHp = this.calcStageMaxHp(this.value, this.isBoss);
+          this.stageHp = this.maxStageHp;
+          this.prevStageHp = this.stageHp;
+        }
+      }
+      return true;
+    }
+  }
+
   // 觸發魔王主動技能
   triggerBossSkill(game) {
     if (this.isDead || !this.isBoss) return;
