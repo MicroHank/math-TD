@@ -13,7 +13,7 @@ export class EndlessManager {
       id: 'endless',
       name: '♾️ 無盡算力試煉 (Endless Mode)',
       difficulty: '難度隨波次無上限提升',
-      gold: 600,
+      gold: 1200,
       description: '面對無窮無盡的數論洪流！考拉茲、康托爾、迴文、梅森與黎曼零點群星來襲！每通關 5 波獲得 +5 顆科研星級！',
       worldWidth: baseLevel.worldWidth || 1920,
       worldHeight: baseLevel.worldHeight || 1080,
@@ -368,7 +368,7 @@ export class EndlessManager {
         id: 'boss_rush_1',
         stageIndex: 1,
         name: '👑 魔王連戰 I：質因數長老之試',
-        gold: 300,
+        gold: 900,
         mapId: '1-2',
         boss: { val: 60, name: '質因數長老 (Lv.1)', skills: ['split_adds'] },
         adds: [12, 18, 24, 30, 36, 48]
@@ -377,7 +377,7 @@ export class EndlessManager {
         id: 'boss_rush_2',
         stageIndex: 2,
         name: '👑 魔王連戰 II：負極奇點王',
-        gold: 350,
+        gold: 1100,
         mapId: '1-3',
         boss: { val: -120, name: '負極奇點王 (Lv.2)', skills: ['polarity_flip', 'split_adds'] },
         adds: [-24, -36, 40, 54, -60]
@@ -386,7 +386,7 @@ export class EndlessManager {
         id: 'boss_rush_3',
         stageIndex: 3,
         name: '👑 魔王連戰 III：考拉茲混沌雙泰坦',
-        gold: 420,
+        gold: 1300,
         mapId: '3-4',
         boss: { val: 496, name: '考拉茲大泰坦 (Lv.3)', skills: ['collatz_surge', 'split_adds'] },
         adds: [27, 41, 47, 71, 97, 121]
@@ -395,7 +395,7 @@ export class EndlessManager {
         id: 'boss_rush_4',
         stageIndex: 4,
         name: '👑 魔王連戰 IV：黎曼零點風暴狂神',
-        gold: 500,
+        gold: 1500,
         mapId: '4-4',
         boss: { val: 225, name: '黎曼風暴暴君 (Lv.4)', skills: ['zeta_storm', 'polarity_flip'] },
         adds: [64, 81, 100, 127, 144, 196]
@@ -404,7 +404,7 @@ export class EndlessManager {
         id: 'boss_rush_5',
         stageIndex: 5,
         name: '👑 魔王連戰 V：歐拉終焉萬數真神',
-        gold: 650,
+        gold: 1800,
         mapId: '5-4',
         boss: { val: 999, name: '歐拉萬象終焉神 (MAX)', skills: ['zeta_storm', 'collatz_surge', 'dimension_rift', 'polarity_flip'] },
         adds: [210, 315, 420, -504, 630, 720]

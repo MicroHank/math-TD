@@ -152,7 +152,7 @@ export const TECH_NODES = {
     reqId: 'ge_1',
     icon: '🔗',
     name: '幾何共鳴擴展',
-    desc: '三角聖環最大成型範圍由 220px 擴大至 260px',
+    desc: '三角聖環最大成型範圍由 380px 擴大至 500px',
   },
   ge_3: {
     id: 'ge_3',
@@ -306,7 +306,7 @@ export class TechTreeManager {
   }
 
   getMaxTriangleDistance() {
-    return this.isUnlocked('ge_2') ? 260 : 220;
+    return this.isUnlocked('ge_2') ? 500 : 380;
   }
 
   getMaxLinkDistance() {

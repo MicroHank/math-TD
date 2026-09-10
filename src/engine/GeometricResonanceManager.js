@@ -80,7 +80,7 @@ export class GeometricResonanceManager {
 
   // 重新計算場上所有塔的幾何拓撲與共鳴關係
   recalculate() {
-    this.maxLinkDistance = techTree.getMaxTriangleDistance ? techTree.getMaxTriangleDistance() : 220;
+    this.maxLinkDistance = techTree.getMaxTriangleDistance ? techTree.getMaxTriangleDistance() : 380;
     const towers = this.game.towers || [];
     const prevTriLen = this.triangles.length;
 
@@ -103,12 +103,13 @@ export class GeometricResonanceManager {
           const t2 = towers[j];
           const t3 = towers[k];
 
-          // 形成三角形要件：三塔間距皆必須在指定範圍內，不能太遠！
+          // 形成三角形要件：三塔間距檢測 (加大判斷範圍至 380px，最長邊允許至 1.35x 約 513px)
           const d12 = Math.hypot(t1.x - t2.x, t1.y - t2.y);
           const d23 = Math.hypot(t2.x - t3.x, t2.y - t3.y);
           const d31 = Math.hypot(t3.x - t1.x, t3.y - t1.y);
 
-          if (d12 > this.maxLinkDistance || d23 > this.maxLinkDistance || d31 > this.maxLinkDistance) {
+          const edges = [d12, d23, d31].sort((a, b) => a - b);
+          if (edges[0] > this.maxLinkDistance || edges[1] > this.maxLinkDistance || edges[2] > this.maxLinkDistance * 1.35) {
             continue; // 距離太遠，無法形成三角形
           }
 
