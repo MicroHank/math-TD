@@ -55,6 +55,14 @@ export class Tower {
     const techDmgMult = techTree.getTowerDamageMultiplier();
     this.baseDamage = Math.round((damage !== undefined ? damage : ((TOWER_TYPES[type] && TOWER_TYPES[type].damage) || 25)) * techDmgMult);
     this.damage = this.baseDamage;
+
+    // 耐久度與異常狀態系統 (怪物攻擊系統)
+    this.maxHp = 100;
+    this.hp = 100;
+    this.isBroken = false;
+    this.freezeTimer = 0;
+    this.slowTimer = 0;
+    this.weakenTimer = 0;
   }
 
   deriveCategory(type) {
@@ -181,6 +189,80 @@ export class Tower {
       return this.upgradeRange();
     }
     return false;
+  }
+
+  // 受到怪物攻擊與耐久度受損
+  takeDamage(amount, game) {
+    if (this.isBroken) return;
+    this.hp = Math.max(0, this.hp - amount);
+    if (sound && sound.playTowerDamage) sound.playTowerDamage();
+    if (game && game.createSparks) game.createSparks(this.x, this.y, '#f87171', 8);
+
+    if (this.hp <= 0) {
+      this.isBroken = true;
+      if (sound && sound.playTowerDestroyed) sound.playTowerDestroyed();
+      if (game && game.createExplosion) game.createExplosion(this.x, this.y, '#ef4444', 24);
+      if (game && game.coinFloats) {
+        game.coinFloats.push(new CoinFloat({ x: this.x, y: this.y - 24, text: '💥 砲塔已損毀！按 [R] 修復', color: '#ef4444' }));
+      }
+      if (game && game.resonanceManager) game.resonanceManager.recalculate();
+    }
+    if (game && game.syncUI) game.syncUI();
+  }
+
+  getRepairCost() {
+    return Math.max(15, Math.round(this.cost * 0.3));
+  }
+
+  repair(game) {
+    if (this.hp >= this.maxHp && !this.isBroken) return false;
+    const cost = this.getRepairCost();
+    if (game.gold < cost) {
+      if (sound && sound.playResist) sound.playResist();
+      return false;
+    }
+    game.gold -= cost;
+    this.hp = this.maxHp;
+    this.isBroken = false;
+    this.freezeTimer = 0;
+    this.slowTimer = 0;
+    this.weakenTimer = 0;
+    if (sound && sound.playTowerRepair) sound.playTowerRepair();
+    if (game && game.createSparks) game.createSparks(this.x, this.y, '#22c55e', 20);
+    if (game && game.coinFloats) {
+      game.coinFloats.push(new CoinFloat({ x: this.x, y: this.y - 20, text: '🔧 砲塔已修復！', color: '#22c55e' }));
+    }
+    if (game && game.resonanceManager) game.resonanceManager.recalculate();
+    game.syncUI();
+    return true;
+  }
+
+  applyFreeze(duration, game) {
+    if (this.isBroken) return;
+    this.freezeTimer = Math.max(this.freezeTimer, duration);
+    if (sound && sound.playTowerFreeze) sound.playTowerFreeze();
+    if (game && game.createSparks) game.createSparks(this.x, this.y, '#38bdf8', 12);
+    if (game && game.coinFloats) {
+      game.coinFloats.push(new CoinFloat({ x: this.x, y: this.y - 20, text: '❄️ 砲塔凍結！', color: '#38bdf8' }));
+    }
+  }
+
+  applySlow(duration, game) {
+    if (this.isBroken) return;
+    this.slowTimer = Math.max(this.slowTimer, duration);
+    if (game && game.createSparks) game.createSparks(this.x, this.y, '#eab308', 10);
+    if (game && game.coinFloats) {
+      game.coinFloats.push(new CoinFloat({ x: this.x, y: this.y - 20, text: '⚡ 攻速干擾 (-50%)！', color: '#eab308' }));
+    }
+  }
+
+  applyWeaken(duration, game) {
+    if (this.isBroken) return;
+    this.weakenTimer = Math.max(this.weakenTimer, duration);
+    if (game && game.createSparks) game.createSparks(this.x, this.y, '#c084fc', 10);
+    if (game && game.coinFloats) {
+      game.coinFloats.push(new CoinFloat({ x: this.x, y: this.y - 20, text: '☠️ 數值腐蝕 (-40%攻擊)!', color: '#c084fc' }));
+    }
   }
 
   get effectiveRange() {
@@ -511,10 +593,22 @@ export class Tower {
   }
 
   update(dt, monsters, game) {
+    // 狀態計時衰減
+    if (this.freezeTimer > 0) this.freezeTimer = Math.max(0, this.freezeTimer - dt);
+    if (this.slowTimer > 0) this.slowTimer = Math.max(0, this.slowTimer - dt);
+    if (this.weakenTimer > 0) this.weakenTimer = Math.max(0, this.weakenTimer - dt);
+
+    // 損毀狀態：停止一切運作與共振
+    if (this.isBroken) return;
+
+    // 凍結狀態：無法轉動與開火
+    if (this.freezeTimer > 0) return;
+
     if (this.cooldown > 0) {
       const overdriveMult = game && game.spellManager && game.spellManager.isOverdriveActive ? 1.618 : 1.0;
       const matrixSpeedMult = this.geometricSpeedBonus ? (1 + this.geometricSpeedBonus) : 1.0;
-      this.cooldown -= dt * overdriveMult * matrixSpeedMult;
+      const slowMult = this.slowTimer > 0 ? 0.5 : 1.0; // 攻速干擾 (-50%)
+      this.cooldown -= dt * overdriveMult * matrixSpeedMult * slowMult;
     }
 
     // 絕對零度力場塔 (Zero Freeze Field)：持續範圍減速光環
@@ -554,10 +648,13 @@ export class Tower {
   }
 
   fire(target, game) {
+    // 腐蝕削弱：攻擊力折損 40% (即 0.6 倍威力)
+    const effectiveDmg = this.weakenTimer > 0 ? Math.max(1, Math.round(this.damage * 0.6)) : this.damage;
+
     if (this.type === 'prime') {
       sound.playShoot(this.factor);
       const isTechCrit = Math.random() < techTree.getPrimeCritChance();
-      const finalDamage = isTechCrit ? Math.round(this.damage * 2) : this.damage;
+      const finalDamage = isTechCrit ? Math.round(effectiveDmg * 2) : effectiveDmg;
       if (isTechCrit) {
         target.addFloatingText('🎯 暴擊!', '#fbbf24');
       }
@@ -602,7 +699,7 @@ export class Tower {
         x: this.x,
         y: this.y,
         target: target,
-        damage: this.damage
+        damage: effectiveDmg
       }));
     } else if (this.type === 'trig') {
       sound.playShoot(2);
@@ -612,7 +709,7 @@ export class Tower {
         y: this.y,
         angle: waveAngle,
         range: this.range,
-        damage: this.damage
+        damage: effectiveDmg
       }));
     } else if (this.type === 'fusion_derivative') {
       sound.playShoot(7);
@@ -620,7 +717,7 @@ export class Tower {
         x: this.x,
         y: this.y,
         target: target,
-        damage: this.damage,
+        damage: effectiveDmg,
         speed: 400
       }));
     } else if (this.type === 'fusion_monte_carlo') {
@@ -629,7 +726,7 @@ export class Tower {
         x: this.x,
         y: this.y,
         target: target,
-        damage: this.damage,
+        damage: effectiveDmg,
         speed: 350
       }));
     } else if (this.type === 'fusion_6') {
@@ -641,7 +738,7 @@ export class Tower {
         y: this.y,
         target: target,
         factors: [2, 3],
-        damage: this.damage,
+        damage: effectiveDmg,
         speed: 380,
         isGoldBonus: false
       }));
@@ -654,7 +751,7 @@ export class Tower {
         y: this.y,
         target: target,
         factors: [3, 5],
-        damage: this.damage,
+        damage: effectiveDmg,
         speed: 380,
         isGoldBonus: true
       }));
@@ -669,10 +766,10 @@ export class Tower {
       }));
       if (target.isNegative) {
         target.takeAbsolutePurify(game);
-        target.takeSqrtHit(this.damage, game);
+        target.takeSqrtHit(effectiveDmg, game);
         target.addFloatingText('🌀 虛數重力開方!', '#ec4899');
       } else {
-        target.takeSqrtHit(Math.round(this.damage * 1.25), game);
+        target.takeSqrtHit(Math.round(effectiveDmg * 1.25), game);
         target.applySlow(0.4, 1.8);
       }
     } else if (this.type === 'fusion_factorial') {
@@ -684,7 +781,7 @@ export class Tower {
         targetX: target.x,
         targetY: target.y,
         range: this.range,
-        damage: this.damage
+        damage: effectiveDmg
       }));
     }
   }
@@ -947,6 +1044,110 @@ export class Tower {
       ctx.setLineDash([6, 6]);
       ctx.stroke();
       ctx.setLineDash([]);
+    }
+
+    // 損毀狀態遮罩與標誌
+    if (this.isBroken) {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, isFusion ? 25 : 23, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.72)';
+      ctx.fill();
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2.2;
+      ctx.shadowColor = '#ef4444';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+      ctx.font = 'bold 15px "Segoe UI Emoji", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('💥', this.x, this.y);
+    }
+
+    // 絕對零度封鎖冰晶
+    if (this.freezeTimer > 0) {
+      ctx.save();
+      ctx.beginPath();
+      const r = isFusion ? 28 : 25;
+      for (let i = 0; i < 6; i++) {
+        const a = (i * Math.PI) / 3;
+        const px = this.x + Math.cos(a) * r;
+        const py = this.y + Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
+      ctx.fill();
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#38bdf8';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+      ctx.font = '12px "Segoe UI Emoji", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('❄️', this.x + 14, this.y - 14);
+      ctx.restore();
+    }
+
+    // 攻速干擾黃色電弧
+    if (this.slowTimer > 0) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, isFusion ? 27 : 24, 0, Math.PI * 2);
+      ctx.strokeStyle = '#eab308';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.shadowColor = '#eab308';
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.shadowBlur = 0;
+      ctx.font = '12px "Segoe UI Emoji", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('⚡', this.x - 14, this.y - 14);
+      ctx.restore();
+    }
+
+    // 數值腐蝕紫色光環
+    if (this.weakenTimer > 0) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, isFusion ? 26 : 23, 0, Math.PI * 2);
+      ctx.strokeStyle = '#c084fc';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#c084fc';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.font = '11px "Segoe UI Emoji", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('☠️', this.x, this.y - (isFusion ? 25 : 22));
+      ctx.restore();
+    }
+
+    // 砲塔耐久度血條 (當受到傷害或損毀時顯示)
+    if (this.hp < this.maxHp || this.isBroken) {
+      const barW = 32;
+      const barH = 4;
+      const barX = this.x - barW / 2;
+      const barY = this.y - (isFusion ? 33 : 29);
+      const hpRatio = Math.max(0, this.hp / this.maxHp);
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.fillRect(barX, barY, barW, barH);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(barX, barY, barW, barH);
+
+      ctx.fillStyle = this.isBroken ? '#ef4444' : (hpRatio > 0.5 ? '#22c55e' : (hpRatio > 0.25 ? '#eab308' : '#ef4444'));
+      ctx.fillRect(barX, barY, barW * hpRatio, barH);
     }
 
     ctx.restore();

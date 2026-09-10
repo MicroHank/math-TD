@@ -940,5 +940,94 @@ export class MonteCarloDiceProjectile {
   }
 }
 
+// 怪物反擊與干擾砲彈 (Monster Tower Projectile)
+export class MonsterProjectile {
+  constructor({ x, y, targetTower, damage = 20, type = 'siege', speed = 230, label = '💥' }) {
+    this.x = x;
+    this.y = y;
+    this.targetTower = targetTower;
+    this.damage = damage;
+    this.type = type; // 'siege' (直傷), 'freeze' (凍結), 'slow' (攻速減半), 'weaken' (攻擊力削弱)
+    this.speed = speed;
+    this.radius = 8;
+    this.label = label;
+    this.isDead = false;
+    this.trail = [];
 
+    const typeConfig = {
+      siege: { color: '#ef4444', glow: '#f87171', symbol: '💥' },
+      freeze: { color: '#38bdf8', glow: '#0284c7', symbol: '❄️' },
+      slow: { color: '#eab308', glow: '#ca8a04', symbol: '⚡' },
+      weaken: { color: '#c084fc', glow: '#9333ea', symbol: '☠️' }
+    };
+    const conf = typeConfig[type] || typeConfig.siege;
+    this.color = conf.color;
+    this.glow = conf.glow;
+    this.symbol = label || conf.symbol;
+  }
 
+  update(dt, game) {
+    if (this.isDead) return;
+    if (!this.targetTower || this.targetTower.isBroken) {
+      this.isDead = true;
+      return;
+    }
+
+    this.trail.push({ x: this.x, y: this.y, life: 0.12 });
+    for (let i = this.trail.length - 1; i >= 0; i--) {
+      this.trail[i].life -= dt;
+      if (this.trail[i].life <= 0) this.trail.splice(i, 1);
+    }
+
+    const dx = this.targetTower.x - this.x;
+    const dy = this.targetTower.y - this.y;
+    const dist = Math.hypot(dx, dy);
+    const step = this.speed * dt;
+
+    if (dist <= step || dist < this.radius + 18) {
+      // 命中砲塔！
+      if (this.type === 'siege') {
+        this.targetTower.takeDamage(this.damage, game);
+      } else if (this.type === 'freeze') {
+        this.targetTower.applyFreeze(4.5, game);
+        this.targetTower.takeDamage(Math.round(this.damage * 0.4), game);
+      } else if (this.type === 'slow') {
+        this.targetTower.applySlow(5.0, game);
+        this.targetTower.takeDamage(Math.round(this.damage * 0.4), game);
+      } else if (this.type === 'weaken') {
+        this.targetTower.applyWeaken(6.0, game);
+        this.targetTower.takeDamage(Math.round(this.damage * 0.4), game);
+      }
+      this.isDead = true;
+    } else {
+      this.x += (dx / dist) * step;
+      this.y += (dy / dist) * step;
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    this.trail.forEach(pt => {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, this.radius * 0.5, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = Math.max(0, pt.life / 0.12) * 0.5;
+      ctx.fill();
+    });
+
+    ctx.shadowColor = this.glow;
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.font = '10px "Segoe UI Emoji", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.symbol, this.x, this.y);
+
+    ctx.restore();
+  }
+}

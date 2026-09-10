@@ -1,5 +1,6 @@
 // Monster Entity for Math Tower Defense
 import { sound } from '../engine/Audio.js';
+import { MonsterProjectile } from './Projectile.js';
 
 export class Monster {
   constructor({
@@ -183,6 +184,9 @@ export class Monster {
     this.isRaging = false;          // 雙子狂暴狀態
     this.hasPerfectShield = !!isPerfect; // 完全數聖靈護盾 (僅在第4章及無盡後期由關卡指派，需 ±1 破盾)
     this.isProcessingResonance = false; // 防重入遞迴保護鎖
+
+    // 怪物反擊與干擾砲塔計時器
+    this.towerAttackCooldown = 1.5 + Math.random() * 2.5;
   }
 
   hasAffix(name) {
@@ -844,6 +848,8 @@ export class Monster {
           const d = Math.hypot(t.x - this.x, t.y - this.y);
           if (d <= 260) {
             t.cooldown = Math.max(t.cooldown, 2.5);
+            if (t.applyFreeze) t.applyFreeze(3.5, game);
+            if (t.takeDamage) t.takeDamage(15, game);
           }
         }
       }
@@ -855,6 +861,15 @@ export class Monster {
       sound.playDamage();
       this.addFloatingText('🔥 領域技：考拉茲混沌浪潮！', '#ea580c');
       if (game.createExplosion) game.createExplosion(this.x, this.y, '#ea580c', 35);
+      if (game.towers) {
+        for (const t of game.towers) {
+          const d = Math.hypot(t.x - this.x, t.y - this.y);
+          if (d <= 240) {
+            if (t.takeDamage) t.takeDamage(20, game);
+            if (t.applyWeaken) t.applyWeaken(4.0, game);
+          }
+        }
+      }
       if (game.monsters) {
         for (const m of game.monsters) {
           if (m !== this && !m.isBoss && !m.isDead && typeof m.value === 'number') {
@@ -879,6 +894,15 @@ export class Monster {
       sound.playPurify();
       this.addFloatingText('🌀 領域技：維度折疊躍遷！', '#06b6d4');
       if (game.createExplosion) game.createExplosion(this.x, this.y, '#06b6d4', 35);
+      if (game.towers) {
+        for (const t of game.towers) {
+          const d = Math.hypot(t.x - this.x, t.y - this.y);
+          if (d <= 240) {
+            if (t.applySlow) t.applySlow(4.0, game);
+            if (t.takeDamage) t.takeDamage(10, game);
+          }
+        }
+      }
       if (game.monsters) {
         for (const m of game.monsters) {
           if (!m.isDead) {
@@ -905,6 +929,16 @@ export class Monster {
       sound.playResist();
       this.addFloatingText('⚡ 領域技：極性反轉！', '#c084fc');
       if (game.createExplosion) game.createExplosion(this.x, this.y, '#c084fc', 30);
+
+      if (game.towers) {
+        for (const t of game.towers) {
+          const d = Math.hypot(t.x - this.x, t.y - this.y);
+          if (d <= 250) {
+            if (t.applyWeaken) t.applyWeaken(5.0, game);
+            if (t.takeDamage) t.takeDamage(15, game);
+          }
+        }
+      }
 
       for (const m of game.monsters) {
         if (m !== this && !m.isBoss && !m.isDead && !m.isNegative) {
@@ -1005,6 +1039,73 @@ export class Monster {
       if (this.bossSkillTimer <= 0) {
         this.triggerBossSkill(game);
         this.bossSkillTimer = 7.0 + Math.random() * 2;
+      }
+    }
+
+    // 怪物向砲塔發動反擊與干擾攻擊 (降低攻擊力、降低攻速、凍結、損毀)
+    if (!this.isDead && game && game.towers && game.towers.length > 0) {
+      this.towerAttackCooldown -= dt;
+      if (this.towerAttackCooldown <= 0) {
+        this.towerAttackCooldown = this.isBoss ? (3.2 + Math.random() * 2.0) : (4.5 + Math.random() * 3.0);
+
+        let canAttack = this.isBoss || this.hasAffix('siege') || this.hasAffix('frost') || this.hasAffix('emp') || this.hasAffix('corruptor');
+        let attackType = 'siege';
+        let attackDamage = 18;
+        let attackLabel = '💥';
+
+        if (this.isBoss) {
+          canAttack = true;
+          attackDamage = 25;
+          const roll = Math.random();
+          if (roll < 0.25) { attackType = 'freeze'; attackLabel = '❄️'; attackDamage = 12; }
+          else if (roll < 0.50) { attackType = 'slow'; attackLabel = '⚡'; attackDamage = 12; }
+          else if (roll < 0.75) { attackType = 'weaken'; attackLabel = '☠️'; attackDamage = 12; }
+          else { attackType = 'siege'; attackLabel = '💥'; attackDamage = 28; }
+        } else if (this.hasAffix('frost')) {
+          attackType = 'freeze'; attackLabel = '❄️'; attackDamage = 10;
+        } else if (this.hasAffix('emp')) {
+          attackType = 'slow'; attackLabel = '⚡'; attackDamage = 10;
+        } else if (this.hasAffix('corruptor')) {
+          attackType = 'weaken'; attackLabel = '☠️'; attackDamage = 10;
+        } else if (this.hasAffix('siege')) {
+          attackType = 'siege'; attackLabel = '💥'; attackDamage = 22;
+        } else if (this.isNegative) {
+          canAttack = true;
+          attackType = 'weaken'; attackLabel = '☠️'; attackDamage = 12;
+        } else if (this.isRecurring) {
+          canAttack = true;
+          attackType = 'slow'; attackLabel = '⚡'; attackDamage = 10;
+        } else if (typeof this.value === 'number' && Math.abs(this.value) >= 20) {
+          canAttack = true;
+          attackType = 'siege'; attackLabel = '💥'; attackDamage = 16;
+        }
+
+        if (canAttack) {
+          const attackRange = this.isBoss ? 260 : 200;
+          let nearestTower = null;
+          let minDist = attackRange;
+          for (const t of game.towers) {
+            if (t.isBroken) continue; // 優先攻擊運作中的砲塔
+            const d = Math.hypot(t.x - this.x, t.y - this.y);
+            if (d <= minDist) {
+              minDist = d;
+              nearestTower = t;
+            }
+          }
+
+          if (nearestTower && game.addMonsterProjectile) {
+            game.addMonsterProjectile(new MonsterProjectile({
+              x: this.x,
+              y: this.y,
+              targetTower: nearestTower,
+              damage: attackDamage,
+              type: attackType,
+              speed: 230,
+              label: attackLabel
+            }));
+            if (sound && sound.playShoot) sound.playShoot(2);
+          }
+        }
       }
     }
 

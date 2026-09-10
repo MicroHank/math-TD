@@ -149,6 +149,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const costUpgradeSpeed = document.getElementById('cost-upgrade-speed');
 
   const btnFuseTower = document.getElementById('btn-fuse-tower');
+  const btnRepairTower = document.getElementById('btn-repair-tower');
   const btnSell = document.getElementById('btn-sell-tower');
   const btnDeselect = document.getElementById('btn-deselect-tower');
 
@@ -1475,6 +1476,18 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // 5. 變賣按鈕 (含快捷鍵提示 [S])
     btnSell.textContent = `💰 變賣 (+${tower.sellValue}🪙) [S]`;
+
+    // 6. 損毀/受損修復按鈕 (快捷鍵 [R])
+    if (btnRepairTower) {
+      if (tower.isBroken || tower.hp < tower.maxHp) {
+        btnRepairTower.classList.remove('hidden');
+        const rCost = tower.getRepairCost ? tower.getRepairCost() : 20;
+        btnRepairTower.textContent = `🔧 修復 (${rCost}🪙) [R]`;
+        btnRepairTower.disabled = goldAmount < rCost;
+      } else {
+        btnRepairTower.classList.add('hidden');
+      }
+    }
   }
 
   // 綁定上方空基座建造面板中的塔選項點擊
@@ -1669,6 +1682,12 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (btnRepairTower) {
+    btnRepairTower.addEventListener('click', () => {
+      if (game) game.repairSelectedTower();
+    });
+  }
+
   if (btnDeselect) {
     btnDeselect.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1859,8 +1878,30 @@ window.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       game.startNextWave();
     } else if (['1', '2', '3', '4', '5', '6'].includes(e.key)) {
-      // 需求2: 建造砲塔時，點到各種標籤選單，各砲塔的快捷鍵都是從 1 開始 (1, 2, 3, 4, 5, 6)
-      if (game && (game.selectedPad || game.selectedBuildPos)) {
+      // 1. 若當前選中了砲塔，快捷鍵 1, 2, 3 分別對應三向升級：1-攻擊距離, 2-攻擊威力, 3-攻擊速度
+      if (game && game.selectedTower && ['1', '2', '3'].includes(e.key)) {
+        e.preventDefault();
+        if (e.key === '1') {
+          if (btnUpgradeRange && !btnUpgradeRange.disabled) {
+            btnUpgradeRange.click();
+          } else {
+            sound.playResist();
+          }
+        } else if (e.key === '2') {
+          if (btnUpgradeDamage && !btnUpgradeDamage.disabled) {
+            btnUpgradeDamage.click();
+          } else {
+            sound.playResist();
+          }
+        } else if (e.key === '3') {
+          if (btnUpgradeSpeed && !btnUpgradeSpeed.disabled) {
+            btnUpgradeSpeed.click();
+          } else {
+            sound.playResist();
+          }
+        }
+      } else if (game && (game.selectedPad || game.selectedBuildPos)) {
+        // 2. 建造砲塔時，點到各種標籤選單，各砲塔的快捷鍵都是從 1 開始 (1, 2, 3, 4, 5, 6)
         const num = parseInt(e.key, 10);
         const activeList = document.querySelector('.build-options-list:not(.hidden)');
         if (activeList) {
@@ -1884,8 +1925,18 @@ window.addEventListener('DOMContentLoaded', () => {
         const nextIdx = (tabs.indexOf(currentBuildTab) + 1) % tabs.length;
         switchBuildTab(tabs[nextIdx]);
       }
+    } else if (e.key === 'r' || e.key === 'R') {
+      // 快捷鍵 R: 修復當前選取的受損或損毀砲塔
+      if (game && game.selectedTower) {
+        e.preventDefault();
+        if (btnRepairTower && !btnRepairTower.disabled) {
+          btnRepairTower.click();
+        } else {
+          sound.playResist();
+        }
+      }
     } else if (e.key === 's' || e.key === 'S') {
-      // 需求4: 快速鍵：s 賣掉砲塔
+      // 快速鍵：s 賣掉砲塔
       if (game.selectedTower) {
         e.preventDefault();
         game.sellSelectedTower();

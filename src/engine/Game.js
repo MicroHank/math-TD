@@ -70,6 +70,7 @@ export class Game {
     this.monsters = [];
     this.towers = [];
     this.projectiles = [];
+    this.monsterProjectiles = [];
     this.beams = [];
     this.particles = [];
     this.coinFloats = [];
@@ -259,6 +260,7 @@ export class Game {
     this.monsters = [];
     this.towers = [];
     this.projectiles = [];
+    this.monsterProjectiles = [];
     this.beams = [];
     this.particles = [];
     this.coinFloats = [];
@@ -823,6 +825,23 @@ export class Game {
     this.projectiles.push(proj);
   }
 
+  addMonsterProjectile(proj) {
+    this.monsterProjectiles.push(proj);
+  }
+
+  repairSelectedTower() {
+    if (!this.selectedTower) return false;
+    if (this.selectedTower.repair) {
+      const ok = this.selectedTower.repair(this);
+      if (ok) {
+        this.syncUI();
+        if (this.ui.onTowerSelect) this.ui.onTowerSelect(this.selectedTower);
+      }
+      return ok;
+    }
+    return false;
+  }
+
   addBeam(beam) {
     this.beams.push(beam);
   }
@@ -1073,6 +1092,13 @@ export class Game {
       const p = this.projectiles[i];
       p.update(dt, this);
       if (p.isDead) this.projectiles.splice(i, 1);
+    }
+
+    // 更新怪物反擊砲彈
+    for (let i = this.monsterProjectiles.length - 1; i >= 0; i--) {
+      const mp = this.monsterProjectiles[i];
+      mp.update(dt, this);
+      if (mp.isDead) this.monsterProjectiles.splice(i, 1);
     }
 
     for (let i = this.beams.length - 1; i >= 0; i--) {
@@ -1544,6 +1570,11 @@ export class Game {
     // 繪製子彈
     for (const p of this.projectiles) {
       p.draw(this.ctx);
+    }
+
+    // 繪製怪物砲彈
+    for (const mp of this.monsterProjectiles) {
+      mp.draw(this.ctx);
     }
 
     // 繪製粒子特效
