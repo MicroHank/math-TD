@@ -12,8 +12,6 @@ import {
   FourierTrigWave,
   DerivativeBladeProjectile,
   MonteCarloDiceProjectile,
-  EvenProjectile,
-  OddProjectile,
   CoinFloat
 } from './Projectile.js';
 import { sound } from '../engine/Audio.js';
@@ -75,7 +73,7 @@ export class Tower {
   }
 
   isPrimeTower() {
-    return this.category === 'prime' || ['prime', 'even', 'odd'].includes(this.type);
+    return this.category === 'prime' || this.type === 'prime';
   }
 
   // 預覽與計算下一級數值
@@ -252,54 +250,6 @@ export class Tower {
         }
       }
       return bestSquare || fallbackFirst;
-    }
-
-    if (this.type === 'even') {
-      // 2k 雙偶重砲：優先鎖定射程內偶數怪（value % 2 === 0）
-      let bestEven = null;
-      let maxEvenDist = -1;
-      let fallbackFirst = null;
-      let maxAnyDist = -1;
-      for (const m of monsters) {
-        if (m.isDead || m.isNegative) continue;
-        const dist = Math.hypot(m.x - this.x, m.y - this.y);
-        if (dist <= currentRange) {
-          const isEven = !m.isRecurring && typeof m.value === 'number' && m.value % 2 === 0;
-          if (isEven && m.progress > maxEvenDist) {
-            maxEvenDist = m.progress;
-            bestEven = m;
-          }
-          if (m.progress > maxAnyDist) {
-            maxAnyDist = m.progress;
-            fallbackFirst = m;
-          }
-        }
-      }
-      return bestEven || fallbackFirst;
-    }
-
-    if (this.type === 'odd') {
-      // 2k+1 奇異裂解塔：優先鎖定射程內奇數怪（Math.abs(value) % 2 !== 0）
-      let bestOdd = null;
-      let maxOddDist = -1;
-      let fallbackFirst = null;
-      let maxAnyDist = -1;
-      for (const m of monsters) {
-        if (m.isDead || m.isNegative) continue;
-        const dist = Math.hypot(m.x - this.x, m.y - this.y);
-        if (dist <= currentRange) {
-          const isOdd = !m.isRecurring && typeof m.value === 'number' && Math.abs(m.value) % 2 !== 0;
-          if (isOdd && m.progress > maxOddDist) {
-            maxOddDist = m.progress;
-            bestOdd = m;
-          }
-          if (m.progress > maxAnyDist) {
-            maxAnyDist = m.progress;
-            fallbackFirst = m;
-          }
-        }
-      }
-      return bestOdd || fallbackFirst;
     }
 
     if (this.type === 'prime') {
@@ -506,14 +456,14 @@ export class Tower {
   // 取得當前砲塔可進化的複合神塔選項
   getAvailableFusions(game) {
     const fusions = [];
-    if ((this.type === 'prime' && (this.factor === 2 || this.factor === 3)) || this.type === 'even') {
+    if (this.type === 'prime' && (this.factor === 2 || this.factor === 3)) {
       fusions.push({
         key: 'FUSION_6',
         targetType: TOWER_TYPES.FUSION_6,
         cost: Math.max(50, TOWER_TYPES.FUSION_6.cost - this.totalInvested)
       });
     }
-    if ((this.type === 'prime' && (this.factor === 3 || this.factor === 5)) || this.type === 'odd') {
+    if (this.type === 'prime' && (this.factor === 3 || this.factor === 5)) {
       fusions.push({
         key: 'FUSION_15',
         targetType: TOWER_TYPES.FUSION_15,
@@ -629,25 +579,7 @@ export class Tower {
   }
 
   fire(target, game) {
-    if (this.type === 'even') {
-      sound.playShoot(2);
-      game.addProjectile(new EvenProjectile({
-        x: this.x,
-        y: this.y,
-        target: target,
-        damage: this.damage,
-        speed: 380
-      }));
-    } else if (this.type === 'odd') {
-      sound.playShoot(3);
-      game.addProjectile(new OddProjectile({
-        x: this.x,
-        y: this.y,
-        target: target,
-        damage: this.damage,
-        speed: 380
-      }));
-    } else if (this.type === 'prime') {
+    if (this.type === 'prime') {
       sound.playShoot(this.factor);
       const isTechCrit = Math.random() < techTree.getPrimeCritChance();
       const finalDamage = isTechCrit ? Math.round(this.damage * 2) : this.damage;
@@ -822,53 +754,7 @@ export class Tower {
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
 
-    if (this.type === 'even') {
-      // 2k 雙偶重砲：雙軌電磁環與深藍光晶
-      ctx.fillStyle = '#0284c7';
-      ctx.fillRect(8, -5, 14, 10);
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillRect(10, -2, 10, 4);
-
-      ctx.beginPath();
-      ctx.arc(0, 0, 14, 0, Math.PI * 2);
-      ctx.fillStyle = '#082f49';
-      ctx.fill();
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 2.2;
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(0, 0, 8, 0, Math.PI * 2);
-      ctx.strokeStyle = '#7dd3fc';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    } else if (this.type === 'odd') {
-      // 2k+1 奇異裂解塔：三稜橙金聚能晶體
-      ctx.fillStyle = '#ea580c';
-      ctx.beginPath();
-      ctx.moveTo(18, 0);
-      ctx.lineTo(6, -6);
-      ctx.lineTo(6, 6);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(0, 0, 14, 0, Math.PI * 2);
-      ctx.fillStyle = '#431407';
-      ctx.fill();
-      ctx.strokeStyle = '#f97316';
-      ctx.lineWidth = 2.2;
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(0, -6);
-      ctx.lineTo(6, 4);
-      ctx.lineTo(-6, 4);
-      ctx.closePath();
-      ctx.strokeStyle = '#fdba74';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    } else if (this.type === 'prime') {
+    if (this.type === 'prime') {
       ctx.fillStyle = this.color;
       ctx.fillRect(8, -4, 14, 8);
 
@@ -1120,32 +1006,6 @@ export class Tower {
 
 // 塔型號工廠配置
 export const TOWER_TYPES = {
-  EVEN: {
-    type: 'even',
-    factor: 2,
-    category: 'prime',
-    name: '2k 雙偶重砲',
-    subtitle: '專打偶數 ｜ 二進制連續除二半衰',
-    cost: 60,
-    range: 150,
-    fireRate: 1.6,
-    damage: 28,
-    color: '#0284c7',
-    label: '2k'
-  },
-  ODD: {
-    type: 'odd',
-    factor: null,
-    category: 'prime',
-    name: '2k+1 奇異裂解塔',
-    subtitle: '專打奇數 ｜ 奇偶躍遷 n ➔ n-1 剝離',
-    cost: 70,
-    range: 160,
-    fireRate: 1.2,
-    damage: 35,
-    color: '#f97316',
-    label: '2k+1'
-  },
   PRIME_2: {
     type: 'prime',
     factor: 2,

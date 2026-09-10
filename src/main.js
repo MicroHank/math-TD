@@ -765,38 +765,7 @@ window.addEventListener('DOMContentLoaded', () => {
     ctx.save();
     ctx.translate(cx, cy);
 
-    if (type === 'EVEN') {
-      // 2k 雙偶重砲：雙軌旋轉電磁加農
-      ctx.rotate(t * 1.4);
-      ctx.fillStyle = color;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 14;
-      ctx.fillRect(-8, -42, 16, 28);
-      ctx.fillRect(-8, 14, 16, 28);
-      ctx.beginPath();
-      ctx.arc(0, 0, 24, 0, Math.PI * 2);
-      ctx.fillStyle = '#082f49';
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = '#38bdf8';
-      ctx.stroke();
-    } else if (type === 'ODD') {
-      // 2k+1 奇異裂解塔：旋轉三稜聚能晶體
-      ctx.rotate(t * 1.3);
-      ctx.fillStyle = color;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 16;
-      ctx.beginPath();
-      ctx.moveTo(0, -40);
-      ctx.lineTo(34, 20);
-      ctx.lineTo(-34, 20);
-      ctx.closePath();
-      ctx.strokeStyle = '#fed7aa';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(249, 115, 22, 0.35)';
-      ctx.fill();
-    } else if (type === 'PRIME_2') {
+    if (type === 'PRIME_2') {
       // 雙子砲：雙重旋轉砲管
       ctx.rotate(t * 1.5);
       ctx.fillStyle = color;

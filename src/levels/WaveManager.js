@@ -144,7 +144,21 @@ export class WaveManager {
           bossSkills: enemyConfig.bossSkills || [],
           isRecurring: !!enemyConfig.isRecurring,
           recurringType: enemyConfig.recurringType || null,
-          hpMultiplier: enemyConfig.hpMultiplier || 1.0
+          hpMultiplier: enemyConfig.hpMultiplier || 1.0,
+          isMobius: !!enemyConfig.isMobius,
+          isMatryoshka: !!enemyConfig.isMatryoshka,
+          isGaussianCycler: !!enemyConfig.isGaussianCycler,
+          determinantQuadId: enemyConfig.determinantQuadId,
+          detIndex: enemyConfig.detIndex,
+          isCollatz: !!enemyConfig.isCollatz,
+          isCantor: !!enemyConfig.isCantor,
+          cantorDepth: enemyConfig.cantorDepth || 0,
+          isPalindromic: !!enemyConfig.isPalindromic,
+          isMersenne: !!enemyConfig.isMersenne,
+          isRiemann: !!enemyConfig.isRiemann,
+          affixes: enemyConfig.affixes || [],
+          congruenceMod: enemyConfig.congruenceMod,
+          congruenceRem: enemyConfig.congruenceRem
         });
 
         // 孿生質數雙子自動配對機制

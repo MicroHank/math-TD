@@ -2683,7 +2683,7 @@ export const LEVELS = {
             isBoss: true,
             bossName: '極限造物魔神【2520】',
             speed: 20,
-            bossSkills: ['shield_regen', 'split_adds', 'multiply_aura']
+            bossSkills: ['zeta_storm', 'collatz_surge', 'dimension_rift', 'multiply_aura', 'split_adds']
           }
         ]
       }

@@ -512,6 +512,30 @@ export class Game {
     this.createSparks(clone.x, clone.y, '#fbbf24', 10);
   }
 
+  spawnCantorSubSwarm(parentMonster) {
+    const subVal = Math.max(2, Math.floor(Math.abs(parentMonster.originalValue || parentMonster.value) / 3));
+    const nextDepth = (parentMonster.cantorDepth || 0) + 1;
+    for (let i = 0; i < 2; i++) {
+      const offset = (i === 0 ? -12 : 12);
+      const dust = new (parentMonster.constructor)({
+        id: `m_cantor_${Date.now()}_${i}_${Math.random()}`,
+        value: subVal,
+        waypoints: parentMonster.waypoints,
+        speed: parentMonster.baseSpeed * 1.35,
+        isCantor: true,
+        cantorDepth: nextDepth,
+        hpMultiplier: (parentMonster.hpMultiplier || 1.0) * 0.75
+      });
+      dust.x = parentMonster.x + offset;
+      dust.y = parentMonster.y + offset;
+      dust.currentWaypointIndex = parentMonster.currentWaypointIndex;
+      dust.progress = Math.max(0, parentMonster.progress + (i === 0 ? -8 : 8));
+      dust.addFloatingText('🪓 康托爾三分塵埃!', '#facc15');
+      this.monsters.push(dust);
+      this.createSparks(dust.x, dust.y, '#facc15', 10);
+    }
+  }
+
   addProjectile(proj) {
     this.projectiles.push(proj);
   }
