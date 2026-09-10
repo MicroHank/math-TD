@@ -111,6 +111,20 @@ export class Game {
     this.camera.y = Math.max(0, Math.min(maxY, this.camera.y));
   }
 
+  getCoreEndPoints() {
+    const endPoints = [];
+    if (this.lanes) {
+      for (const lane of this.lanes) {
+        if (!lane || lane.length === 0) continue;
+        const pt = lane[lane.length - 1];
+        if (!endPoints.some(ep => Math.hypot(ep.x - pt.x, ep.y - pt.y) < 25)) {
+          endPoints.push(pt);
+        }
+      }
+    }
+    return endPoints;
+  }
+
   screenToWorld(screenX, screenY) {
     return {
       x: screenX + this.camera.x,
@@ -222,8 +236,9 @@ export class Game {
     this.worldWidth = levelData.worldWidth || autoMaxX;
     this.worldHeight = levelData.worldHeight || autoMaxY;
 
-    if (this.lanes && this.lanes.length > 0 && this.lanes[0].length > 0) {
-      const pEnd = this.lanes[0][this.lanes[0].length - 1];
+    const coreEndPoints = this.getCoreEndPoints();
+    if (coreEndPoints.length > 0 && this.lanes && this.lanes[0] && this.lanes[0].length > 0) {
+      const pEnd = coreEndPoints[0];
       const pStart = this.lanes[0][0];
       // 若核心位於地圖中央區域 (如 World 4 與 World 5)，開局鏡頭聚焦於中央守護核心
       const isCenterCore = Math.abs(pEnd.x - this.worldWidth / 2) < this.worldWidth * 0.18 &&
@@ -1215,9 +1230,9 @@ export class Game {
       ctx.restore();
     }
 
-    // 終點防守核心
-    if (this.lanes && this.lanes.length > 0 && this.lanes[0].length > 0) {
-      const pEnd = this.lanes[0][this.lanes[0].length - 1];
+    // 終點防守核心 (支援多終點核心或單一共享核心)
+    const endPoints = this.getCoreEndPoints();
+    if (endPoints.length > 0) {
       const hpRatio = Math.max(0, this.lives / this.maxLives);
       let coreColor = '#22c55e';
       let coreBg = 'rgba(34, 197, 94, 0.2)';
@@ -1229,70 +1244,72 @@ export class Game {
         coreBg = 'rgba(245, 158, 11, 0.25)';
       }
 
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(pEnd.x, pEnd.y, 26 + Math.cos(this.portalPulse) * 3, 0, Math.PI * 2);
-      ctx.fillStyle = coreBg;
-      ctx.fill();
-      ctx.strokeStyle = coreColor;
-      ctx.lineWidth = 3.5;
-      ctx.shadowColor = coreColor;
-      ctx.shadowBlur = 14;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
+      for (const pEnd of endPoints) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(pEnd.x, pEnd.y, 26 + Math.cos(this.portalPulse) * 3, 0, Math.PI * 2);
+        ctx.fillStyle = coreBg;
+        ctx.fill();
+        ctx.strokeStyle = coreColor;
+        ctx.lineWidth = 3.5;
+        ctx.shadowColor = coreColor;
+        ctx.shadowBlur = 14;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
 
-      // 核心旋轉符文環
-      ctx.save();
-      ctx.translate(pEnd.x, pEnd.y);
-      ctx.rotate(this.portalPulse * 0.8);
-      ctx.beginPath();
-      ctx.arc(0, 0, 16, 0, Math.PI * 2);
-      ctx.setLineDash([5, 4]);
-      ctx.strokeStyle = coreColor;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.restore();
+        // 核心旋轉符文環
+        ctx.save();
+        ctx.translate(pEnd.x, pEnd.y);
+        ctx.rotate(this.portalPulse * 0.8);
+        ctx.beginPath();
+        ctx.arc(0, 0, 16, 0, Math.PI * 2);
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = coreColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
 
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 11px "Outfit", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('核心', pEnd.x, pEnd.y);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px "Outfit", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('核心', pEnd.x, pEnd.y);
 
-      // 核心生命值條
-      const badgeY = pEnd.y - 36;
-      const badgeW = 74;
-      const badgeH = 20;
+        // 核心生命值條
+        const badgeY = pEnd.y - 36;
+        const badgeW = 74;
+        const badgeH = 20;
 
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-      ctx.strokeStyle = coreColor;
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      if (ctx.roundRect) {
-        ctx.roundRect(pEnd.x - badgeW / 2, badgeY - badgeH / 2, badgeW, badgeH, 6);
-      } else {
-        ctx.rect(pEnd.x - badgeW / 2, badgeY - badgeH / 2, badgeW, badgeH);
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.strokeStyle = coreColor;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(pEnd.x - badgeW / 2, badgeY - badgeH / 2, badgeW, badgeH, 6);
+        } else {
+          ctx.rect(pEnd.x - badgeW / 2, badgeY - badgeH / 2, badgeW, badgeH);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = 'bold 11px "JetBrains Mono", monospace';
+        ctx.fillStyle = coreColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const isTutorialLevel = this.gameMode === 'tutorial' || (this.currentLevelId && this.currentLevelId.startsWith('tutorial'));
+        ctx.fillText(isTutorialLevel ? '🛡️ ∞ (教學)' : `🛡️ ${this.lives}/${this.maxLives}`, pEnd.x, badgeY - 1);
+
+        const barW = badgeW - 10;
+        const barH = 3;
+        const barX = pEnd.x - barW / 2;
+        const barY = badgeY + badgeH / 2 - 3;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.fillRect(barX, barY, barW, barH);
+        ctx.fillStyle = coreColor;
+        ctx.fillRect(barX, barY, barW * hpRatio, barH);
+
+        ctx.restore();
       }
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.font = 'bold 11px "JetBrains Mono", monospace';
-      ctx.fillStyle = coreColor;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const isTutorialLevel = this.gameMode === 'tutorial' || (this.currentLevelId && this.currentLevelId.startsWith('tutorial'));
-      ctx.fillText(isTutorialLevel ? '🛡️ ∞ (教學)' : `🛡️ ${this.lives}/${this.maxLives}`, pEnd.x, badgeY - 1);
-
-      const barW = badgeW - 10;
-      const barH = 3;
-      const barX = pEnd.x - barW / 2;
-      const barY = badgeY + badgeH / 2 - 3;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-      ctx.fillRect(barX, barY, barW, barH);
-      ctx.fillStyle = coreColor;
-      ctx.fillRect(barX, barY, barW * hpRatio, barH);
-
-      ctx.restore();
     }
 
     // 繪製防禦塔建造基座 (若有關卡定義)
@@ -1425,9 +1442,8 @@ export class Game {
       ctx.fill();
     }
 
-    // 終點核心
-    if (this.lanes && this.lanes[0] && this.lanes[0].length > 0) {
-      const pEnd = this.lanes[0][this.lanes[0].length - 1];
+    // 終點核心 (支援單一共享核心或多終點核心)
+    for (const pEnd of this.getCoreEndPoints()) {
       ctx.fillStyle = '#22c55e';
       ctx.beginPath();
       ctx.arc(mmX + pEnd.x * scaleX, mmY + pEnd.y * scaleY, 3.5, 0, Math.PI * 2);
