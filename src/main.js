@@ -115,12 +115,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const cdSpellVortex = document.getElementById('cd-spell-vortex');
   const cdSpellOverdrive = document.getElementById('cd-spell-overdrive');
 
-  // 幾何共鳴矩陣元素
-  const matrixBuffTag = document.getElementById('matrix-buff-tag');
-  const matrixChipLinks = document.getElementById('matrix-chip-links');
-  const matrixChipTriangles = document.getElementById('matrix-chip-triangles');
-  const matrixChipSpecial = document.getElementById('matrix-chip-special');
-
   // 魔王血條
   const bossBarContainer = document.getElementById('boss-bar-container');
   const bossName = document.getElementById('boss-name');
@@ -712,38 +706,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function updateMatrixHUD(matrix) {
-    if (!matrix || !matrixBuffTag) return;
-    matrixBuffTag.textContent = `攻速 ${matrix.speedBonus || '+0%'}`;
-
-    if (matrixChipLinks) {
-      matrixChipLinks.textContent = `⚡ ${matrix.linksCount || 0} 弦線`;
-      if (matrix.linksCount > 0) {
-        matrixChipLinks.classList.add('active');
-      } else {
-        matrixChipLinks.classList.remove('active');
-      }
-    }
-
-    if (matrixChipTriangles) {
-      matrixChipTriangles.textContent = `✨ ${matrix.trianglesCount || 0} 結界`;
-      if (matrix.trianglesCount > 0) {
-        matrixChipTriangles.classList.add('active');
-      } else {
-        matrixChipTriangles.classList.remove('active');
-      }
-    }
-
-    if (matrixChipSpecial) {
-      if (matrix.specialNames && matrix.specialNames.length > 0) {
-        matrixChipSpecial.textContent = matrix.specialNames[0];
-        matrixChipSpecial.classList.remove('hidden');
-      } else {
-        matrixChipSpecial.classList.add('hidden');
-      }
-    }
-  }
-
   // ==========================================================
   // 砲塔 / 秘術放大特寫 Spotlight 動態渲染控制
   // ==========================================================
@@ -1160,14 +1122,6 @@ window.addEventListener('DOMContentLoaded', () => {
         gameoverTitle.textContent = '💀 核心受損，防線崩潰！';
         gameoverDesc.textContent = `你在【${stats.currentLevelName}】奮戰至最後。複習質因數、絕對值與運算子技巧，再來挑戰一次吧！`;
         modalGameOver.classList.remove('hidden');
-      }
-
-      // 更新指揮官秘術面板
-      updateSpellButtons(stats);
-
-      // 更新幾何共鳴矩陣狀態面板
-      if (stats.matrix) {
-        updateMatrixHUD(stats.matrix);
       }
 
       // 更新建造按鈕金幣可負擔狀態
